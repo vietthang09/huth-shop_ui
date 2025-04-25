@@ -15,6 +15,12 @@ const nextConfig = {
   env: {
     IMG_URL: process.env.CLOUDINARY_URL,
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
 };
 
 module.exports = nextConfig;

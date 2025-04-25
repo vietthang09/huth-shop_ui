@@ -1,39 +1,45 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { toast } from "react-hot-toast";
 
 import { getAllProducts } from "@/actions/product/product";
 import { getTopSellingProducts, updateTopSellingProducts } from "@/actions/product/topSelling";
-import { DashboardHeading } from "@/components/dashboard/DashboardHeading";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
+import Button from "@/components/UI/button";
+import Input from "@/components/UI/input";
 import { TProduct } from "@/types/product";
 
 export default function TopSellingPage() {
   const [products, setProducts] = useState<TProduct[]>([]);
   const [topSellingProducts, setTopSellingProducts] = useState<string[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const allProducts = await getAllProducts();
-        setProducts(allProducts || []);
+        // Fetch products
+        const productsResponse = await getAllProducts();
+        if (productsResponse.res) {
+          setProducts(productsResponse.res);
+        }
 
-        const topSelling = await getTopSellingProducts();
-        setTopSellingProducts(topSelling || []);
+        // Fetch current top selling products
+        const topSellingResponse = await getTopSellingProducts();
+        if (topSellingResponse.res) {
+          setTopSellingProducts(topSellingResponse.res);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
-        toast.error("Không thể tải dữ liệu sản phẩm");
+        setErrorMessage("Lỗi khi tải dữ liệu. Vui lòng thử lại sau.");
       } finally {
         setIsLoading(false);
       }
     };
+
     fetchData();
   }, []);
 
@@ -49,12 +55,18 @@ export default function TopSellingPage() {
 
   const handleSave = async () => {
     setIsSaving(true);
+    setErrorMessage(null);
     try {
       await updateTopSellingProducts(topSellingProducts);
-      toast.success("Đã cập nhật sản phẩm bán chạy");
+      setSuccessMessage("Đã cập nhật sản phẩm bán chạy");
+
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setSuccessMessage(null);
+      }, 3000);
     } catch (error) {
       console.error("Error saving top selling products:", error);
-      toast.error("Không thể cập nhật sản phẩm bán chạy");
+      setErrorMessage("Không thể cập nhật sản phẩm bán chạy");
     } finally {
       setIsSaving(false);
     }
@@ -64,7 +76,10 @@ export default function TopSellingPage() {
 
   return (
     <div className="container py-10">
-      <DashboardHeading title="Quản lý sản phẩm bán chạy" description="Chọn sản phẩm hiển thị ở trang chủ" />
+      <div className="flex flex-col mb-6">
+        <h1 className="text-2xl font-bold mb-2">Quản lý sản phẩm bán chạy</h1>
+        <p className="text-gray-600">Chọn sản phẩm hiển thị ở trang chủ</p>
+      </div>
 
       <div className="mb-6 flex items-center gap-4">
         <Input
@@ -76,6 +91,10 @@ export default function TopSellingPage() {
         <Button onClick={handleSave} disabled={isSaving}>
           {isSaving ? "Đang lưu..." : "Lưu thay đổi"}
         </Button>
+
+        {successMessage && <span className="text-green-600">{successMessage}</span>}
+
+        {errorMessage && <span className="text-red-500">{errorMessage}</span>}
       </div>
 
       <div className="bg-white rounded-lg shadow p-6">
@@ -84,14 +103,16 @@ export default function TopSellingPage() {
         ) : (
           <div className="space-y-4">
             {filteredProducts.map((product) => (
-              <div key={product._id} className="flex items-center justify-between border-b pb-3">
+              <div key={product.id} className="flex items-center justify-between border-b pb-3">
                 <div className="flex items-center gap-3">
-                  <Checkbox
-                    id={product._id}
-                    checked={topSellingProducts.includes(product._id)}
-                    onCheckedChange={() => toggleProduct(product._id)}
+                  <input
+                    type="checkbox"
+                    id={product.id}
+                    checked={topSellingProducts.includes(product.id)}
+                    onChange={() => toggleProduct(product.id)}
+                    className="h-4 w-4"
                   />
-                  <label htmlFor={product._id} className="cursor-pointer flex-1">
+                  <label htmlFor={product.id} className="cursor-pointer flex-1">
                     {product.name}
                   </label>
                 </div>
@@ -103,10 +124,6 @@ export default function TopSellingPage() {
                 </div>
               </div>
             ))}
-
-            {filteredProducts.length === 0 && (
-              <div className="text-center py-10 text-gray-500">Không tìm thấy sản phẩm</div>
-            )}
           </div>
         )}
       </div>

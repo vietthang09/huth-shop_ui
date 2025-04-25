@@ -1,73 +1,102 @@
 "use server";
 
-import { connectToDB } from "@/lib/database";
-import { Settings } from "@/models/settings";
-import { Product } from "@/models/products";
-import { TTopSellingCard } from "@/features/product/types";
-import { TopSellingProducts as fallbackProducts } from "@/features/product/constants";
 import { revalidatePath } from "next/cache";
+import { db } from "@/lib/db";
+import { TTopSellingCard } from "@/features/product/types";
 
-// Get formatted top selling products for display on the homepage
-export async function getFormattedTopSelling(): Promise<TTopSellingCard[]> {
+/**
+ * Gets the current list of top selling product IDs
+ */
+export const getTopSellingProducts = async () => {
   try {
-    await connectToDB();
-
-    // Get the list of top selling product IDs from settings
-    const settings = await Settings.findOne();
-    if (!settings?.topSellingProducts || settings.topSellingProducts.length === 0) {
-      return [];
-    }
-
-    // Fetch the complete product data for each top selling product
-    const products = await Product.find({
-      _id: { $in: settings.topSellingProducts },
-      isActive: true,
+    const setting = await db.setting.findFirst({
+      where: { key: "topSellingProducts" },
     });
 
-    // Map database products to TTopSellingCard format
-    return products.map((product) => ({
-      name: product.name,
-      imgUrl:
-        product.images?.length > 1 ? [product.images[0], product.images[1]] : [product.images[0], product.images[0]],
-      price: product.price,
-      dealPrice: product.salePrice || undefined,
-      specs: product.features || [],
-      url: `/product/${product._id}`,
-      soldCount: product.soldCount || Math.floor(Math.random() * 500) + 100, // Fallback if no real sales data
-    }));
+    if (!setting || !setting.value) {
+      return { res: [] };
+    }
+
+    // The value is stored as a JSON string of product IDs
+    const productIds = JSON.parse(setting.value as string) as string[];
+    return { res: productIds };
   } catch (error) {
-    console.error("Failed to fetch top selling products:", error);
-    return [];
+    console.error("Error fetching top selling products:", error);
+    return { error: "Failed to fetch top selling products" };
   }
-}
+};
 
-// Get just the IDs of top selling products for the dashboard
-export async function getTopSellingProducts(): Promise<string[]> {
+/**
+ * Updates the list of top selling product IDs
+ */
+export const updateTopSellingProducts = async (productIds: string[]) => {
   try {
-    await connectToDB();
-    const settings = await Settings.findOne();
-    return settings?.topSellingProducts || [];
-  } catch (error) {
-    console.error("Failed to fetch top selling product IDs:", error);
-    return [];
-  }
-}
+    // Find existing setting or create a new one
+    const setting = await db.setting.upsert({
+      where: { key: "topSellingProducts" },
+      update: {
+        value: JSON.stringify(productIds),
+      },
+      create: {
+        key: "topSellingProducts",
+        value: JSON.stringify(productIds),
+      },
+    });
 
-// Update the list of top selling products from the dashboard
-export async function updateTopSellingProducts(productIds: string[]): Promise<boolean> {
-  try {
-    await connectToDB();
-
-    // Find settings document or create if it doesn't exist
-    await Settings.findOneAndUpdate({}, { $set: { topSellingProducts: productIds } }, { upsert: true });
-
-    // Revalidate paths that show top selling products
+    // Revalidate necessary pages
     revalidatePath("/");
     revalidatePath("/list");
 
-    return true;
+    return { res: true };
   } catch (error) {
-    console.error("Failed to update top selling products:", error);
-    return false;
+    console.error("Error updating top selling products:", error);
+    return { error: "Failed to update top selling products" };
   }
-}
+};
+
+/**
+ * Gets the top selling products formatted for display on the frontend
+ */
+export const getFormattedTopSelling = async (): Promise<TTopSellingCard[]> => {
+  try {
+    // Get the list of top selling product IDs
+    const { res: productIds, error } = await getTopSellingProducts();
+
+    if (error || !productIds || productIds.length === 0) {
+      return [];
+    }
+
+    // Fetch the actual products with these IDs
+    const products = await db.product.findMany({
+      where: {
+        id: { in: productIds },
+      },
+      select: {
+        id: true,
+        name: true,
+        images: true,
+        price: true,
+        salePrice: true,
+        specialFeatures: true,
+        soldCount: true,
+      },
+    });
+
+    // Sort them according to the order in the productIds array
+    const sortedProducts = productIds.map((id) => products.find((product) => product.id === id)).filter(Boolean);
+
+    // Convert to the format expected by the UI
+    return sortedProducts.map((product) => ({
+      name: product!.name,
+      imgUrl: [product!.images[0] || "", product!.images[1] || product!.images[0] || ""],
+      price: product!.price,
+      newPrice: product!.salePrice || undefined,
+      specs: product!.specialFeatures || [],
+      url: `/product/${product!.id}`,
+      soldCount: product!.soldCount || 0,
+    }));
+  } catch (error) {
+    console.error("Error formatting top selling products:", error);
+    return [];
+  }
+};
