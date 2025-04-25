@@ -13,7 +13,6 @@ import { TCartItemData } from "@/types/shoppingCart";
 
 import CartItem from "./_components/cartItem";
 
-
 type TProps = {
   isVisible: boolean;
   quantity?: number;
@@ -30,7 +29,7 @@ const ShoppingCart = ({ isVisible, quantity, handleOnClose }: TProps) => {
       rawData.forEach((item) => {
         cartListItem.push({
           productId: item.id,
-          imgUrl: process.env.IMG_URL + item.images[0],
+          imgUrl: item.images[0],
           price: item.price,
           quantity: localCartItems.items.find((f) => f.productId === item.id)?.quantity || 0,
           productName: item.name,

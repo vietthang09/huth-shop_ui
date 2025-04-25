@@ -20,13 +20,13 @@ const Gallery = ({ images }: TProps) => {
         {images ? (
           images.map((image, index) => (
             <Image
-              src={process.env.IMG_URL + image}
+              src={image}
               alt=""
               width={64}
               height={64}
               key={index}
               className={cn(
-                "size-16 rounded-md overflow-hidden border object-contain transition-colors duration-300",
+                "size-16 rounded-md overflow-hidden border object-cover transition-colors duration-300",
                 index === selectedIndex ? "border-gray-400" : "cursor-pointer border-gray-300 hover:border-gray-600"
               )}
               onClick={() => setSelectedIndex(index)}
@@ -43,10 +43,10 @@ const Gallery = ({ images }: TProps) => {
       <div className={"relative w-full h-[300px] sm:h-[540px]"}>
         {images ? (
           <Image
-            src={process.env.IMG_URL + images[selectedIndex]}
+            src={images[selectedIndex]}
             alt=""
             fill
-            className="cursor-zoom-in object-contain rounded-xl border border-white transition-colors duration-300 hover:border-gray-300"
+            className="cursor-zoom-in object-cover rounded-xl border border-white transition-colors duration-300 hover:border-gray-300"
             sizes="(max-width:700px)"
             onClick={() => setShowZoom(true)}
           />
@@ -67,13 +67,7 @@ const Gallery = ({ images }: TProps) => {
             >
               <CloseIcon width={16} />
             </button>
-            <Image
-              src={process.env.IMG_URL + images[selectedIndex]}
-              className="object-contain"
-              alt=""
-              fill
-              sizes="(max-width:700px)"
-            />
+            <Image src={images[selectedIndex]} className="object-contain" alt="" fill sizes="(max-width:700px)" />
           </div>
           <div
             className={
@@ -82,7 +76,7 @@ const Gallery = ({ images }: TProps) => {
           >
             {images.map((image, index) => (
               <Image
-                src={process.env.IMG_URL + image}
+                src={image}
                 alt=""
                 width={64}
                 height={64}

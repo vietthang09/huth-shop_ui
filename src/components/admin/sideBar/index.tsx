@@ -24,6 +24,12 @@ const AdminSidebar = () => {
       </Link>
       <Link
         className="w-full block px-4 py-2 text-gray-500 rounded-lg transition-colors duration-300 hover:bg-gray-100 active:bg-gray-200"
+        href={"/admin/hot-deals"}
+      >
+        Hot Deals
+      </Link>
+      <Link
+        className="w-full block px-4 py-2 text-gray-500 rounded-lg transition-colors duration-300 hover:bg-gray-100 active:bg-gray-200"
         href={"/admin/trafficView/1"}
       >
         Traffic View

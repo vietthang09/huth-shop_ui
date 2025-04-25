@@ -17,6 +17,7 @@ const ValidateAddProduct = z.object({
   brandID: z.string().min(6),
   specialFeatures: z.array(z.string()),
   desc: z.string().optional(),
+  richDesc: z.string().optional(), // Add validation for rich description
   images: z.array(z.string()),
   categoryID: z.string().min(6),
   price: z.string().min(1),
@@ -50,6 +51,7 @@ export const addProduct = async (data: TAddProductFormValues) => {
           create: {
             name: data.name,
             desc: data.desc,
+            richDesc: data.richDesc, // Add rich description
             brandID: data.brandID,
             specialFeatures: data.specialFeatures,
             isAvailable: data.isAvailable,
@@ -102,6 +104,7 @@ export const getOneProduct = async (productID: string) => {
         id: true,
         name: true,
         desc: true,
+        richDesc: true, // Select rich description
         images: true,
         price: true,
         salePrice: true,
@@ -118,8 +121,21 @@ export const getOneProduct = async (productID: string) => {
     });
 
     if (!result) return { error: "Product not found!" };
-    return { res: result };
+
+    // Create a formatted product object with specifications properly formatted
+    const formattedProduct = {
+      ...result,
+      specifications: result.specs || [],
+      // Ensure specialFeatures is an array with at least 3 items
+      specialFeatures:
+        Array.isArray(result.specialFeatures) && result.specialFeatures.length >= 3
+          ? result.specialFeatures
+          : [...(result.specialFeatures || []), "", "", ""].slice(0, 3),
+    };
+
+    return { res: formattedProduct };
   } catch (error) {
+    console.error("Get product error:", error);
     return { error: JSON.stringify(error) };
   }
 };
@@ -166,17 +182,36 @@ export const deleteProduct = async (productID: string) => {
 
 export const updateProduct = async (data: TAddProductFormValues & { id: string }) => {
   if (!data.id || data.id === "") return { error: "Invalid Product ID!" };
-  if (!ValidateAddProduct.safeParse(data).success) return { error: "Invalid Data!" };
+  if (!ValidateAddProduct.safeParse(data).success) {
+    // Return more specific validation error
+    const validation = ValidateAddProduct.safeParse(data);
+    if (!validation.success) {
+      return { error: `Validation error: ${JSON.stringify(validation.error.errors)}` };
+    }
+    return { error: "Invalid Data!" };
+  }
 
   try {
     const price = convertStringToFloat(data.price);
     const salePrice = data.salePrice ? convertStringToFloat(data.salePrice) : null;
 
+    // First, get the product to verify it exists
+    const productExists = await db.product.findUnique({
+      where: { id: data.id },
+      select: { id: true },
+    });
+
+    if (!productExists) {
+      return { error: "Product not found!" };
+    }
+
+    // Proceed with update
     const result = await db.product.update({
       where: { id: data.id },
       data: {
         name: data.name,
         desc: data.desc,
+        richDesc: data.richDesc,
         brandID: data.brandID,
         specialFeatures: data.specialFeatures,
         isAvailable: data.isAvailable,
@@ -184,12 +219,14 @@ export const updateProduct = async (data: TAddProductFormValues & { id: string }
         salePrice: salePrice,
         images: [...data.images],
         specs: data.specifications,
+        categoryID: data.categoryID, // Make sure categoryID is updated
       },
     });
 
     if (!result) return { error: "Can't Update Data" };
     return { res: result };
   } catch (error) {
+    console.error("Update error:", error);
     return { error: JSON.stringify(error) };
   }
 };

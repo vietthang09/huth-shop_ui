@@ -45,7 +45,7 @@ const NavBarShopping = () => {
             cartItemQuantity ? "text-white bg-red-500" : "text-gray-500 bg-gray-300"
           )}
         >
-          {cartItemQuantity ? `${cartItemQuantity} sản phẩm` : "Không có sản phẩm"}
+          {cartItemQuantity ? cartItemQuantity : 0}
         </span>
       </div>
       <ShoppingCart

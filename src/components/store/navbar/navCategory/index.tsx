@@ -48,7 +48,7 @@ const NavBarCategory = ({ isNavbarVisible: isNavbarHide }: TProps) => {
         )}
       >
         <ListIcon width={12} className="fill-gray-600" />
-        <span className="text-sm">All Categories</span>
+        <span className="text-sm">Tất cả</span>
       </Button>
       <div
         ref={dropdownRef}

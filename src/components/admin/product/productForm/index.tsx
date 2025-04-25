@@ -13,6 +13,7 @@ import { cn } from "@/shared/utils/styling";
 import { TGroupJSON } from "@/types/categories";
 import { TAddProductFormValues, TBrand } from "@/types/product";
 import { TDropDown } from "@/types/uiElements";
+import ProductSunEditor from "../sunEditor";
 
 const categoryListFirstItem: TDropDown = {
   text: "Select A Category....",
@@ -41,14 +42,33 @@ const ProductForm = ({ formValues: props, onChange }: TProps) => {
     const fetchCategories = async () => {
       const result = await getAllCategoriesJSON();
       if (result.res) {
-        setCategoryList(convertJSONtoDropdownList(result.res));
+        const categoryDropdownList = convertJSONtoDropdownList(result.res);
+        setCategoryList(categoryDropdownList);
+
+        // Set selected category if one exists in props
+        if (props.categoryID) {
+          const categoryIndex = categoryDropdownList.findIndex((item) => item.value === props.categoryID);
+          if (categoryIndex > -1) {
+            setSelectedCategoryListIndex(categoryIndex);
+            getSpecGroup(props.categoryID);
+          }
+        }
       }
     };
 
     const fetchBrands = async () => {
       const result = await getAllBrands();
       if (result.res) {
-        setBrandList(convertBrandsToDropdownList(result.res));
+        const brandDropdownList = convertBrandsToDropdownList(result.res);
+        setBrandList(brandDropdownList);
+
+        // Set selected brand if one exists in props
+        if (props.brandID) {
+          const brandIndex = brandDropdownList.findIndex((item) => item.value === props.brandID);
+          if (brandIndex > -1) {
+            setSelectedBrandListIndex(brandIndex);
+          }
+        }
       }
     };
 
@@ -90,7 +110,7 @@ const ProductForm = ({ formValues: props, onChange }: TProps) => {
 
     fetchCategories();
     fetchBrands();
-  }, []);
+  }, [props.categoryID, props.brandID]); // Add dependencies
 
   const handleCategoryChange = (index: number) => {
     setSelectedCategoryListIndex(index);
@@ -137,13 +157,13 @@ const ProductForm = ({ formValues: props, onChange }: TProps) => {
   };
 
   return (
-    <div className="flex flex-col overflow-y-scroll p-6 rounded-xl bg-white z-10 text-sm">
-      <div className="grid grid-col-4 gap-4">
+    <div className="flex flex-col overflow-y-auto max-h-[80vh] p-6 rounded-xl bg-white z-10 text-sm w-[900px]">
+      <div className="grid grid-col-4 gap-4 w-full">
         <div className="flex items-center justify-between">
-          <span>Name:</span>
+          <span className="min-w-[150px]">Name:</span>
           <Input
             type="text"
-            className="w-[200px]"
+            className="w-[650px]"
             value={props.name}
             placeholder="Name..."
             onChange={(e) =>
@@ -155,10 +175,10 @@ const ProductForm = ({ formValues: props, onChange }: TProps) => {
           />
         </div>
         <div className="flex items-center justify-between">
-          <span>Short Descriptions:</span>
+          <span className="min-w-[150px]">Short Descriptions:</span>
           <Input
             type="text"
-            className="w-[200px]"
+            className="w-[650px]"
             value={props.desc}
             onChange={(e) =>
               onChange({
@@ -169,9 +189,23 @@ const ProductForm = ({ formValues: props, onChange }: TProps) => {
             placeholder="Short Description..."
           />
         </div>
+
+        <div className="flex flex-col w-full mt-4">
+          <span className="min-w-[150px] mb-2">Product Detailed Description:</span>
+          <ProductSunEditor
+            value={props.richDesc || ""}
+            onChange={(content) =>
+              onChange({
+                ...props,
+                richDesc: content,
+              })
+            }
+          />
+        </div>
+
         <div className="flex items-center justify-between">
-          <span>Special Features:</span>
-          <div className="flex flex-col gap-2 mr-6">
+          <span className="min-w-[150px]">Special Features:</span>
+          <div className="flex flex-col gap-2 w-[650px]">
             <Input
               type="text"
               value={props.specialFeatures[0]}
@@ -190,10 +224,10 @@ const ProductForm = ({ formValues: props, onChange }: TProps) => {
           </div>
         </div>
         <div className="flex items-center justify-between">
-          <span>Price:</span>
+          <span className="min-w-[150px]">Price:</span>
           <Input
             type="number"
-            className="w-[200px]"
+            className="w-[650px]"
             value={props.price}
             onChange={(e) =>
               onChange({
@@ -205,10 +239,10 @@ const ProductForm = ({ formValues: props, onChange }: TProps) => {
           />
         </div>
         <div className="flex items-center justify-between">
-          <span>Sale Price:</span>
+          <span className="min-w-[150px]">Sale Price:</span>
           <Input
             type="number"
-            className="w-[200px]"
+            className="w-[650px]"
             value={props.salePrice}
             onChange={(e) =>
               onChange({
@@ -247,17 +281,17 @@ const ProductForm = ({ formValues: props, onChange }: TProps) => {
           </div>
         </div>
         <div className="flex items-center justify-between">
-          <span>Brand:</span>
+          <span className="min-w-[150px]">Brand:</span>
           <DropDownList
             data={brandList}
-            width="200px"
+            width="650px"
             selectedIndex={selectedBrandListIndex}
             onChange={handleBrandChange}
           />
         </div>
         <div className="flex items-center justify-between">
-          <span>Images:</span>
-          <div className="flex flex-col gap-2 mr-6 w-[200px] justify-between">
+          <span className="min-w-[150px]">Images:</span>
+          <div className="flex flex-col gap-2 w-[650px] justify-between">
             {props.images.map((img, index) => (
               <Input
                 key={index}
@@ -270,28 +304,30 @@ const ProductForm = ({ formValues: props, onChange }: TProps) => {
               />
             ))}
           </div>
-          <Button
-            onClick={() => {
-              props.images.push("");
-              onChange({ ...props });
-            }}
-          >
-            +
-          </Button>
-          <Button
-            onClick={() => {
-              props.images.pop();
-              onChange({ ...props });
-            }}
-          >
-            -
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => {
+                props.images.push("");
+                onChange({ ...props });
+              }}
+            >
+              +
+            </Button>
+            <Button
+              onClick={() => {
+                props.images.pop();
+                onChange({ ...props });
+              }}
+            >
+              -
+            </Button>
+          </div>
         </div>
         <div className="flex items-center justify-between">
-          <span>Category</span>
+          <span className="min-w-[150px]">Category</span>
           <DropDownList
             data={categoryList}
-            width="430px"
+            width="650px"
             selectedIndex={selectedCategoryListIndex}
             onChange={handleCategoryChange}
           />
@@ -299,7 +335,7 @@ const ProductForm = ({ formValues: props, onChange }: TProps) => {
       </div>
       <div className="mt-5 border-t border-gray-200 w-full h-auto py-4 flex flex-col">
         <span className="text-base mb-4">Specifications:</span>
-        <div className="flex-grow flex flex-col items-start gap-4 mb-6">
+        <div className="flex-grow flex flex-col items-start gap-4 mb-6 w-full">
           {categorySpecs.length ? (
             <>
               {categorySpecs.map((specGroup, groupIndex) => (
@@ -311,10 +347,10 @@ const ProductForm = ({ formValues: props, onChange }: TProps) => {
                         className="w-full flex items-center justify-between p-2 pl-4 rounded-md transition-colors duration-600 hover:bg-gray-100"
                         key={specIndex}
                       >
-                        <span>{spec}</span>
+                        <span className="min-w-[150px]">{spec}</span>
                         <Input
                           type="text"
-                          className="w-[200px]"
+                          className="w-[650px]"
                           value={props.specifications[groupIndex]?.specValues[specIndex]}
                           onChange={(e) => {
                             props.specifications[groupIndex].specValues[specIndex] = e.currentTarget.value;

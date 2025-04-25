@@ -75,6 +75,7 @@ model Product {
   name            String
   isAvailable     Boolean       @default(true)
   desc            String?
+  richDesc        String?       // Add the rich description field
   specialFeatures String[]
   images          String[]
   category        Category      @relation(fields: [categoryID], references: [id])
@@ -86,6 +87,8 @@ model Product {
   brand           Brand         @relation(fields: [brandID], references: [id])
   brandID         String        @db.ObjectId
   PageVisit       PageVisit[]
+  isHotDeal       Boolean       @default(false)
+  hotDealOrder    Int           @default(0)
 }
 
 type ProductSpec {

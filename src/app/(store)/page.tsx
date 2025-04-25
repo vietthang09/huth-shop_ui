@@ -20,10 +20,7 @@ export default function Home() {
   return (
     <div className="w-full bg-mint-500">
       <div className="storeContainer flex-col">
-        <div className="flex w-full mt-40">
-          {/* <HomeCategoryList />
-          <HomeSlider /> */}
-        </div>
+        <div className="flex w-full mt-24"></div>
         <WideCardRow cards={threeSaleCards} />
         <TodayDealCards />
         <WideCardRow cards={twoSaleCards} />

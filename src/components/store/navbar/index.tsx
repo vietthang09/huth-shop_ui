@@ -12,18 +12,14 @@ import NavBarFavorite from "./navFavorite";
 import NavBarProfile from "./navProfile";
 import NavBarShopping from "./navShopping";
 
-
-
-
 const NAVBAR_ITEMS = [
-  { name: "Computer", link: "/list/pc-laptops/computer" },
-  { name: "Laptop", link: "/list/pc-laptops/laptops" },
-  { name: "Mobile", link: "/list/smartphones" },
-  { name: "TV", link: "/list/tvs" },
-  { name: "Gaming", link: "/list/video-games" },
-  { name: "Camera", link: "/list/photography/cameras" },
-  { name: "Tablet", link: "/list/tablets" },
-  { name: "Watch", link: "/list/watches" },
+  { name: "Netflix", link: "/list/netflix" },
+  { name: "Adobe", link: "/list/adobe" },
+  { name: "Google", link: "/list/google" },
+  { name: "Microsoft", link: "/list/microsoft" },
+  { name: "Spotify", link: "/list/spotify" },
+  { name: "Canva", link: "/list/canva" },
+  { name: "AI", link: "/list/ai" },
 ];
 
 const StoreNavBar = () => {
@@ -101,21 +97,6 @@ const StoreNavBar = () => {
               ))}
             </ul>
           </div>
-          <ul className="flex items-center">
-            <li className="hidden lg:block">
-              <Link href={""} className="text-sm hover:bg-gray-100 py-2 px-4 rounded-lg transition-all duration-150">
-                PC Configuration
-              </Link>
-            </li>
-            <li className="gap-2">
-              <Link
-                href={""}
-                className="text-sm bg-[url('/icons/discountIcon.svg')] bg-[0px_10px] bg-no-repeat text-red-900 flex gap-1 md:visible hover:bg-gray-100 py-2 pl-5 pr-4 rounded-lg transition-all duration-150"
-              >
-                Top Deals
-              </Link>
-            </li>
-          </ul>
         </div>
       </section>
       <AddVisit />

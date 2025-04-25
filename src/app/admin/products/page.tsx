@@ -15,6 +15,7 @@ const initialForm: TAddProductFormValues = {
   specialFeatures: ["", "", ""],
   isAvailable: false,
   desc: "",
+  richDesc: "",
   price: "",
   salePrice: "",
   images: [],

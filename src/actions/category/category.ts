@@ -16,16 +16,16 @@ const GetAllCategories = z.object({
 
 const AddCategory = z.object({
   parentID: z.string().min(6).nullable(),
-  name: z.string().min(3),
-  url: z.string().min(3),
+  name: z.string().min(2),
+  url: z.string().min(2),
   iconSize: z.array(z.number().int()),
   iconUrl: z.string().min(3).nullable(),
 });
 
 const UpdateCategory = z.object({
   id: z.string(),
-  name: z.string().min(3).optional(),
-  url: z.string().min(3).optional(),
+  name: z.string().min(2).optional(),
+  url: z.string().min(2).optional(),
   iconSize: z.array(z.number().int()),
   iconUrl: z.string().min(3).optional(),
 });

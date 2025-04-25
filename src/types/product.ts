@@ -59,6 +59,7 @@ export type TAddProductFormValues = {
   specialFeatures: string[];
   brandID: string;
   desc?: string;
+  richDesc?: string; // Add the rich description field
   price: string;
   salePrice?: string;
   images: string[];
@@ -133,6 +134,7 @@ export type TProductPageInfo = {
   name: string;
   isAvailable: boolean;
   desc: string | null;
+  richDesc: string | null; // Add the rich description field
   images: string[];
   optionSets: string[];
   specialFeatures: string[];

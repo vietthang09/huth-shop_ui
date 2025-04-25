@@ -35,46 +35,38 @@ const TodayDealCard = ({ productName, newPrice, oldPrice, image, dealEndTime, sp
           src={image[0]}
           fill
           sizes="(max-width:240px)"
-          className="object-contain transition-all duration-400 ease-out"
+          className="object-cover transition-all duration-400 ease-out"
         />
         <Image
           alt=""
           src={image[1]}
           fill
           sizes="(max-width:240px)"
-          className="object-contain transition-all duration-400 ease-out opacity-0 scale-[0.9]"
+          className="object-cover transition-all duration-400 ease-out opacity-0 scale-[0.9]"
         />
       </Link>
       <div className="absolute top-5 left-5 rounded-md px-2 py-1 bg-bitex-red-500 text-sm text-white">
-        <span>Tiết kiệm {saveAmount.toLocaleString("en-us", { minimumFractionDigits: 2 })} €</span>
+        <span>Tiết kiệm {saveAmount.toLocaleString("vi-VN", { minimumFractionDigits: 0 })} ₫</span>
       </div>
       <Link href={url}>
         <h3 className="mt-3.5 mb-3 ml-2 text-gray-600">{productName}</h3>
       </Link>
-      <div className="h-14 w-full ml-2">
-        {!!spec.length &&
-          spec.map((item, index) => (
-            <span key={index} className="block h-3.5 mb-1 text-sm text-gray-500">
-              {item}
-            </span>
-          ))}
-      </div>
       <div className="flex justify-between mx-2 mt-2">
         <section>
           <span className="block text-gray-500 text-sm">
             Giá cũ{" "}
-            {oldPrice.toLocaleString("en-us", {
+            {oldPrice.toLocaleString("vi-VN", {
               useGrouping: true,
-              minimumFractionDigits: 2,
+              minimumFractionDigits: 0,
             })}{" "}
-            €
+            ₫
           </span>
           <span className="block text-lg font-medium text-gray-900">
-            {newPrice.toLocaleString("en-us", {
+            {newPrice.toLocaleString("vi-VN", {
               useGrouping: true,
-              minimumFractionDigits: 2,
+              minimumFractionDigits: 0,
             })}{" "}
-            €
+            ₫
           </span>
         </section>
         <section className="text-center text-red-600 flex items-center flex-col gap-1.5">

@@ -66,18 +66,29 @@ const ProductPage = () => {
           </div>
           <div className="lg:w-[512px] w-full">
             {productInfo ? (
-              <ProductBoard
-                boardData={{
-                  id: productInfo.id,
-                  isAvailable: productInfo.isAvailable,
-                  defaultQuantity: 1,
-                  name: productInfo.name,
-                  price: productInfo.price,
-                  dealPrice: productInfo.salePrice || undefined,
-                  shortDesc: productInfo.desc || "",
-                  specialFeatures: productInfo.specialFeatures,
-                }}
-              />
+              <>
+                <ProductBoard
+                  boardData={{
+                    id: productInfo.id,
+                    isAvailable: productInfo.isAvailable,
+                    defaultQuantity: 1,
+                    name: productInfo.name,
+                    price: productInfo.price,
+                    dealPrice: productInfo.salePrice || undefined,
+                    shortDesc: productInfo.desc || "",
+                    specialFeatures: productInfo.specialFeatures,
+                  }}
+                />
+                {productInfo.richDesc && (
+                  <div className="mt-6 p-4 border border-gray-200 rounded-lg">
+                    <h3 className="text-lg font-medium text-gray-700 mb-2">Mô tả sản phẩm</h3>
+                    <div
+                      className="text-sm text-gray-600 product-description"
+                      dangerouslySetInnerHTML={{ __html: productInfo.richDesc }}
+                    />
+                  </div>
+                )}
+              </>
             ) : (
               <div className="flex flex-col">
                 <SK_Box width="60%" height="14px" />

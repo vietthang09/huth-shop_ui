@@ -43,8 +43,16 @@ const ProductListItem = ({ data, requestReload }: TProps) => {
 
   const handleEdit = async () => {
     setIsLoading(true);
-    const response = await updateProduct({ ...formValues, id: data.id });
+    const response = await updateProduct({
+      ...formValues,
+      id: data.id,
+      price: formValues.price || "0",
+      salePrice: formValues.salePrice || "",
+      specialFeatures: formValues.specialFeatures.length ? formValues.specialFeatures : ["", "", ""],
+    });
+
     if (response.error) {
+      console.error("Update error:", response.error);
       setIsLoading(false);
     }
     if (response.res) {
@@ -66,9 +74,10 @@ const ProductListItem = ({ data, requestReload }: TProps) => {
       setFormValues({
         name: product.name,
         brandID: product.brandID || "",
-        specialFeatures: product.specialFeatures || [],
+        specialFeatures: product.specialFeatures || ["", "", ""],
         isAvailable: product.isAvailable,
         desc: product.desc || "",
+        richDesc: product.richDesc || "",
         price: product.price ? product.price.toString() : "",
         salePrice: product.salePrice ? product.salePrice.toString() : "",
         images: product.images || [],
@@ -103,7 +112,7 @@ const ProductListItem = ({ data, requestReload }: TProps) => {
       {showEdit && (
         <Popup
           content={<ProductForm formValues={formValues} onChange={setFormValues} />}
-          width="500px"
+          width="1000px" // Change from 500px to 1000px to accommodate the wider form
           isLoading={isLoading}
           onCancel={() => setShowEdit(false)}
           onClose={() => setShowEdit(false)}
