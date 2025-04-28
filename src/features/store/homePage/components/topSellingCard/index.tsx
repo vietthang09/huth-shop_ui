@@ -3,11 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { getFormattedTopSelling } from "@/actions/product/topSelling";
-import { TopSellingProducts as fallbackProducts } from "@/features/product/constants";
+import { getFormattedTopSellingProducts } from "@/actions/product/topSelling";
 import { TTopSellingCard } from "@/features/product/types";
 
-import TopSellingCard from "./TopSellingCard";
+import ProductCard from "@/components/store/common/productCard";
 
 export const TopSellingCards = () => {
   const [products, setProducts] = useState<TTopSellingCard[]>([]);
@@ -18,17 +17,12 @@ export const TopSellingCards = () => {
       setIsLoading(true);
       try {
         // Get top selling products from the database
-        const topSellingProducts = await getFormattedTopSelling();
-        // Use the top selling products from DB if available, otherwise fall back to mock data
+        const topSellingProducts = await getFormattedTopSellingProducts();
         if (topSellingProducts && topSellingProducts.length > 0) {
           setProducts(topSellingProducts);
-        } else {
-          // Comment this line out for production like in the TodayDeals component
-          // setProducts(fallbackProducts);
         }
       } catch (error) {
         console.error("Error fetching top selling products:", error);
-        setProducts(fallbackProducts);
       } finally {
         setIsLoading(false);
       }
@@ -37,8 +31,9 @@ export const TopSellingCards = () => {
     fetchTopSelling();
   }, []);
 
+  // Don't render anything if loading or no products
   if (isLoading || products.length === 0) {
-    return null; // Or a loading skeleton
+    return null;
   }
 
   return (
@@ -54,15 +49,17 @@ export const TopSellingCards = () => {
       </div>
       <div className="flex justify-between gap-3.5 overflow-x-scroll pb-7 2xl:pb-0 2xl:overflow-x-hidden">
         {products.map((product) => (
-          <TopSellingCard
+          <ProductCard
             key={product.url}
-            productName={product.name}
-            oldPrice={product.price}
-            newPrice={product.dealPrice}
-            image={product.imgUrl}
-            spec={product.specs}
+            name={product.name}
+            price={product.price}
+            dealPrice={product.dealPrice}
+            imgUrl={product.imgUrl}
+            specs={product.specs}
             url={product.url}
-            soldCount={product.soldCount}
+            staticWidth
+            fromColor={product.fromColor}
+            toColor={product.toColor}
           />
         ))}
       </div>

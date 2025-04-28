@@ -1,6 +1,7 @@
 "use server";
 import { ProductSpec } from "@prisma/client";
 import { z } from "zod";
+import { revalidatePath } from "next/cache";
 
 import { db } from "@/lib/db";
 import {
@@ -35,38 +36,36 @@ const convertStringToFloat = (str: string) => {
   return str ? parseFloat(str) : 0.0;
 };
 
-export const addProduct = async (data: TAddProductFormValues) => {
-  if (!ValidateAddProduct.safeParse(data).success) return { error: "Invalid Data!" };
-
+export const addProduct = async (formData: TAddProductFormValues) => {
   try {
-    const price = convertStringToFloat(data.price);
-    const salePrice = data.salePrice ? convertStringToFloat(data.salePrice) : null;
-
-    const result = db.category.update({
-      where: {
-        id: data.categoryID,
-      },
+    // Create the new product
+    await db.product.create({
       data: {
-        products: {
-          create: {
-            name: data.name,
-            desc: data.desc,
-            richDesc: data.richDesc, // Add rich description
-            brandID: data.brandID,
-            specialFeatures: data.specialFeatures,
-            isAvailable: data.isAvailable,
-            price: price,
-            salePrice: salePrice,
-            images: [...data.images],
-            specs: data.specifications,
-          },
-        },
+        name: formData.name,
+        desc: formData.desc,
+        richDesc: formData.richDesc,
+        isAvailable: formData.isAvailable,
+        brandID: formData.brandID,
+        price: parseFloat(formData.price),
+        salePrice: formData.salePrice ? parseFloat(formData.salePrice) : null,
+        images: formData.images,
+        specialFeatures: formData.specialFeatures.filter((feature) => feature.length > 0),
+        categoryID: formData.categoryID,
+        specifications: formData.specifications,
+        fromColor: formData.fromColor, // Add these fields
+        toColor: formData.toColor, // Add these fields
       },
     });
-    if (!result) return { error: "Can't Insert Data" };
-    return { res: result };
+
+    // Revalidate paths to reflect changes
+    revalidatePath("/");
+    revalidatePath("/admin/products");
+    revalidatePath("/list");
+
+    return { res: "success" };
   } catch (error) {
-    return { error: JSON.stringify(error) };
+    console.error("Error adding product:", error);
+    return { error: "Failed to add product" };
   }
 };
 
@@ -104,7 +103,7 @@ export const getOneProduct = async (productID: string) => {
         id: true,
         name: true,
         desc: true,
-        richDesc: true, // Select rich description
+        richDesc: true,
         images: true,
         price: true,
         salePrice: true,
@@ -112,6 +111,8 @@ export const getOneProduct = async (productID: string) => {
         specialFeatures: true,
         isAvailable: true,
         brandID: true,
+        fromColor: true, // Add these fields to ensure they're returned
+        toColor: true, // Add these fields to ensure they're returned
         category: {
           select: {
             id: true,
@@ -180,54 +181,49 @@ export const deleteProduct = async (productID: string) => {
   }
 };
 
-export const updateProduct = async (data: TAddProductFormValues & { id: string }) => {
-  if (!data.id || data.id === "") return { error: "Invalid Product ID!" };
-  if (!ValidateAddProduct.safeParse(data).success) {
-    // Return more specific validation error
-    const validation = ValidateAddProduct.safeParse(data);
-    if (!validation.success) {
-      return { error: `Validation error: ${JSON.stringify(validation.error.errors)}` };
-    }
-    return { error: "Invalid Data!" };
-  }
-
+export const updateProduct = async (id: string, formData: TAddProductFormValues) => {
   try {
-    const price = convertStringToFloat(data.price);
-    const salePrice = data.salePrice ? convertStringToFloat(data.salePrice) : null;
-
-    // First, get the product to verify it exists
-    const productExists = await db.product.findUnique({
-      where: { id: data.id },
-      select: { id: true },
+    // Log the formData to check what we're trying to update
+    console.log("Updating product with data:", {
+      id,
+      name: formData.name,
+      fromColor: formData.fromColor,
+      toColor: formData.toColor,
     });
 
-    if (!productExists) {
-      return { error: "Product not found!" };
-    }
-
-    // Proceed with update
-    const result = await db.product.update({
-      where: { id: data.id },
+    // Update the product
+    const updated = await db.product.update({
+      where: { id },
       data: {
-        name: data.name,
-        desc: data.desc,
-        richDesc: data.richDesc,
-        brandID: data.brandID,
-        specialFeatures: data.specialFeatures,
-        isAvailable: data.isAvailable,
-        price: price,
-        salePrice: salePrice,
-        images: [...data.images],
-        specs: data.specifications,
-        categoryID: data.categoryID, // Make sure categoryID is updated
+        name: formData.name,
+        desc: formData.desc,
+        richDesc: formData.richDesc,
+        isAvailable: formData.isAvailable,
+        brandID: formData.brandID,
+        price: parseFloat(formData.price),
+        salePrice: formData.salePrice ? parseFloat(formData.salePrice) : null,
+        images: formData.images,
+        specialFeatures: formData.specialFeatures.filter((feature) => feature.length > 0),
+        categoryID: formData.categoryID,
+        specifications: formData.specifications,
+        fromColor: formData.fromColor,
+        toColor: formData.toColor,
       },
     });
 
-    if (!result) return { error: "Can't Update Data" };
-    return { res: result };
+    console.log("Update result:", updated);
+
+    // Revalidate paths to reflect changes
+    revalidatePath("/");
+    revalidatePath("/admin/products");
+    revalidatePath("/list");
+    revalidatePath(`/product/${id}`);
+
+    return { res: "success" };
   } catch (error) {
-    console.error("Update error:", error);
-    return { error: JSON.stringify(error) };
+    console.error("Error updating product:", error);
+    // Return the specific error message for debugging
+    return { error: `Failed to update product: ${error.message}` };
   }
 };
 

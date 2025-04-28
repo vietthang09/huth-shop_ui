@@ -2,13 +2,15 @@ import { NameValue, OptionSetType, PageType } from "@prisma/client";
 
 export type TProductCard = {
   name: string;
-  isAvailable?: boolean;
-  specs: string[];
+  imgUrl: string[];
   price: number;
   dealPrice?: number;
-  imgUrl: [string, string];
+  specs: string[];
   url: string;
+  isAvailable?: boolean;
   staticWidth?: boolean;
+  fromColor?: string;
+  toColor?: string;
 };
 
 export type TSlide = {
@@ -23,10 +25,12 @@ export type TSlide = {
 };
 
 export type TBlogCard = {
+  _id: string;
   title: string;
   imgUrl: string;
-  url: string;
   shortText: string;
+  slug: string;
+  createdAt: string;
 };
 
 type TSubCategory = {

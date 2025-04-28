@@ -55,26 +55,35 @@ export type TProduct = {
 
 export type TAddProductFormValues = {
   name: string;
-  isAvailable: boolean;
-  specialFeatures: string[];
   brandID: string;
-  desc?: string;
-  richDesc?: string; // Add the rich description field
-  price: string;
-  salePrice?: string;
-  images: string[];
   categoryID: string;
+  specialFeatures: string[];
+  isAvailable: boolean;
+  desc: string;
+  richDesc: string;
+  price: string;
+  salePrice: string;
+  images: string[];
   specifications: ProductSpec[];
+  fromColor?: string;
+  toColor?: string;
 };
 
 export type TProductListItem = {
   id: string;
   name: string;
+  isAvailable: boolean;
+  price: number;
+  salePrice: number | null;
+  images: string[];
   category: {
     id: string;
     name: string;
   };
+  fromColor?: string; // Add gradient start color
+  toColor?: string; // Add gradient end color
 };
+
 export type TCartListItemDB = {
   id: string;
   name: string;
@@ -137,9 +146,12 @@ export type TProductPageInfo = {
   richDesc: string | null; // Add the rich description field
   images: string[];
   optionSets: string[];
-  specialFeatures: string[];
   price: number;
   salePrice: number | null;
+  specialFeatures: string[];
+  isHotDeal: boolean;
   specifications: TSpecification[];
   path: TPath[];
+  fromColor?: string; // Add gradient start color
+  toColor?: string; // Add gradient end color
 };

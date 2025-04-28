@@ -1,53 +1,42 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
+import { revalidatePath } from "next/cache";
 import { TTopSellingCard } from "@/features/product/types";
 
 /**
- * Gets the current list of top selling product IDs
- */
-export const getTopSellingProducts = async () => {
-  try {
-    const setting = await db.setting.findFirst({
-      where: { key: "topSellingProducts" },
-    });
-
-    if (!setting || !setting.value) {
-      return { res: [] };
-    }
-
-    // The value is stored as a JSON string of product IDs
-    const productIds = JSON.parse(setting.value as string) as string[];
-    return { res: productIds };
-  } catch (error) {
-    console.error("Error fetching top selling products:", error);
-    return { error: "Failed to fetch top selling products" };
-  }
-};
-
-/**
- * Updates the list of top selling product IDs
+ * Updates the top selling products in the database
  */
 export const updateTopSellingProducts = async (productIds: string[]) => {
+  if (!productIds) return { error: "Invalid product IDs!" };
+
   try {
-    // Find existing setting or create a new one
-    const setting = await db.setting.upsert({
-      where: { key: "topSellingProducts" },
-      update: {
-        value: JSON.stringify(productIds),
-      },
-      create: {
-        key: "topSellingProducts",
-        value: JSON.stringify(productIds),
+    // First, reset the top selling status for all products
+    await db.product.updateMany({
+      data: {
+        isTopSelling: false,
       },
     });
 
-    // Revalidate necessary pages
-    revalidatePath("/");
-    revalidatePath("/list");
+    // Then set the new top selling products
+    if (productIds.length > 0) {
+      // Update all selected products to be top selling
+      await Promise.all(
+        productIds.map(async (productId, index) => {
+          await db.product.update({
+            where: { id: productId },
+            data: {
+              isTopSelling: true,
+              topSellingOrder: index, // Store the order
+            },
+          });
+        })
+      );
+    }
 
-    return { res: true };
+    // Revalidate the home page to reflect changes
+    revalidatePath("/");
+    return { success: true };
   } catch (error) {
     console.error("Error updating top selling products:", error);
     return { error: "Failed to update top selling products" };
@@ -55,21 +44,17 @@ export const updateTopSellingProducts = async (productIds: string[]) => {
 };
 
 /**
- * Gets the top selling products formatted for display on the frontend
+ * Gets the current top selling products with full details needed for display
  */
-export const getFormattedTopSelling = async (): Promise<TTopSellingCard[]> => {
+export const getTopSellingProducts = async () => {
   try {
-    // Get the list of top selling product IDs
-    const { res: productIds, error } = await getTopSellingProducts();
-
-    if (error || !productIds || productIds.length === 0) {
-      return [];
-    }
-
-    // Fetch the actual products with these IDs
-    const products = await db.product.findMany({
+    // Get products marked as top selling
+    const topSellingProducts = await db.product.findMany({
       where: {
-        id: { in: productIds },
+        isTopSelling: true,
+      },
+      orderBy: {
+        topSellingOrder: "asc",
       },
       select: {
         id: true,
@@ -78,22 +63,45 @@ export const getFormattedTopSelling = async (): Promise<TTopSellingCard[]> => {
         price: true,
         salePrice: true,
         specialFeatures: true,
-        soldCount: true,
+        isAvailable: true,
+        category: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
 
-    // Sort them according to the order in the productIds array
-    const sortedProducts = productIds.map((id) => products.find((product) => product.id === id)).filter(Boolean);
+    // The data is already in the format we need
+    return { success: true, data: topSellingProducts };
+  } catch (error) {
+    console.error("Error fetching top selling products:", error);
+    return { error: "Failed to fetch top selling products" };
+  }
+};
 
-    // Convert to the format expected by the UI
-    return sortedProducts.map((product) => ({
-      name: product!.name,
-      imgUrl: [product!.images[0] || "", product!.images[1] || product!.images[0] || ""],
-      price: product!.price,
-      newPrice: product!.salePrice || undefined,
-      specs: product!.specialFeatures || [],
-      url: `/product/${product!.id}`,
-      soldCount: product!.soldCount || 0,
+/**
+ * Gets top selling products formatted for the front-end TopSellingCards component
+ */
+export const getFormattedTopSellingProducts = async (): Promise<TTopSellingCard[]> => {
+  try {
+    const response = await getTopSellingProducts();
+
+    if (!response.success || !response.data || response.data.length === 0) {
+      return [];
+    }
+
+    // Convert the database results to the TTopSellingCard format
+    return response.data.map((product) => ({
+      name: product.name,
+      imgUrl: product.images.slice(0, 2),
+      price: product.price,
+      dealPrice: product.salePrice || undefined,
+      specs: product.specialFeatures,
+      url: `/product/${product.id}`,
+      soldCount: product.soldCount || 0,
+      fromColor: product.fromColor || undefined,
+      toColor: product.toColor || undefined,
     }));
   } catch (error) {
     console.error("Error formatting top selling products:", error);

@@ -3,11 +3,9 @@ import { Metadata } from "next";
 import {
   CollectionCards,
   CompanyLogoList,
-  HomeCategoryList,
-  HomeSlider,
   LatestBlogPosts,
   TodayDealCards,
-  TopSellingProductsList,
+  TopSellingCards,
   WideCardRow,
 } from "@/features/store/homePage/components";
 import { threeSaleCards, twoSaleCards } from "@/features/store/homePage/constants";
@@ -25,7 +23,7 @@ export default function Home() {
         <TodayDealCards />
         <WideCardRow cards={twoSaleCards} />
         <CollectionCards />
-        <TopSellingProductsList />
+        <TopSellingCards />
         <LatestBlogPosts />
         <CompanyLogoList />
       </div>

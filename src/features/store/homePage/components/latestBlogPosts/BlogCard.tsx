@@ -1,11 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { TBlogCard } from "@/types/common";
+type BlogCardProps = {
+  title: string;
+  imgUrl: string;
+  shortText: string;
+  url: string;
+};
 
-const HomeBlogCard = ({ title, imgUrl, shortText, url }: TBlogCard) => {
+const HomeBlogCard = ({ title, imgUrl, shortText, url }: BlogCardProps) => {
   return (
-    <div className="rounded-xl overflow-hidden bg-white transition-shadow duration-300 hover:drop-shadow-sm">
+    <div className="rounded-xl overflow-hidden bg-white transition-shadow duration-300 hover:drop-shadow-sm flex-1">
       <Link href={url} className="w-full h-[250px] block relative">
         <Image src={imgUrl} fill alt={title} sizes="(max-width:430px)" className="object-cover" />
       </Link>

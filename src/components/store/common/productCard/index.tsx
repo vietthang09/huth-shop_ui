@@ -1,8 +1,10 @@
+"use client";
 import Image from "next/image";
 import Link from "next/link";
 
 import { cn } from "@/shared/utils/styling";
 import { TProductCard } from "@/types/common";
+import { useImageColors } from "@/hooks/useImageColors";
 
 const ProductCard = ({
   name,
@@ -13,14 +15,36 @@ const ProductCard = ({
   url,
   isAvailable = true,
   staticWidth = false,
+  fromColor,
+  toColor,
 }: TProductCard) => {
+  // Only use the hook if custom colors aren't provided
+  const {
+    fromColor: detectedFromColor,
+    toColor: detectedToColor,
+    error,
+  } = !fromColor || !toColor ? useImageColors(imgUrl[0]) : { fromColor: null, toColor: null, error: null };
+
+  // Use custom colors if provided, otherwise use detected colors
+  const gradientFromColor = fromColor || detectedFromColor;
+  const gradientToColor = toColor || detectedToColor;
+
+  const gradientStyle =
+    gradientFromColor && gradientToColor && !error
+      ? {
+          background: `linear-gradient(to top, ${gradientFromColor}, ${gradientToColor})`,
+        }
+      : {};
+
   return (
     <Link
       href={url}
       className={cn(
-        "bg-white rounded-xl p-2 transition-all duration-500 relative hover:drop-shadow-sm hover:[&_.imageWrapper>img:last-child]:opacity-100 hover:[&_.imageWrapper>img:last-child]:scale-[1.05]",
+        "rounded-xl p-2 transition-all duration-500 relative hover:drop-shadow-sm hover:[&_.imageWrapper>img:last-child]:opacity-100 hover:[&_.imageWrapper>img:last-child]:scale-[1.05]",
+        error && !(fromColor && toColor) ? "bg-gradient-to-t from-black to-red-500" : "",
         staticWidth && "min-w-64"
       )}
+      style={gradientStyle}
     >
       {!isAvailable && (
         <div className="flex left-2 right-2 bottom-2 top-2 bg-white/40 backdrop-blur-[1px] absolute z-[1] items-center justify-center rounded-lg">
@@ -29,7 +53,7 @@ const ProductCard = ({
           </span>
         </div>
       )}
-      <div className="imageWrapper hover:border-gray-300 w-full h-[225px] block relative rounded-xl border border-gray-200 overflow-hidden transition-all duration-500">
+      <div className="imageWrapper w-full h-[225px] block relative rounded-xl overflow-hidden transition-all duration-500">
         <Image
           src={imgUrl[0]}
           alt={name}
@@ -45,7 +69,7 @@ const ProductCard = ({
           className="object-cover transition-all duration-400 ease-out opacity-0 scale-[0.9]"
         />
       </div>
-      <span className="inline-block text-gray-800 mt-2.5 mb-2 ml-2">{name}</span>
+      <span className="inline-block text-white mt-2.5 mb-2 ml-2">{name}</span>
       <div className="flex items-center h-10 mt-6 ml-2">
         <div className="flex-grow relative">
           {dealPrice ? (
@@ -58,11 +82,11 @@ const ProductCard = ({
                   })}
                   %
                 </span>
-                <span className="block w-full line-through text-gray-700 text-sm ml-2">
+                <span className="block w-full line-through text-white text-sm ml-2">
                   giá cũ {price.toLocaleString("vi-VN", { minimumFractionDigits: 0 })}₫
                 </span>
               </div>
-              <span className="text-lg font-medium text-gray-800">
+              <span className="text-lg font-medium text-white">
                 {dealPrice.toLocaleString("vi-VN", {
                   minimumFractionDigits: 0,
                 })}
@@ -70,7 +94,7 @@ const ProductCard = ({
               </span>
             </>
           ) : (
-            <span className="text-lg font-medium text-gray-800">
+            <span className="text-lg font-medium text-white">
               {price.toLocaleString("vi-VN", { minimumFractionDigits: 0 })}₫
             </span>
           )}

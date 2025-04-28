@@ -71,6 +71,8 @@ export const getHotDeals = async () => {
             name: true,
           },
         },
+        fromColor: true,
+        toColor: true, // Add gradient colors if available
       },
     });
 
@@ -95,13 +97,15 @@ export const getFormattedHotDeals = async (): Promise<TDealCard[]> => {
 
     // Convert the database results to the TDealCard format
     return response.data.map((product) => ({
+      id: product.id,
       name: product.name,
       imgUrl: product.images.slice(0, 2),
       price: product.price,
-      dealPrice: product.salePrice || 0,
-      specs: product.specialFeatures || [],
+      dealPrice: product.salePrice || product.price,
+      specs: product.specialFeatures,
       url: `/product/${product.id}`,
-      dealDate: new Date("1970-01-01T18:00:00"), // Default date for countdown
+      fromColor: product.fromColor || undefined,
+      toColor: product.toColor || undefined,
     }));
   } catch (error) {
     console.error("Error formatting hot deals:", error);

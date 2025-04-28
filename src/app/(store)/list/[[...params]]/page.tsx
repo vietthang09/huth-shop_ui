@@ -179,6 +179,8 @@ const ListPage = () => {
             dealPrice={product.salePrice || undefined}
             specs={product.specialFeatures}
             url={"/product/" + product.id}
+            fromColor={product.fromColor}
+            toColor={product.toColor}
           />
         ))}
       </div>

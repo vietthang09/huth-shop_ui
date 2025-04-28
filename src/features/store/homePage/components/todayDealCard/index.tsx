@@ -4,10 +4,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { getFormattedHotDeals } from "@/actions/product/hotdeals";
-import { TodayDeals as fallbackDeals } from "@/features/product/constants";
 import { TDealCard } from "@/features/product/types";
 
-import TodayDealCard from "./TodayDealCard";
+import ProductCard from "@/components/store/common/productCard";
 
 export const TodayDealCards = () => {
   const [deals, setDeals] = useState<TDealCard[]>([]);
@@ -22,12 +21,9 @@ export const TodayDealCards = () => {
         // Use the hot deals from DB if available, otherwise fall back to mock data
         if (hotDeals && hotDeals.length > 0) {
           setDeals(hotDeals);
-        } else {
-          // setDeals(fallbackDeals);
         }
       } catch (error) {
         console.error("Error fetching hot deals:", error);
-        setDeals(fallbackDeals);
       } finally {
         setIsLoading(false);
       }
@@ -53,15 +49,17 @@ export const TodayDealCards = () => {
       </div>
       <div className="flex justify-between gap-3.5 overflow-x-scroll pb-7 2xl:pb-0 2xl:overflow-x-hidden">
         {deals.map((deal, index) => (
-          <TodayDealCard
+          <ProductCard
             key={deal.url}
-            productName={deal.name}
-            oldPrice={deal.price}
-            newPrice={deal.dealPrice}
-            image={deal.imgUrl}
-            spec={deal.specs}
-            dealEndTime={deal.dealDate}
+            name={deal.name}
+            price={deal.price}
+            dealPrice={deal.dealPrice}
+            imgUrl={deal.imgUrl}
+            specs={deal.specs}
             url={deal.url}
+            staticWidth
+            fromColor={deal.fromColor}
+            toColor={deal.toColor}
           />
         ))}
       </div>

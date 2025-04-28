@@ -62,30 +62,33 @@ const ProductListItem = ({ data, requestReload }: TProps) => {
     }
   };
 
-  const handleShowEdit = async () => {
-    setIsLoading(true);
-    const response = await getOneProduct(data.id);
-    if (response.error) {
-      setIsLoading(false);
-      return;
-    }
-    if (response.res) {
-      const product = response.res;
-      setFormValues({
-        name: product.name,
-        brandID: product.brandID || "",
-        specialFeatures: product.specialFeatures || ["", "", ""],
-        isAvailable: product.isAvailable,
-        desc: product.desc || "",
-        richDesc: product.richDesc || "",
-        price: product.price ? product.price.toString() : "",
-        salePrice: product.salePrice ? product.salePrice.toString() : "",
-        images: product.images || [],
-        categoryID: product.category.id,
-        specifications: product.specifications || [],
-      });
-      setIsLoading(false);
-      setShowEdit(true);
+  const handleEditRequest = async () => {
+    if (!showEdit) {
+      setIsLoading(true);
+      const response = await getOneProduct(data.id);
+      if (response.res) {
+        const product = response.res;
+        // Log what we get from the API
+        console.log("Product data for editing:", product);
+
+        setFormValues({
+          name: product.name,
+          brandID: product.brandID || "",
+          specialFeatures: product.specialFeatures || ["", "", ""],
+          isAvailable: product.isAvailable,
+          desc: product.desc || "",
+          richDesc: product.richDesc || "",
+          price: product.price ? product.price.toString() : "",
+          salePrice: product.salePrice ? product.salePrice.toString() : "",
+          images: product.images || [],
+          categoryID: product.category.id,
+          specifications: product.specifications || [],
+          fromColor: product.fromColor || "", // Make sure we include these
+          toColor: product.toColor || "", // Make sure we include these
+        });
+        setIsLoading(false);
+        setShowEdit(true);
+      }
     }
   };
 
@@ -94,7 +97,7 @@ const ProductListItem = ({ data, requestReload }: TProps) => {
       <span className={"styles.name"}>{data.name}</span>
       <span className={"styles.category"}>{data.category.name}</span>
       <div className="flex gap-2 justify-end">
-        <Button onClick={handleShowEdit}>edit</Button>
+        <Button onClick={handleEditRequest}>edit</Button>
         <Button onClick={() => setShowDelete(true)}>delete</Button>
       </div>
       {showDelete && (

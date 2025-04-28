@@ -11,7 +11,6 @@ import ProductCard from "@/components/store/common/productCard";
 import Gallery from "@/components/store/productPage/gallery";
 import ProductBoard from "@/components/store/productPage/productBoard";
 import { SK_Box } from "@/components/UI/skeleton";
-import { TopProducts } from "@/features/product/constants";
 import { TProductPageInfo } from "@/types/product";
 
 const ProductPage = () => {
@@ -23,10 +22,7 @@ const ProductPage = () => {
   useEffect(() => {
     const getProductFromDB = async () => {
       const response = await getOneProduct(productId.toString());
-      // console.log(response);
-      // if (response.error) router.push("/");
-      console.log(response.res);
-      setProductInfo(response.res);
+      setProductInfo(response.res as any);
     };
     getProductFromDB();
   }, [productId, router]);
@@ -213,23 +209,6 @@ const ProductPage = () => {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-        <div className="w-full my-[100px]">
-          <h2 className="font-light block text-2xl text-gray-900">Sản phẩm tương tự</h2>
-          <div className="flex justify-between gap-3.5 w-full overflow-x-scroll pb-2">
-            {TopProducts.map((product, index) => (
-              <ProductCard
-                key={index}
-                imgUrl={product.imgUrl}
-                name={product.name}
-                price={product.price}
-                specs={product.specs}
-                url={product.url}
-                dealPrice={product.dealPrice}
-                staticWidth
-              />
-            ))}
           </div>
         </div>
       </div>

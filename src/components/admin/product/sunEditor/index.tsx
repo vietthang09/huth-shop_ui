@@ -1,77 +1,71 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-
-// Dynamically import SunEditor to avoid server-side rendering issues
-const SunEditor = dynamic(() => import("suneditor-react"), {
-  ssr: false,
-});
-
-// Import suneditor CSS
 import "suneditor/dist/css/suneditor.min.css";
 
-type SunEditorProps = {
+// Dynamically import SunEditor to avoid SSR issues
+const SunEditor = dynamic(() => import("suneditor-react"), {
+  ssr: false,
+  loading: () => <div className="border border-gray-300 p-4 min-h-[300px] rounded-md">Loading editor...</div>,
+});
+
+// Import the button list and plugins if needed
+import SunEditorCore from "suneditor/src/lib/core";
+import { buttonList } from "suneditor-react";
+import { plugins } from "suneditor/src/plugins";
+
+interface ProductSunEditorProps {
   value: string;
   onChange: (content: string) => void;
-  placeholder?: string;
-  height?: string;
-};
+}
 
-const ProductSunEditor = ({
-  value,
-  onChange,
-  placeholder = "Enter product description...",
-  height = "300px",
-}: SunEditorProps) => {
-  const editorRef = useRef<any>(null);
-  const [initialContent, setInitialContent] = useState(value || "");
+const ProductSunEditor = ({ value, onChange }: ProductSunEditorProps) => {
+  const [mounted, setMounted] = useState(false);
 
-  // Initialize editor with value on first render
+  // Only render the editor client-side to avoid hydration issues
   useEffect(() => {
-    setInitialContent(value);
+    setMounted(true);
   }, []);
 
-  // Update editor content when value changes from external source
-  useEffect(() => {
-    if (editorRef.current && value !== editorRef.current.getContents()) {
-      editorRef.current.setContents(value || "");
-    }
-  }, [value]);
-
-  // Editor configuration
+  // Editor settings
   const options = {
-    height,
+    height: "300px",
     buttonList: [
       ["undo", "redo"],
       ["font", "fontSize", "formatBlock"],
-      ["paragraphStyle", "blockquote"],
       ["bold", "underline", "italic", "strike", "subscript", "superscript"],
-      ["fontColor", "hiliteColor", "textStyle"],
       ["removeFormat"],
+      ["fontColor", "hiliteColor"],
       ["outdent", "indent"],
-      ["align", "horizontalRule", "list", "lineHeight"],
-      ["table", "link", "image"],
+      ["align", "horizontalRule", "list", "table"],
+      ["link", "image", "video"],
       ["fullScreen", "showBlocks", "codeView"],
     ],
-    placeholder,
+    plugins: plugins,
+    // Disable auto height to fix iframe height issues
+    autoHeight: false,
+    // Set a fixed height for the editing area
+    height: "300px",
+    // Set a default width
     width: "100%",
   };
 
-  const handleEditorChange = (content: string) => {
-    onChange(content);
+  // Handle the editor initialization
+  const handleEditorLoad = (sunEditor: SunEditorCore) => {
+    // Disable auto height function to prevent errors
+    if (sunEditor._iframeAutoHeight) {
+      sunEditor._iframeAutoHeight = null;
+    }
   };
 
+  if (!mounted) {
+    return <div className="border border-gray-300 p-4 min-h-[300px] rounded-md">Loading editor...</div>;
+  }
+
   return (
-    <div className="sun-editor-container">
-      <SunEditor
-        getSunEditorInstance={(sunEditor) => {
-          editorRef.current = sunEditor;
-        }}
-        setOptions={options}
-        onChange={handleEditorChange}
-        defaultValue={initialContent}
-      />
+    <div className="suneditor-wrapper">
+      <SunEditor setContents={value} onChange={onChange} setOptions={options} onLoad={handleEditorLoad} />
     </div>
   );
 };

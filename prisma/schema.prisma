@@ -71,24 +71,29 @@ enum OptionSetType {
 }
 
 model Product {
-  id              String        @id @default(auto()) @map("_id") @db.ObjectId
-  name            String
-  isAvailable     Boolean       @default(true)
-  desc            String?
-  richDesc        String?       // Add the rich description field
-  specialFeatures String[]
-  images          String[]
-  category        Category      @relation(fields: [categoryID], references: [id])
-  categoryID      String        @db.ObjectId
-  optionSets      String[]      @db.ObjectId
-  price           Float
-  salePrice       Float?
-  specs           ProductSpec[]
-  brand           Brand         @relation(fields: [brandID], references: [id])
-  brandID         String        @db.ObjectId
-  PageVisit       PageVisit[]
-  isHotDeal       Boolean       @default(false)
-  hotDealOrder    Int           @default(0)
+  id                String     @id @default(auto()) @map("_id") @db.ObjectId
+  name              String
+  desc              String?
+  richDesc          String?
+  price             Float
+  salePrice         Float?
+  images            String[]
+  specialFeatures   String[]
+  isAvailable       Boolean    @default(true)
+  specifications    Json?     
+  isHotDeal         Boolean    @default(false)
+  hotDealOrder      Int?
+  fromColor         String?
+  toColor           String?
+  category          Category      @relation(fields: [categoryID], references: [id])
+  categoryID        String        @db.ObjectId
+  optionSets        String[]      @db.ObjectId
+  specs             ProductSpec[]
+  brand             Brand         @relation(fields: [brandID], references: [id])
+  brandID           String        @db.ObjectId
+  PageVisit         PageVisit[]
+  isTopSelling      Boolean  @default(false)
+  topSellingOrder   Int?
 }
 
 type ProductSpec {
@@ -146,4 +151,20 @@ model User {
   hashedPassword String?
   image          String?
   accounts       Account[]
+  blogs          Blog[]    // Add this field to create the relation with blogs
+}
+
+// ---------------------- BLOG SECTION ----------------------
+model Blog {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  content     String
+  shortText   String?
+  imgUrl      String?
+  slug        String   @unique
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  author      User?    @relation(fields: [authorId], references: [id])
+  authorId    String?  @db.ObjectId
 }

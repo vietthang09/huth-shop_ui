@@ -364,11 +364,7 @@ const ProductForm = ({ formValues, onChange }: TProps) => {
                 <HexColorPicker
                   color={formValues.fromColor || "#000000"}
                   onChange={(color) => {
-                    // Create a new copy of formValues to ensure state updates correctly
-                    onChange({
-                      ...formValues,
-                      fromColor: color,
-                    });
+                    onChange({ ...formValues, fromColor: color });
                   }}
                 />
                 <button
@@ -404,11 +400,7 @@ const ProductForm = ({ formValues, onChange }: TProps) => {
                 <HexColorPicker
                   color={formValues.toColor || "#000000"}
                   onChange={(color) => {
-                    // Create a new copy of formValues to ensure state updates correctly
-                    onChange({
-                      ...formValues,
-                      toColor: color,
-                    });
+                    onChange({ ...formValues, toColor: color });
                   }}
                 />
                 <button
