@@ -14,7 +14,6 @@ import { cn } from "@/shared/utils/styling";
 import { TGroupJSON } from "@/types/categories";
 import { TAddProductFormValues, TBrand } from "@/types/product";
 import { TDropDown } from "@/types/uiElements";
-import ProductSunEditor from "../sunEditor";
 
 const categoryListFirstItem: TDropDown = {
   text: "Select A Category....",
@@ -197,15 +196,6 @@ const ProductForm = ({ formValues, onChange }: TProps) => {
 
         <div className="flex flex-col w-full mt-4">
           <span className="min-w-[150px] mb-2">Product Detailed Description:</span>
-          <ProductSunEditor
-            value={formValues.richDesc || ""}
-            onChange={(content) =>
-              onChange({
-                ...formValues,
-                richDesc: content,
-              })
-            }
-          />
         </div>
 
         <div className="flex items-center justify-between">
