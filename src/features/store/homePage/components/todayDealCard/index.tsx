@@ -16,9 +16,7 @@ export const TodayDealCards = () => {
     const fetchHotDeals = async () => {
       setIsLoading(true);
       try {
-        // Get hot deals from the database
         const hotDeals = await getFormattedHotDeals();
-        // Use the hot deals from DB if available, otherwise fall back to mock data
         if (hotDeals && hotDeals.length > 0) {
           setDeals(hotDeals);
         }
@@ -47,7 +45,7 @@ export const TodayDealCards = () => {
           Xem tất cả
         </Link>
       </div>
-      <div className="flex justify-between gap-3.5 overflow-x-scroll pb-7 2xl:pb-0 2xl:overflow-x-hidden">
+      <div className="flex lg:flex-wrap justify-between lg:justify-start gap-3.5 overflow-x-scroll pb-7 2xl:pb-0 2xl:overflow-x-hidden">
         {deals.map((deal, index) => (
           <ProductCard
             key={deal.url}

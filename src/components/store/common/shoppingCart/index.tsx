@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
 
 import { getCartProducts } from "@/actions/product/product";
 import { CloseIcon, ShoppingIconEmpty } from "@/components/icons/svgIcons";
@@ -22,6 +23,7 @@ type TProps = {
 const ShoppingCart = ({ isVisible, quantity, handleOnClose }: TProps) => {
   const [cartItems, setCartItems] = useState<TCartItemData[]>();
   const localCartItems = useSelector((state: RootState) => state.cart);
+  const router = useRouter();
 
   useEffect(() => {
     const convertDBtoCartItems = (rawData: TCartListItemDB[]) => {
@@ -61,6 +63,21 @@ const ShoppingCart = ({ isVisible, quantity, handleOnClose }: TProps) => {
     }
   }, [localCartItems]);
 
+  // Calculate total price
+  const calculateTotal = () => {
+    if (!cartItems || cartItems.length === 0) return 0;
+
+    return cartItems.reduce((total, item) => {
+      const itemPrice = item.dealPrice || item.price;
+      return total + itemPrice * item.quantity;
+    }, 0);
+  };
+
+  const handleCheckout = () => {
+    handleOnClose();
+    router.push("/checkout");
+  };
+
   return (
     <div
       className={cn(
@@ -95,9 +112,23 @@ const ShoppingCart = ({ isVisible, quantity, handleOnClose }: TProps) => {
         </div>
         <div className="absolute bottom-0 left-0 right-0 h-[140px] bg-white border-t border-gray-300 flex flex-col items-center justify-center gap-4 mx-6">
           {!!cartItems?.length && (
-            <Button className="w-4/5 text-sm font-semibold text-green-700 border-green-300 bg-green-50">
-              CHECKOUT
-            </Button>
+            <>
+              <div className="w-full flex justify-between items-center px-4 mb-1">
+                <span className="text-gray-700 font-medium">Tổng cộng:</span>
+                <span className="text-lg font-semibold text-gray-800">
+                  {calculateTotal().toLocaleString("vi-VN", {
+                    style: "currency",
+                    currency: "VND",
+                  })}
+                </span>
+              </div>
+              <Button
+                onClick={handleCheckout}
+                className="w-4/5 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 border-green-700"
+              >
+                THANH TOÁN
+              </Button>
+            </>
           )}
           <Button
             onClick={handleOnClose}

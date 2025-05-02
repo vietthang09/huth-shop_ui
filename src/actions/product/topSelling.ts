@@ -99,9 +99,6 @@ export const getFormattedTopSellingProducts = async (): Promise<TTopSellingCard[
       dealPrice: product.salePrice || undefined,
       specs: product.specialFeatures,
       url: `/product/${product.id}`,
-      soldCount: product.soldCount || 0,
-      fromColor: product.fromColor || undefined,
-      toColor: product.toColor || undefined,
     }));
   } catch (error) {
     console.error("Error formatting top selling products:", error);

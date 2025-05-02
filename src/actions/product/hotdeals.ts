@@ -99,7 +99,7 @@ export const getFormattedHotDeals = async (): Promise<TDealCard[]> => {
     return response.data.map((product) => ({
       id: product.id,
       name: product.name,
-      imgUrl: product.images.slice(0, 2),
+      imgUrl: product.images.slice(0, 1),
       price: product.price,
       dealPrice: product.salePrice || product.price,
       specs: product.specialFeatures,

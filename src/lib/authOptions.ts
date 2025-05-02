@@ -1,17 +1,16 @@
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
 
 import { db } from "./db";
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(db),
   providers: [
     CredentialsProvider({
       name: "credentials",
       credentials: {
-        email: { label: "email", type: "text" },
-        password: { label: "password", type: "password" },
+        email: { label: "Email", type: "text" },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -28,15 +27,34 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Invalid credentials");
         }
 
-        if (credentials.password !== user.hashedPassword) {
+        // Use bcrypt to compare passwords
+        const isPasswordValid = await bcrypt.compare(credentials.password, user.hashedPassword);
+
+        if (!isPasswordValid) {
           throw new Error("Invalid credentials");
         }
+
         return user;
       },
     }),
   ],
-  session: {
-    strategy: "jwt",
+  callbacks: {
+    async jwt({ token, user }) {
+      console.log("JWT callback:", token, user);
+      if (user) {
+        token.role = user.role;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      console.log("Session callback:", session, token);
+      if (token.sub && session.user) {
+        session.user.id = token.sub;
+        // Add the role to the session
+        session.user.role = token.role as string;
+      }
+      return session;
+    },
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === "development",

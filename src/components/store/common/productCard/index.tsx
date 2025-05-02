@@ -61,13 +61,6 @@ const ProductCard = ({
           sizes="(max-width: 240px)"
           className="object-cover transition-all duration-400 ease-out"
         />
-        <Image
-          src={imgUrl[1]}
-          alt={name}
-          fill
-          sizes="(max-width: 240px)"
-          className="object-cover transition-all duration-400 ease-out opacity-0 scale-[0.9]"
-        />
       </div>
       <span className="inline-block text-white mt-2.5 mb-2 ml-2">{name}</span>
       <div className="flex items-center h-10 mt-6 ml-2">

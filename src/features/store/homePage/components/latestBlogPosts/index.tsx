@@ -13,7 +13,7 @@ export const LatestBlogPosts = () => {
     const fetchBlogs = async () => {
       try {
         setLoading(true);
-        const result = await getPublishedBlogs(3);
+        const result = await getPublishedBlogs(4);
 
         if (Array.isArray(result)) {
           setBlogs(
@@ -23,6 +23,7 @@ export const LatestBlogPosts = () => {
               shortText: blog.shortText || "",
               imgUrl: blog.imgUrl || "/images/placeholder.jpg",
               slug: blog.slug,
+              createdAt: new Date(blog.createdAt).toLocaleString(),
             }))
           );
           setError(null);

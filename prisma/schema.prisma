@@ -94,6 +94,7 @@ model Product {
   PageVisit         PageVisit[]
   isTopSelling      Boolean  @default(false)
   topSellingOrder   Int?
+  orderItems       OrderItem[]
 }
 
 type ProductSpec {
@@ -144,14 +145,74 @@ model Account {
 }
 
 model User {
-  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  id             String    @id @default(cuid()) @map("_id")
   name           String?
   email          String?   @unique
   emailVerified  DateTime?
-  hashedPassword String?
   image          String?
+  hashedPassword String?
+  role           String    @default("customer") // Add role field with default value "customer"
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
   accounts       Account[]
   blogs          Blog[]    // Add this field to create the relation with blogs
+  orders       Order[]
+}
+
+model Order {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String      @db.ObjectId
+  user          User        @relation(fields: [userId], references: [id])
+  status        OrderStatus @default(PENDING)
+  total         Float
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  orderItems    OrderItem[]
+  shippingInfo  ShippingInfo?
+  paymentInfo   PaymentInfo?
+}
+
+model OrderItem {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  orderId     String  @db.ObjectId
+  order       Order   @relation(fields: [orderId], references: [id])
+  productId   String  @db.ObjectId
+  product     Product @relation(fields: [productId], references: [id])
+  quantity    Int
+  price       Float
+  totalPrice  Float
+}
+
+model ShippingInfo {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  orderId     String  @unique @db.ObjectId
+  order       Order   @relation(fields: [orderId], references: [id])
+  fullName    String
+  address     String
+  city        String
+  province    String
+  postalCode  String
+  phone       String
+}
+
+model PaymentInfo {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  orderId       String   @unique @db.ObjectId
+  order         Order    @relation(fields: [orderId], references: [id])
+  amount        Float
+  method        String   @default("bank_transfer")
+  status        String   @default("pending")
+  transactionId String?
+  paidAt        DateTime?
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
 }
 
 // ---------------------- BLOG SECTION ----------------------
