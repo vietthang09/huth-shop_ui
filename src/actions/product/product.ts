@@ -183,14 +183,6 @@ export const deleteProduct = async (productID: string) => {
 
 export const updateProduct = async (id: string, formData: TAddProductFormValues) => {
   try {
-    // Log the formData to check what we're trying to update
-    console.log("Updating product with data:", {
-      id,
-      name: formData.name,
-      fromColor: formData.fromColor,
-      toColor: formData.toColor,
-    });
-
     // Update the product
     const updated = await db.product.update({
       where: { id },

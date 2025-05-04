@@ -140,12 +140,37 @@ const ProductForm = ({ formValues, onChange }: TProps) => {
     const response = await getCategorySpecs(categoryID);
     if (response.res) {
       const specArray: ProductSpec[] = [];
+
+      // Create a map of existing spec values by specGroupID for quick lookup
+      const existingSpecsMap = new Map();
+      if (formValues.specifications && formValues.specifications.length > 0) {
+        formValues.specifications.forEach((spec) => {
+          existingSpecsMap.set(spec.specGroupID, spec.specValues);
+        });
+      }
+
       response.res.forEach((item) => {
+        // Check if we have existing values for this specGroupID
+        const existingValues = existingSpecsMap.get(item.id);
+
+        // Make sure we have enough values to match the specs array length
+        let specValues = item.specs.map(() => "");
+        if (existingValues && Array.isArray(existingValues)) {
+          // Only use existing values if array length matches
+          if (existingValues.length === item.specs.length) {
+            specValues = existingValues;
+          } else if (existingValues.length > 0) {
+            // Try to preserve existing values, but ensure correct length
+            specValues = item.specs.map((_, idx) => (idx < existingValues.length ? existingValues[idx] : ""));
+          }
+        }
+
         specArray.push({
           specGroupID: item.id,
-          specValues: item.specs.map(() => ""),
+          specValues: specValues,
         });
       });
+
       onChange({
         ...formValues,
         specifications: JSON.parse(JSON.stringify(specArray)),

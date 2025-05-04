@@ -3,6 +3,7 @@
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { TDealCard } from "@/features/product/types";
+import { count } from "console";
 
 /**
  * Updates the hot deals products in the database
@@ -58,6 +59,7 @@ export const getHotDeals = async () => {
       orderBy: {
         hotDealOrder: "asc",
       },
+      take: 15,
       select: {
         id: true,
         name: true,

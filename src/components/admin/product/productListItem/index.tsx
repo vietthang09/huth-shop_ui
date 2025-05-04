@@ -27,6 +27,7 @@ const ProductListItem = ({ data, requestReload }: TProps) => {
     images: [],
     categoryID: "",
     specifications: [],
+    richDesc: "",
   });
 
   const handleDelete = async () => {
@@ -43,9 +44,8 @@ const ProductListItem = ({ data, requestReload }: TProps) => {
 
   const handleEdit = async () => {
     setIsLoading(true);
-    const response = await updateProduct({
+    const response = await updateProduct(data.id, {
       ...formValues,
-      id: data.id,
       price: formValues.price || "0",
       salePrice: formValues.salePrice || "",
       specialFeatures: formValues.specialFeatures.length ? formValues.specialFeatures : ["", "", ""],

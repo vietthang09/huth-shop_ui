@@ -41,8 +41,8 @@ const ProductCard = ({
       href={url}
       className={cn(
         "rounded-xl p-2 transition-all duration-500 relative hover:drop-shadow-sm hover:[&_.imageWrapper>img:last-child]:opacity-100 hover:[&_.imageWrapper>img:last-child]:scale-[1.05]",
-        error && !(fromColor && toColor) ? "bg-gradient-to-t from-black to-red-500" : "",
-        staticWidth && "min-w-64"
+        error && !(fromColor && toColor) ? "bg-gradient-to-t   from-black to-red-500" : "",
+        staticWidth && "w-64"
       )}
       style={gradientStyle}
     >

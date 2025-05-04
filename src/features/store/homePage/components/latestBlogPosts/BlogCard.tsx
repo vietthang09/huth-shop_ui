@@ -10,16 +10,19 @@ type BlogCardProps = {
 
 const HomeBlogCard = ({ title, imgUrl, shortText, url }: BlogCardProps) => {
   return (
-    <div className="rounded-xl overflow-hidden bg-white transition-shadow duration-300 hover:drop-shadow-sm flex-1">
+    <div className="overflow-hidden flex-1 space-y-4">
       <Link href={url} className="w-full h-[250px] block relative">
-        <Image src={imgUrl} fill alt={title} sizes="(max-width:430px)" className="object-cover" />
+        <Image src={imgUrl} fill alt={title} sizes="(max-width:430px)" className="rounded-xl object-cover" />
       </Link>
       <Link href={url}>
-        <h2 className="font-medium text-gray-800 my-6 mx-7 border-b border-white">{title}</h2>
+        <h2 className="font-medium text-gray-800 line-clamp-2">{title}</h2>
       </Link>
-      <span className="text-sm block leading-6 mx-7 mb-7 text-gray-800">
-        {shortText.length > 180 ? shortText.slice(0, 180) + "..." : shortText}
-      </span>
+      <p className="mt-4 text-sm opacity-50 line-clamp-3">{shortText}</p>
+      <div className="">
+        <Link href={url} className="text-ms hover:underline">
+          Chi tiết
+        </Link>
+      </div>
     </div>
   );
 };

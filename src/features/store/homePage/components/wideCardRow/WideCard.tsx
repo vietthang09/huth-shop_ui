@@ -15,7 +15,7 @@ export const WideCard = ({ imgUrl, linkText = "Xem ưu đãi", smallTitle, title
       </Link>
       <Image
         src={imgUrl}
-        className="z-1 absolute rounded-xl w-full h-full object-cover"
+        className="z-1 absolute rounded-xl w-full h-full object-cover brightness-50"
         fill
         alt={title}
         sizes="(max-width:440px)"

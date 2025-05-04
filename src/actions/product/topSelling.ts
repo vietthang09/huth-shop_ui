@@ -56,6 +56,7 @@ export const getTopSellingProducts = async () => {
       orderBy: {
         topSellingOrder: "asc",
       },
+      take: 15,
       select: {
         id: true,
         name: true,

@@ -10,7 +10,7 @@ interface ImageColors {
 
 const defaultColors = {
   fromColor: "black",
-  toColor: "red-500",
+  toColor: "bg-red-500",
   error: false,
 };
 
@@ -21,97 +21,61 @@ export const useImageColors = (imageUrl: string): ImageColors => {
     const extractColors = async () => {
       try {
         const img = new Image();
+
+        // Ensure compatibility with cross-origin images
         img.crossOrigin = "Anonymous";
 
         img.onload = () => {
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d");
-          if (!ctx) {
-            setColors(defaultColors);
-            return;
-          }
-
-          // Set canvas size - can be smaller than image for performance
-          const canvasWidth = Math.min(100, img.width);
-          const canvasHeight = Math.min(100, img.height);
-          canvas.width = canvasWidth;
-          canvas.height = canvasHeight;
-
-          // Draw image scaled down to canvas size
-          ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
-
-          // Get all pixel data
-          const imageData = ctx.getImageData(0, 0, canvasWidth, canvasHeight).data;
-
-          // Create buckets for colors to find dominant ones
-          const colorMap: Record<string, number> = {};
-
-          // Sample pixels at regular intervals for better performance
-          const sampleSize = 10; // Only process every 10th pixel
-          for (let i = 0; i < imageData.length; i += 4 * sampleSize) {
-            const r = imageData[i];
-            const g = imageData[i + 1];
-            const b = imageData[i + 2];
-
-            // Skip nearly white or black pixels
-            if ((r > 240 && g > 240 && b > 240) || (r < 15 && g < 15 && b < 15)) {
-              continue;
+          try {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+            if (!ctx) {
+              setColors(defaultColors);
+              return;
             }
 
-            // Create a simplified color key (reduce precision for better grouping)
-            const key = `${Math.floor(r / 10) * 10},${Math.floor(g / 10) * 10},${Math.floor(b / 10) * 10}`;
+            // Set canvas size
+            canvas.width = img.width;
+            canvas.height = img.height;
 
-            if (colorMap[key]) {
-              colorMap[key]++;
-            } else {
-              colorMap[key] = 1;
+            // Draw image to canvas
+            ctx.drawImage(img, 0, 0);
+
+            // Get pixel data for top-left corner
+            let topLeftPixel = ctx.getImageData(0, 0, 1, 1).data;
+            let fromColor = `rgb(${topLeftPixel[0]}, ${topLeftPixel[1]}, ${topLeftPixel[2]})`;
+
+            // Get pixel data for bottom-right corner
+            let bottomRightPixel = ctx.getImageData(img.width - 1, img.height - 1, 1, 1).data;
+            let toColor = `rgb(${bottomRightPixel[0]}, ${bottomRightPixel[1]}, ${bottomRightPixel[2]})`;
+
+            // Check if colors are white and find darkest alternatives
+            if (isWhite(topLeftPixel)) {
+              topLeftPixel = findDarkestColor(ctx, img.width, img.height);
+              fromColor = `rgb(${topLeftPixel[0]}, ${topLeftPixel[1]}, ${topLeftPixel[2]})`;
             }
-          }
 
-          // Sort colors by frequency
-          const sortedColors = Object.entries(colorMap)
-            .sort((a, b) => b[1] - a[1])
-            .map((entry) => entry[0].split(",").map(Number));
+            if (isWhite(bottomRightPixel)) {
+              bottomRightPixel = findDarkestColor(ctx, img.width, img.height);
+              toColor = `rgb(${bottomRightPixel[0]}, ${bottomRightPixel[1]}, ${bottomRightPixel[2]})`;
+            }
 
-          if (sortedColors.length < 2) {
+            setColors({
+              fromColor,
+              toColor,
+              error: false,
+            });
+          } catch (error) {
             setColors(defaultColors);
-            return;
           }
-
-          // Get the most frequent and second most frequent distinct colors
-          const topColor = `rgb(${sortedColors[0][0]}, ${sortedColors[0][1]}, ${sortedColors[0][2]})`;
-
-          // Find a distinct second color (with some distance from the first)
-          let secondColorIndex = 1;
-          while (
-            secondColorIndex < sortedColors.length &&
-            isColorTooSimilar(sortedColors[0], sortedColors[secondColorIndex])
-          ) {
-            secondColorIndex++;
-          }
-
-          // If we couldn't find a distinct second color, just use the next most common
-          if (secondColorIndex >= sortedColors.length) {
-            secondColorIndex = 1;
-          }
-
-          const secondColor =
-            secondColorIndex < sortedColors.length
-              ? `rgb(${sortedColors[secondColorIndex][0]}, ${sortedColors[secondColorIndex][1]}, ${sortedColors[secondColorIndex][2]})`
-              : `rgb(${sortedColors[0][0] / 2}, ${sortedColors[0][1] / 2}, ${sortedColors[0][2] / 2})`;
-
-          setColors({
-            fromColor: topColor,
-            toColor: secondColor,
-            error: false,
-          });
         };
 
         img.onerror = () => {
           setColors(defaultColors);
         };
 
-        img.src = imageUrl;
+        // Ensure the image is fully loaded before processing
+        img.src = imageUrl + (imageUrl.includes("?") ? "&" : "?") + "cache-buster=" + new Date().getTime();
       } catch (error) {
         setColors(defaultColors);
       }
@@ -124,6 +88,37 @@ export const useImageColors = (imageUrl: string): ImageColors => {
 
   return colors;
 };
+
+// Helper function to check if a color is white
+function isWhite(color: Uint8ClampedArray): boolean {
+  return color[0] > 240 && color[1] > 240 && color[2] > 240;
+}
+
+// Helper function to find the darkest color in the image
+function findDarkestColor(ctx: CanvasRenderingContext2D, width: number, height: number): Uint8ClampedArray {
+  const imageData = ctx.getImageData(0, 0, width, height).data;
+  let darkestColor = new Uint8ClampedArray([255, 255, 255, 255]); // Start with white
+  let darkestBrightness = Infinity;
+
+  for (let i = 0; i < imageData.length; i += 4) {
+    const r = imageData[i];
+    const g = imageData[i + 1];
+    const b = imageData[i + 2];
+    const brightness = calculateBrightness([r, g, b]);
+
+    if (brightness < darkestBrightness) {
+      darkestBrightness = brightness;
+      darkestColor = new Uint8ClampedArray([r, g, b, 255]);
+    }
+  }
+
+  return darkestColor;
+}
+
+// Helper function to calculate brightness of a color
+function calculateBrightness(color: number[]): number {
+  return 0.299 * color[0] + 0.587 * color[1] + 0.114 * color[2];
+}
 
 // Helper function to check if colors are too similar
 function isColorTooSimilar(color1: number[], color2: number[]): boolean {

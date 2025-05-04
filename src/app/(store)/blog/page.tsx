@@ -31,7 +31,7 @@ const BlogListPage = async () => {
             <Link
               key={blog.id}
               href={`/blog/${blog.slug}`}
-              className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+              className="overflow-hidden shadow-sm hover:shadow-md transition-shadow"
             >
               {blog.imgUrl && (
                 <div className="w-full h-48 relative">

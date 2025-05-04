@@ -32,6 +32,7 @@ const DropDownList = ({ data, width = "auto", selectedIndex = 0, onChange }: TPr
   return (
     <button
       onClick={toggleMenu}
+      type="button"
       className={
         "relative cursor-pointer flex justify-between items-center gap-8 px-4 py-1.5 rounded-md border border-gray-200 transition-all duration-400 hover:bg-gray-100 active:bg-gray-200"
       }

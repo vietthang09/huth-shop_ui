@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Metadata } from "next";
 import { getBlogBySlug } from "@/actions/blog";
-import Script from "next/script";
 import TableOfContents from "@/components/blog/TableOfContents";
 
 interface BlogDetailPageProps {
@@ -54,39 +53,9 @@ const BlogDetailPage = async ({ params }: BlogDetailPageProps) => {
       })
     : "";
 
-  // Generate JSON-LD for better SEO
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    headline: blog.title,
-    description: blog.shortText || "",
-    image: blog.imgUrl || "",
-    datePublished: blog.createdAt?.toISOString(),
-    dateModified: blog.updatedAt?.toISOString(),
-    author: {
-      "@type": "Person",
-      name: blog.author?.name || "BITEX Team",
-    },
-    publisher: {
-      "@type": "Organization",
-      name: "BITEX",
-      logo: {
-        "@type": "ImageObject",
-        url: "https://yourwebsite.com/logo.png", // Replace with your actual logo URL
-      },
-    },
-    mainEntityOfPage: {
-      "@type": "WebPage",
-      "@id": `https://yourwebsite.com/blog/${blog.slug}`, // Replace with your actual domain
-    },
-  };
-
   return (
     <>
-      {/* JSON-LD structured data */}
-      <Script id="json-ld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-
-      <div className=" py-12 bg-gray-50">
+      <div className="mt-28 py-12 bg-gray-50">
         {/* Magazine-style header with featured image */}
         <div className="max-w-5xl mx-auto mb-10">
           <div className="flex items-center text-sm mb-6 bg-white p-3 rounded-lg shadow-sm">
