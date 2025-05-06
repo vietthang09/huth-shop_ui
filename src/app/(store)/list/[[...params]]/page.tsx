@@ -179,6 +179,7 @@ const ListPage = () => {
             dealPrice={product.salePrice || undefined}
             specs={product.specialFeatures}
             url={"/product/" + product.id}
+            mainColor={pathName.toUpperCase().includes("netflix".toUpperCase()) ? "red" : "green"}
           />
         ))}
       </div>

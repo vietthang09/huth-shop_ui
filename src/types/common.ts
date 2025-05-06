@@ -7,6 +7,7 @@ export type TProductCard = {
   dealPrice?: number;
   specs: string[];
   url: string;
+  mainColor?: string;
   isAvailable?: boolean;
   staticWidth?: boolean;
   fromColor?: string;

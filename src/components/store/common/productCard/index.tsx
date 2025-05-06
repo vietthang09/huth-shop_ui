@@ -15,8 +15,7 @@ const ProductCard = ({
   url,
   isAvailable = true,
   staticWidth = false,
-  fromColor,
-  toColor,
+  mainColor = "green",
 }: TProductCard) => {
   return (
     <div
@@ -27,13 +26,15 @@ const ProductCard = ({
       )}
     >
       <div
-        className={`absolute top-0 -translate-y-1/2 right-0 translate-x-1/2 bg-red-600/50 h-56 w-56 rounded-full blur-3xl`}
+        className={`absolute top-0 -translate-y-1/2 right-0 translate-x-1/2 bg-${mainColor}-600/50 h-56 w-56 rounded-full blur-3xl`}
       />
       <div
-        className={`absolute bottom-0 translate-y-1/2 left-0 -translate-x-1/2 bg-red-600/50 h-56 w-56 rounded-full blur-3xl`}
+        className={`absolute bottom-0 translate-y-1/2 left-0 -translate-x-1/2 bg-${mainColor}-600/50 h-56 w-56 rounded-full blur-3xl`}
       />
 
-      <button className="w-8 h-8 p-2 absolute top-2 right-2 text-red-500 bg-white rounded-full flex items-center justify-center">
+      <button
+        className={`w-8 h-8 p-2 absolute top-2 right-2 text-${mainColor}-500 bg-white rounded-full flex items-center justify-center`}
+      >
         <Heart />
       </button>
 
@@ -46,7 +47,7 @@ const ProductCard = ({
       )}
 
       {dealPrice && (
-        <div className="z-20 flex space-x-1 absolute left-6 top-4 text-center -translate-x-1/2 -rotate-45 text-white bg-orange-600 text-lg px-16 py-[2px] items-center justify-center">
+        <div className="z-20 flex space-x-1 absolute left-6 top-4 text-center -translate-x-1/2 -rotate-45 text-white bg-red-700 text-lg px-16 py-[2px] items-center justify-center">
           <span className="text-sm font-semibold">
             Sale{" "}
             {(100 - (dealPrice / price) * 100).toLocaleString("vi-VN", {
@@ -57,7 +58,7 @@ const ProductCard = ({
         </div>
       )}
 
-      <div className="z-10 w-full">
+      <div className="z-10 w-full h-full">
         <div className="imageWrapper w-full h-[240px] flex items-center justify-center relative rounded-t-xl overflow-hidden transition-all duration-500">
           <Image
             src={imgUrl[0]}
@@ -68,7 +69,9 @@ const ProductCard = ({
         </div>
         <div className="z-20 p-3 space-y-2 bg-linear-to-b from-black/10 to-black">
           <span className="inline-block text-lg font-medium text-white">{name}</span>
-          <p className="text-red-400 border border-red-400 px-3 py-[2px] font-medium text-xs w-fit rounded-full">
+          <p
+            className={`text-${mainColor}-400 border border-${mainColor}-400 px-3 py-[2px] font-medium text-xs w-fit rounded-full`}
+          >
             Giải trí
           </p>
           <div className="flex items-center">
@@ -91,8 +94,8 @@ const ProductCard = ({
                 </span>
               )}
             </div>
-            <button className={`bg-red-50 rounded-full p-[5px] flex items-center justify-between`}>
-              <div className={`bg-white text-red-500 rounded-full p-2 flex items-center justify-center`}>
+            <button className={`bg-${mainColor}-50 rounded-full p-[5px] flex items-center justify-between`}>
+              <div className={`bg-white text-${mainColor}-500 rounded-full p-2 flex items-center justify-center`}>
                 <ShoppingCart className="w-4 h-4" />
               </div>
             </button>
