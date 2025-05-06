@@ -17,6 +17,50 @@ const ProductCard = ({
   staticWidth = false,
   mainColor = "green",
 }: TProductCard) => {
+  // Create style objects for dynamic color backgrounds
+  const topBgStyle = {
+    backgroundColor: `rgba(var(--${mainColor}-600), 0.5)`,
+  };
+
+  const bottomBgStyle = {
+    backgroundColor: `rgba(var(--${mainColor}-600), 0.5)`,
+  };
+
+  // Create dynamic classes based on mainColor
+  const getColorClass = (type: string, shade: number) => {
+    const colorClasses: Record<string, Record<number, string>> = {
+      text: {
+        400: cn({
+          "text-green-400": mainColor === "green",
+          "text-blue-400": mainColor === "blue",
+          "text-red-400": mainColor === "red",
+          "text-purple-400": mainColor === "purple",
+          // Add more color options as needed
+        }),
+      },
+      border: {
+        400: cn({
+          "border-green-400": mainColor === "green",
+          "border-blue-400": mainColor === "blue",
+          "border-red-400": mainColor === "red",
+          "border-purple-400": mainColor === "purple",
+          // Add more color options as needed
+        }),
+      },
+      bg: {
+        50: cn({
+          "bg-green-50": mainColor === "green",
+          "bg-blue-50": mainColor === "blue",
+          "bg-red-50": mainColor === "red",
+          "bg-purple-50": mainColor === "purple",
+          // Add more color options as needed
+        }),
+      },
+    };
+
+    return colorClasses[type][shade];
+  };
+
   return (
     <div
       className={cn(
@@ -26,14 +70,19 @@ const ProductCard = ({
       )}
     >
       <div
-        className={`absolute top-0 -translate-y-1/2 right-0 translate-x-1/2 bg-${mainColor}-600/50 h-56 w-56 rounded-full blur-3xl`}
+        className="absolute top-0 -translate-y-1/2 right-0 translate-x-1/2 h-56 w-56 rounded-full blur-3xl"
+        style={topBgStyle}
       />
       <div
-        className={`absolute bottom-0 translate-y-1/2 left-0 -translate-x-1/2 bg-${mainColor}-600/50 h-56 w-56 rounded-full blur-3xl`}
+        className="absolute bottom-0 translate-y-1/2 left-0 -translate-x-1/2 h-56 w-56 rounded-full blur-3xl"
+        style={bottomBgStyle}
       />
 
       <button
-        className={`w-8 h-8 p-2 absolute top-2 right-2 text-${mainColor}-500 bg-white rounded-full flex items-center justify-center`}
+        className={`w-8 h-8 p-2 absolute top-2 right-2 ${getColorClass(
+          "text",
+          500
+        )} bg-white rounded-full flex items-center justify-center`}
       >
         <Heart />
       </button>
@@ -67,10 +116,13 @@ const ProductCard = ({
             className="h-32 w-32 p-8 object-contain transition-all duration-400 ease-out"
           />
         </div>
-        <div className="z-20 p-3 space-y-2 bg-linear-to-b from-black/10 to-black">
+        <div className="z-20 p-3 space-y-2 backdrop-blur-md bg-black/60 rounded-b-xl">
           <span className="inline-block text-lg font-medium text-white">{name}</span>
           <p
-            className={`text-${mainColor}-400 border border-${mainColor}-400 px-3 py-[2px] font-medium text-xs w-fit rounded-full`}
+            className={`${getColorClass("text", 400)} ${getColorClass(
+              "border",
+              400
+            )} px-3 py-[2px] font-medium text-xs w-fit rounded-full`}
           >
             Giải trí
           </p>
@@ -94,8 +146,10 @@ const ProductCard = ({
                 </span>
               )}
             </div>
-            <button className={`bg-${mainColor}-50 rounded-full p-[5px] flex items-center justify-between`}>
-              <div className={`bg-white text-${mainColor}-500 rounded-full p-2 flex items-center justify-center`}>
+            <button className={`${getColorClass("bg", 50)} rounded-full p-[5px] flex items-center justify-between`}>
+              <div
+                className={`bg-white ${getColorClass("text", 500)} rounded-full p-2 flex items-center justify-center`}
+              >
                 <ShoppingCart className="w-4 h-4" />
               </div>
             </button>
