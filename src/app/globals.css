@@ -29,27 +29,6 @@ input[type="range"]::-moz-range-thumb {
 }
 
 @theme {
-  --animate-newSlide: newSlide 1s;
-  --animate-oldSlide: oldSlide 1s;
-  --animate-autoSlide: autoSlide 5s linear;
-  --animate-loading: loading 2s infinite;
-  --animate-poppingUp: poppingUp 0.3s;
-  --ease-bitex-easeOut: cubic-bezier(0, 0.68, 0.31, 1);
-  --color-bitex-red-500: #eb4141;
-
-  --color-bitex-blue-100: #264573;
-  --color-bitex-blue-200: #27559b;
-  --color-bitex-blue-300: #2863bd;
-  --color-bitex-blue-400: #2573e9;
-  --color-bitex-blue-500: #3385ff;
-  --color-bitex-blue-600: #5596f6;
-  --color-bitex-blue-700: #92bdfc;
-  --color-bitex-blue-800: #b9d5fe;
-  --color-bitex-blue-900: #d6e7ff;
-
-  --breakpoint-2xl: 90rem;
-  --breakpoint-3xl: 96rem;
-
   @keyframes newSlide {
     0% {
       opacity: 0;
@@ -125,13 +104,6 @@ body {
   overflow-x: hidden;
 }
 
-ul,
-li {
-  padding: 0;
-  margin: 0;
-  list-style: none;
-}
-
 input {
   outline: none;
   font-family: inherit;
@@ -178,55 +150,4 @@ input {
   .storeContainer {
     padding: 0 24px;
   }
-}
-
-/* Product description content styling */
-.product-description {
-  line-height: 1.6;
-}
-
-.product-description h1,
-.product-description h2,
-.product-description h3,
-.product-description h4,
-.product-description h5,
-.product-description h6 {
-  margin-top: 1.2em;
-  margin-bottom: 0.8em;
-  font-weight: 600;
-  color: #374151;
-}
-
-.product-description p {
-  margin-bottom: 1em;
-}
-
-.product-description ul,
-.product-description ol {
-  margin-left: 1.5em;
-  margin-bottom: 1em;
-  list-style: initial;
-}
-
-.product-description table {
-  border-collapse: collapse;
-  width: 100%;
-  margin-bottom: 1em;
-}
-
-.product-description table td,
-.product-description table th {
-  border: 1px solid #e5e7eb;
-  padding: 0.5em;
-}
-
-.product-description img {
-  max-width: 100%;
-  height: auto;
-  margin: 1em 0;
-}
-
-.product-description a {
-  color: #3b82f6;
-  text-decoration: underline;
 }
