@@ -31,6 +31,7 @@ type TProps = {
 };
 
 const ProductForm = ({ formValues, onChange }: TProps) => {
+  if (formValues === undefined) return null;
   const [categoryList, setCategoryList] = useState<TDropDown[]>([categoryListFirstItem]);
   const [brandList, setBrandList] = useState<TDropDown[]>([brandListFirstItem]);
   const [selectedCategoryListIndex, setSelectedCategoryListIndex] = useState(0);
@@ -50,11 +51,11 @@ const ProductForm = ({ formValues, onChange }: TProps) => {
         setCategoryList(categoryDropdownList);
 
         // Set selected category if one exists in formValues
-        if (formValues.categoryID) {
-          const categoryIndex = categoryDropdownList.findIndex((item) => item.value === formValues.categoryID);
+        if (formValues?.categoryID) {
+          const categoryIndex = categoryDropdownList.findIndex((item) => item.value === formValues?.categoryID);
           if (categoryIndex > -1) {
             setSelectedCategoryListIndex(categoryIndex);
-            getSpecGroup(formValues.categoryID);
+            getSpecGroup(formValues?.categoryID);
           }
         }
       }
@@ -80,17 +81,17 @@ const ProductForm = ({ formValues, onChange }: TProps) => {
       const dropDownData: TDropDown[] = [categoryListFirstItem];
       json.forEach((group) => {
         dropDownData.push({
-          text: group.group.name,
+          text: group.group?.name,
           value: group.group.id,
         });
         group.categories.forEach((category) => {
           dropDownData.push({
-            text: group.group.name + " - " + category.category.name,
+            text: group.group?.name + " - " + category.category?.name,
             value: category.category.id,
           });
           category.subCategories.forEach((sub) => {
             dropDownData.push({
-              text: group.group.name + " - " + category.category.name + " - " + sub.name,
+              text: group.group?.name + " - " + category.category?.name + " - " + sub?.name,
               value: sub.id,
             });
           });
@@ -104,7 +105,7 @@ const ProductForm = ({ formValues, onChange }: TProps) => {
       const dropDownData: TDropDown[] = [brandListFirstItem];
       brandList.forEach((brand) => {
         dropDownData.push({
-          text: brand.name,
+          text: brand?.name,
           value: brand.id,
         });
       });
@@ -114,7 +115,7 @@ const ProductForm = ({ formValues, onChange }: TProps) => {
 
     fetchCategories();
     fetchBrands();
-  }, [formValues.categoryID, formValues.brandID]);
+  }, [formValues?.categoryID, formValues?.brandID]);
 
   const handleCategoryChange = (index: number) => {
     setSelectedCategoryListIndex(index);
@@ -168,7 +169,7 @@ const ProductForm = ({ formValues, onChange }: TProps) => {
           <Input
             type="text"
             className="w-[650px]"
-            value={formValues.name}
+            value={formValues?.name}
             placeholder="Name..."
             onChange={(e) =>
               onChange({
