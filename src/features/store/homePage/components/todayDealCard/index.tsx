@@ -48,6 +48,7 @@ export const TodayDealCards = () => {
       <div className="flex lg:flex-wrap justify-between lg:justify-start gap-3.5 overflow-x-scroll pb-7 2xl:pb-0 2xl:overflow-x-hidden">
         {deals.map((deal, index) => (
           <ProductCard
+            id={deal.id}
             key={deal.url}
             name={deal.name}
             price={deal.price}

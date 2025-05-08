@@ -1,6 +1,7 @@
 import { NameValue, OptionSetType, PageType } from "@prisma/client";
 
 export type TProductCard = {
+  id: string;
   name: string;
   imgUrl: string[];
   price: number;

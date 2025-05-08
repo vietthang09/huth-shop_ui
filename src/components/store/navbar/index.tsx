@@ -49,7 +49,7 @@ const StoreNavBar = () => {
   return (
     <nav
       className={cn(
-        "flex flex-col bg-white transition-all pt-5 duration-700 fixed w-full z-10",
+        "flex flex-col bg-white transition-all pt-5 duration-700 fixed w-full z-50",
         hideNavbar ? "top-[-180px]" : "top-0"
       )}
     >

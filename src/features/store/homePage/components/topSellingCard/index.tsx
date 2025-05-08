@@ -50,6 +50,7 @@ export const TopSellingCards = () => {
       <div className="flex lg:flex-wrap justify-between lg:justify-start gap-3.5 overflow-x-scroll pb-7 2xl:pb-0 2xl:overflow-x-hidden">
         {products.map((product) => (
           <ProductCard
+            id={product.id}
             key={product.url}
             name={product.name}
             price={product.price}
