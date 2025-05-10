@@ -70,18 +70,9 @@ export type TAddProductFormValues = {
 };
 
 export type TProductListItem = {
-  id: string;
-  name: string;
-  isAvailable: boolean;
-  price: number;
-  salePrice: number | null;
-  images: string[];
-  category: {
-    id: string;
-    name: string;
-  };
-  fromColor?: string; // Add gradient start color
-  toColor?: string; // Add gradient end color
+  id: number;
+  sku: string;
+  title: string;
 };
 
 export type TCartListItemDB = {

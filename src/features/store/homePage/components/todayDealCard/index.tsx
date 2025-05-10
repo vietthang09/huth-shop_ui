@@ -7,6 +7,7 @@ import { getFormattedHotDeals } from "@/actions/product/hotdeals";
 import { TDealCard } from "@/features/product/types";
 
 import ProductCard from "@/components/store/common/productCard";
+import { getAllProducts } from "@/actions/product/product";
 
 export const TodayDealCards = () => {
   const [deals, setDeals] = useState<TDealCard[]>([]);
@@ -16,7 +17,8 @@ export const TodayDealCards = () => {
     const fetchHotDeals = async () => {
       setIsLoading(true);
       try {
-        const hotDeals = await getFormattedHotDeals();
+        const hotDeals = await getAllProducts();
+        console.log("Hot Deals:", hotDeals);
         if (hotDeals && hotDeals.length > 0) {
           setDeals(hotDeals);
         }

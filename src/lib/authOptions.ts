@@ -17,18 +17,18 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Invalid credentials");
         }
 
-        const user = await db.user.findUnique({
+        const user = await db.users.findUnique({
           where: {
             email: credentials.email,
           },
         });
 
-        if (!user || !user?.hashedPassword) {
+        if (!user || !user?.password) {
           throw new Error("Invalid credentials");
         }
 
         // Use bcrypt to compare passwords
-        const isPasswordValid = await bcrypt.compare(credentials.password, user.hashedPassword);
+        const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
 
         if (!isPasswordValid) {
           throw new Error("Invalid credentials");

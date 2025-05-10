@@ -23,8 +23,8 @@ export default function Home() {
         <TodayDealCards />
         <WideCardRow cards={twoSaleCards} />
         <CollectionCards />
-        <TopSellingCards />
-        <LatestBlogPosts />
+        {/* <TopSellingCards /> */}
+        {/* <LatestBlogPosts /> */}
         <CompanyLogoList />
       </div>
     </div>

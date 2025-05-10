@@ -12,6 +12,7 @@ import {
   TProductPageInfo,
   TSpecification,
 } from "@/types/product";
+import { parseAttributeHash } from "./helper";
 
 const ValidateAddProduct = z.object({
   name: z.string().min(3),
@@ -71,23 +72,44 @@ export const addProduct = async (formData: TAddProductFormValues) => {
 
 export const getAllProducts = async () => {
   try {
-    const result: TProductListItem[] | null = await db.product.findMany({
-      select: {
-        id: true,
-        name: true,
-        category: {
-          select: {
-            id: true,
-            name: true,
+    const products = await db.products.findMany({
+      include: {
+        properties: {
+          include: {
+            attributeSet: true,
+            inventory: true,
           },
         },
+        supplier: true,
       },
     });
 
-    if (!result) return { error: "Can't Get Data from Database!" };
-    return { res: result };
+    const formattedProducts = products.map((product) => {
+      return {
+        id: product.id,
+        sku: product.sku,
+        title: product.title,
+        supplier: product.supplier?.name || null,
+        variants: product.properties.map((prop) => {
+          // Parse the attribute hash into key-value pairs
+          const attributeDetails = parseAttributeHash(prop.attributeSetHash);
+
+          return {
+            id: prop.id,
+            attributeSetName: prop.attributeSet.name || "Default",
+            attributeDetails, // Include parsed attributes
+            net_price: prop.net_price,
+            retail_price: prop.retail_price,
+            stock: prop.inventory?.quantity || 0,
+          };
+        }),
+      };
+    });
+
+    return { success: true, data: formattedProducts };
   } catch (error) {
-    return { error: JSON.stringify(error) };
+    console.error("Error fetching products with properties:", error);
+    return { success: false, error: "Failed to fetch products" };
   }
 };
 
@@ -95,7 +117,7 @@ export const getOneProduct = async (productID: string) => {
   if (!productID || productID === "") return { error: "Invalid Product ID!" };
 
   try {
-    const result = await db.product.findFirst({
+    const result = await db.products.findFirst({
       where: {
         id: productID,
       },
@@ -216,81 +238,5 @@ export const updateProduct = async (id: string, formData: TAddProductFormValues)
     console.error("Error updating product:", error);
     // Return the specific error message for debugging
     return { error: `Failed to update product: ${error.message}` };
-  }
-};
-
-const generateSpecTable = async (rawSpec: ProductSpec[]) => {
-  try {
-    const specGroupIDs = rawSpec.map((spec) => spec.specGroupID);
-
-    const result = await db.specGroup.findMany({
-      where: {
-        id: { in: specGroupIDs },
-      },
-    });
-    if (!result || result.length === 0) return null;
-
-    const specifications: TSpecification[] = [];
-
-    rawSpec.forEach((spec) => {
-      const groupSpecIndex = result.findIndex((g) => g.id === spec.specGroupID);
-      const tempSpecs: { name: string; value: string }[] = [];
-      spec.specValues.forEach((s, index) => {
-        tempSpecs.push({
-          name: result[groupSpecIndex].specs[index] || "",
-          value: s || "",
-        });
-      });
-
-      specifications.push({
-        groupName: result[groupSpecIndex].title || "",
-        specs: tempSpecs,
-      });
-    });
-    if (specifications.length === 0) return null;
-
-    return specifications;
-  } catch {
-    return null;
-  }
-};
-
-const getPathByCategoryID = async (categoryID: string, parentID: string | null) => {
-  try {
-    if (!categoryID || categoryID === "") return null;
-    if (!parentID || parentID === "") return null;
-    const result: TPath[] = await db.category.findMany({
-      where: {
-        OR: [{ id: categoryID }, { id: parentID }, { parentID: null }],
-      },
-      select: {
-        id: true,
-        parentID: true,
-        name: true,
-        url: true,
-      },
-    });
-    if (!result || result.length === 0) return null;
-
-    const path: TPath[] = [];
-    let tempCatID: string | null = categoryID;
-    let searchCount = 0;
-
-    const generatePath = () => {
-      const foundCatIndex = result.findIndex((cat) => cat.id === tempCatID);
-      if (foundCatIndex === -1) return;
-      path.unshift(result[foundCatIndex]);
-      tempCatID = result[foundCatIndex].parentID;
-      if (!tempCatID) return;
-      searchCount++;
-      if (searchCount <= 3) generatePath();
-      return;
-    };
-    generatePath();
-
-    if (!path || path.length === 0) return null;
-    return path;
-  } catch {
-    return null;
   }
 };

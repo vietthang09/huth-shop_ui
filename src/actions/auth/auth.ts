@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 
 // Validation schemas
 const signUpSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
+  fullName: z.string().optional(),
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
@@ -29,7 +29,7 @@ export const registerUser = async (data: SignUpFormValues) => {
     }
 
     // Check if user already exists
-    const existingUser = await db.user.findUnique({
+    const existingUser = await db.users.findUnique({
       where: { email: data.email },
     });
 
@@ -41,11 +41,12 @@ export const registerUser = async (data: SignUpFormValues) => {
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
     // Create user
-    const user = await db.user.create({
+    const user = await db.users.create({
       data: {
-        name: data.name,
+        fullname: data.fullName,
         email: data.email,
-        hashedPassword,
+        password: hashedPassword,
+        role: "admin",
       },
     });
 
@@ -66,22 +67,22 @@ export const validateCredentials = async (data: SignInFormValues) => {
     }
 
     // Check if user exists
-    const user = await db.user.findUnique({
+    const user = await db.users.findUnique({
       where: { email: data.email },
     });
 
-    if (!user || !user.hashedPassword) {
+    if (!user || !user.password) {
       return { error: "Invalid credentials" };
     }
 
     // Compare passwords
-    const passwordMatch = await bcrypt.compare(data.password, user.hashedPassword);
+    const passwordMatch = await bcrypt.compare(data.password, user.password);
     if (!passwordMatch) {
       return { error: "Invalid credentials" };
     }
 
     // Return success with user data (excluding the hashed password)
-    const { hashedPassword: _, ...userData } = user;
+    const { password: _, ...userData } = user;
     return { success: true, user: userData };
   } catch (error) {
     console.error("Error validating credentials:", error);
