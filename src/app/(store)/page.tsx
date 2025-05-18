@@ -3,7 +3,6 @@ import { Metadata } from "next";
 import {
   CollectionCards,
   CompanyLogoList,
-  LatestBlogPosts,
   TodayDealCards,
   TopSellingCards,
   WideCardRow,
@@ -23,7 +22,7 @@ export default function Home() {
         <TodayDealCards />
         <WideCardRow cards={twoSaleCards} />
         <CollectionCards />
-        {/* <TopSellingCards /> */}
+        <TopSellingCards />
         {/* <LatestBlogPosts /> */}
         <CompanyLogoList />
       </div>

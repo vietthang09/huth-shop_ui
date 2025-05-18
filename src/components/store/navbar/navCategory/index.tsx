@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
-import { getAllCategoriesJSON } from "@/actions/category/category";
 import { ListIcon } from "@/components/icons/svgIcons";
 import Button from "@/components/UI/button";
 import { useToggleMenu } from "@/hooks/useToggleMenu";
 import { cn } from "@/shared/utils/styling";
-import { TGroupJSON } from "@/types/categories";
+import { getAllCategories } from "@/actions/category/category";
+import { Category } from "@/types/type";
 
 type TProps = {
   isNavbarVisible: boolean;
@@ -17,7 +17,7 @@ type TProps = {
 const NavBarCategory = ({ isNavbarVisible: isNavbarHide }: TProps) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isActive, setIsActive] = useToggleMenu(false, dropdownRef);
-  const [categories, setCategories] = useState<TGroupJSON[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   const toggleMenu = (event?: React.MouseEvent<HTMLButtonElement>) => {
     event?.stopPropagation();
@@ -26,9 +26,9 @@ const NavBarCategory = ({ isNavbarVisible: isNavbarHide }: TProps) => {
 
   useEffect(() => {
     const getCategoriesDB = async () => {
-      const result = await getAllCategoriesJSON();
-      if (result.res) {
-        setCategories(result.res);
+      const result = await getAllCategories();
+      if (result.success) {
+        setCategories(result.data);
       }
     };
     getCategoriesDB();
@@ -60,10 +60,10 @@ const NavBarCategory = ({ isNavbarVisible: isNavbarHide }: TProps) => {
         {categories.map((item, index) => (
           <Link
             key={index}
-            href={`/list/${item.group.url}`}
+            href={`/list/${item.slug}`}
             className="block px-4 py-3 text-gray-600 text-sm transition-all duration-300 hover:pl-5 hover:bg-gray-100"
           >
-            {item.group.name}
+            {item.name}
           </Link>
         ))}
       </div>

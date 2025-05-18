@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 import { cn } from "@/shared/utils/styling";
 
-import AddVisit from "../common/addVisit";
+// import AddVisit from "../common/addVisit";
 
 import NavBarCategory from "./navCategory";
 import NavBarFavorite from "./navFavorite";
@@ -99,7 +99,6 @@ const StoreNavBar = () => {
           </div>
         </div>
       </section>
-      <AddVisit />
     </nav>
   );
 };

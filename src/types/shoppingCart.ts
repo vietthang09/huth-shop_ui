@@ -1,6 +1,8 @@
+// Updated to fix imports
 export type TCartItem = {
   productId: string;
   quantity: number;
+  variantId?: number | null;
 };
 
 export type TCartItemData = {
@@ -10,4 +12,6 @@ export type TCartItemData = {
   price: number;
   dealPrice?: number;
   quantity: number;
+  variantId?: number | null;
+  variantAttributes?: string;
 };

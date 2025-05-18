@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { cn } from "@/shared/utils/styling";
-import { TGroupJSON } from "@/types/categories";
+import { TGroupJSON } from "@/types/category";
 
 type TProps = {
   categoryData: TGroupJSON;

@@ -3,8 +3,18 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { cn } from "@/shared/utils/styling";
-import { TProductCard } from "@/types/common";
 import { BadgePercent, Heart, ShoppingCart } from "lucide-react";
+
+type ProductCardProps = {
+  id: string;
+  name: string;
+  imgUrl: string;
+  price: number;
+  dealPrice?: number;
+  isAvailable?: boolean;
+  staticWidth?: boolean;
+  mainColor?: string;
+};
 
 const ProductCard = ({
   id,
@@ -12,12 +22,9 @@ const ProductCard = ({
   imgUrl,
   price,
   dealPrice = undefined,
-  specs,
-  url,
   isAvailable = true,
   staticWidth = false,
-  mainColor = "green",
-}: TProductCard) => {
+}: ProductCardProps) => {
   return (
     <div
       className={cn(
@@ -65,7 +72,7 @@ const ProductCard = ({
           className="imageWrapper w-full h-[240px] flex items-center justify-center relative rounded-t-xl overflow-hidden transition-all duration-500"
         >
           <Image
-            src={imgUrl[0]}
+            src={imgUrl}
             alt={name}
             fill
             className="h-32 w-32 p-8 object-contain transition-all duration-400 ease-out"

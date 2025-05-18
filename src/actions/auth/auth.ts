@@ -3,7 +3,6 @@
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { revalidatePath } from "next/cache";
 
 // Validation schemas
 const signUpSchema = z.object({
@@ -29,19 +28,19 @@ export const registerUser = async (data: SignUpFormValues) => {
     }
 
     // Check if user already exists
-    const existingUser = await db.users.findUnique({
+    const existingUser = await db.user.findUnique({
       where: { email: data.email },
     });
 
     if (existingUser) {
       return { error: "Email already in use" };
-    }
+    };
 
     // Hash password
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
     // Create user
-    const user = await db.users.create({
+    const user = await db.user.create({
       data: {
         fullname: data.fullName,
         email: data.email,
@@ -49,6 +48,8 @@ export const registerUser = async (data: SignUpFormValues) => {
         role: "admin",
       },
     });
+
+    console.log("User created:", user);
 
     // Return success without exposing sensitive data
     return { success: true, userId: user.id };
@@ -67,7 +68,7 @@ export const validateCredentials = async (data: SignInFormValues) => {
     }
 
     // Check if user exists
-    const user = await db.users.findUnique({
+    const user = await db.user.findUnique({
       where: { email: data.email },
     });
 

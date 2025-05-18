@@ -1,6 +1,11 @@
 import { PayloadAction, configureStore, createSlice } from "@reduxjs/toolkit";
 
-import { TCartItem } from "@/types/shoppingCart";
+// Define type locally to avoid import issues
+type TCartItem = {
+  productId: string;
+  quantity: number;
+  variantId?: number | null;
+};
 
 import { loadState, saveState } from "./storeLocalStorage";
 
@@ -21,7 +26,11 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     add: (state: TCartState, action: PayloadAction<TCartItem>) => {
-      const isAvailable = state.items.findIndex((item) => item.productId === action.payload.productId);
+      // Find if the same product with the same variant ID exists
+      const isAvailable = state.items.findIndex(
+        (item) => item.productId === action.payload.productId && item.variantId === action.payload.variantId
+      );
+
       if (isAvailable > -1) {
         state.items[isAvailable].quantity += action.payload.quantity;
       } else {
@@ -32,12 +41,16 @@ const cartSlice = createSlice({
     toggleCart: (state: TCartState, action: PayloadAction<boolean>) => {
       state.isVisible = action.payload.valueOf();
     },
-    remove: (state: TCartState, action: PayloadAction<string>) => {
-      state.items = state.items.filter((item) => item.productId !== action.payload);
+    remove: (state: TCartState, action: PayloadAction<{ productId: string; variantId?: number | null }>) => {
+      state.items = state.items.filter(
+        (item) => !(item.productId === action.payload.productId && item.variantId === action.payload.variantId)
+      );
     },
-    modifyQuantity: (state: TCartState, action: PayloadAction<QuantityChange>) => {
+    modifyQuantity: (state: TCartState, action: PayloadAction<QuantityChange & { variantId?: number | null }>) => {
       state.items.map((item) =>
-        item.productId === action.payload.productId ? (item.quantity += action.payload.amount) : ""
+        item.productId === action.payload.productId && item.variantId === action.payload.variantId
+          ? (item.quantity += action.payload.amount)
+          : ""
       );
     },
   },

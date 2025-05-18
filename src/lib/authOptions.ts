@@ -40,14 +40,12 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user }) {
-      console.log("JWT callback:", token, user);
       if (user) {
         token.role = user.role;
       }
       return token;
     },
     async session({ session, token }) {
-      console.log("Session callback:", session, token);
       if (token.sub && session.user) {
         session.user.id = token.sub;
         // Add the role to the session

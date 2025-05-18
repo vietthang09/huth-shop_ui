@@ -12,7 +12,7 @@ import { registerUser, SignUpFormValues } from "@/actions/auth/auth";
 const Signup = () => {
   const router = useRouter();
   const [formData, setFormData] = useState<SignUpFormValues>({
-    name: "",
+    fullName: "",
     email: "",
     password: "",
   });
@@ -35,7 +35,7 @@ const Signup = () => {
     setError("");
 
     // Simple validation
-    if (!formData.name || !formData.email || !formData.password) {
+    if (!formData.fullName || !formData.email || !formData.password) {
       setError("All fields are required");
       return;
     }
@@ -94,9 +94,9 @@ const Signup = () => {
             </label>
             <Input
               id="name"
-              name="name"
+              name="fullName"
               type="text"
-              value={formData.name}
+              value={formData.fullName}
               onChange={handleInputChange}
               placeholder="Enter your full name"
               className="p-3"

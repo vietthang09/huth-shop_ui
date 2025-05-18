@@ -7,11 +7,13 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { getCartProducts } from "@/actions/product/product";
-import { createOrder } from "@/actions/order/orderServices";
+import { createOrder } from "@/actions/order/order";
+import OrderItemCard from "@/components/store/common/orderItemCard";
 import { RootState } from "@/store/shoppingCart";
 import { TCartListItemDB } from "@/types/product";
-import { TCartItemData } from "@/types/shoppingCart";
-import { TOrderItem, TShippingInfo } from "@/types/order";
+// Import the shopping cart types
+import { TCartItemData } from "@/types/shoppingCart.d";
+import { TOrderItem, TShippingInfo } from "@/types/order.d";
 import { useSession } from "next-auth/react";
 import Button from "@/components/UI/button";
 import Input from "@/components/UI/input";
@@ -69,15 +71,33 @@ export default function CheckoutPage() {
       }
 
       const response = await getCartProducts(productIds);
-      if (response.res) {
-        const mappedItems = response.res.map((product: TCartListItemDB) => ({
-          productId: product.id,
-          imgUrl: product.images[0],
-          price: product.price,
-          dealPrice: product.salePrice || undefined,
-          quantity: cartState.items.find((item) => item.productId === product.id)?.quantity || 0,
-          productName: product.name,
-        }));
+      if (response.success && response.res) {
+        // Create cart items with variant information
+        const mappedItems: TCartItemData[] = [];
+
+        // Type assertion to handle the response
+        const cartProducts = response.res as unknown as TCartListItemDB[];
+
+        cartProducts.forEach((product) => {
+          // Find all cart items for this product
+          const cartItemsForProduct = cartState.items.filter((item) => item.productId === product.id);
+
+          cartItemsForProduct.forEach((cartItem) => {
+            // Find variant if present
+            const variant = product.variants?.find((v) => v.id === cartItem.variantId);
+
+            mappedItems.push({
+              productId: product.id,
+              imgUrl: product.images[0],
+              price: variant?.retail_price || product.price,
+              dealPrice: variant?.sale_price || product.salePrice || undefined,
+              quantity: cartItem.quantity,
+              productName: product.name,
+              variantId: cartItem.variantId,
+              variantAttributes: variant ? `${variant.attributeName}` : undefined,
+            });
+          });
+        });
 
         setCartItems(mappedItems);
       } else {
@@ -131,6 +151,8 @@ export default function CheckoutPage() {
         quantity: item.quantity,
         price: item.dealPrice || item.price,
         totalPrice: (item.dealPrice || item.price) * item.quantity,
+        variantId: item.variantId || undefined,
+        variantAttributes: item.variantAttributes || undefined,
       }));
 
       // Create order
@@ -139,11 +161,10 @@ export default function CheckoutPage() {
         total: calculateTotal(),
         shippingInfo,
       });
-
       if (result.error) {
         setError(result.error);
-      } else if (result.orderId) {
-        setOrderId(result.orderId);
+      } else if (result.success && result.order) {
+        setOrderId(result.order.id.toString());
         setShowQR(true);
       }
     } catch (err) {
@@ -398,46 +419,55 @@ export default function CheckoutPage() {
               <>
                 <div className="space-y-4 max-h-80 overflow-y-auto mb-6">
                   {cartItems.map((item) => (
-                    <div key={item.productId} className="flex gap-3">
-                      <div className="w-16 h-16 rounded-md overflow-hidden border border-gray-200 flex-shrink-0">
-                        <Image
-                          src={item.imgUrl}
-                          width={64}
-                          height={64}
-                          alt={item.productName}
-                          className="object-cover w-full h-full"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm text-gray-800 font-medium">{item.productName}</p>
-                        <p className="text-sm text-gray-500">SL: {item.quantity}</p>
-                        <p className="text-sm font-medium text-gray-700">
-                          {((item.dealPrice || item.price) * item.quantity).toLocaleString("vi-VN", {
-                            style: "currency",
-                            currency: "VND",
-                          })}
-                        </p>
-                      </div>
-                    </div>
+                    <OrderItemCard key={`${item.productId}-${item.variantId || "default"}`} data={item} />
                   ))}
                 </div>
-
                 <div className="border-t border-gray-200 pt-4 space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Tạm tính:</span>
+                    <span className="text-gray-600">Subtotal:</span>
                     <span className="font-medium">
-                      {calculateTotal().toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
+                      {calculateTotal().toLocaleString("en-us", { minimumFractionDigits: 2 })} €
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Phí vận chuyển:</span>
-                    <span className="font-medium">Miễn phí</span>
+                    <span className="text-gray-600">Shipping:</span>
+                    <span className="font-medium">Free</span>
+                  </div>
+                  {/* Show total items summary */}
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Items:</span>
+                    <span className="font-medium">{cartItems.reduce((sum, item) => sum + item.quantity, 0)} items</span>
                   </div>
                   <div className="flex justify-between text-lg font-semibold pt-2 border-t border-gray-200">
-                    <span>Tổng cộng:</span>
+                    <span>Total:</span>
                     <span className="text-bitex-red-500">
-                      {calculateTotal().toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
+                      {calculateTotal().toLocaleString("en-us", { minimumFractionDigits: 2 })} €
                     </span>
+                  </div>
+                </div>
+
+                {/* Order details section */}
+                <div className="border-t border-gray-200 pt-4 mt-4">
+                  <h3 className="text-md font-medium text-gray-700 mb-3">Order Details</h3>
+                  <div className="bg-gray-50 rounded-md p-3">
+                    <div className="text-sm text-gray-600 space-y-2">
+                      <div className="flex justify-between">
+                        <span>Items:</span>
+                        <span>{cartItems.length}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Total Quantity:</span>
+                        <span>{cartItems.reduce((sum, item) => sum + item.quantity, 0)} items</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Payment Method:</span>
+                        <span>Bank Transfer</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Estimated Delivery:</span>
+                        <span>3-5 business days</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </>

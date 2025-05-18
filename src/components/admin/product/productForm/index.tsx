@@ -11,7 +11,7 @@ import Button from "@/components/UI/button";
 import DropDownList from "@/components/UI/dropDown";
 import Input from "@/components/UI/input";
 import { cn } from "@/shared/utils/styling";
-import { TGroupJSON } from "@/types/categories";
+import { TGroupJSON } from "@/types/category";
 import { TAddProductFormValues, TBrand } from "@/types/product";
 import { TDropDown } from "@/types/uiElements";
 import ProductSunEditor from "../sunEditor";

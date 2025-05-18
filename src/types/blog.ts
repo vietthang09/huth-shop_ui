@@ -1,15 +1,16 @@
-export type TBlogFormValues = {
-  title: string;
-  content: string;
-  shortText: string;
-  imgUrl: string;
-  slug: string;
-  isPublished: boolean;
-};
+import { Log } from "./log";
+import { User } from "./user";
 
-export type TBlog = TBlogFormValues & {
-  id: string;
+export type Post = {
+  id: number;
+  userId: number | null;
+  user: User | null;
+  slug: string;
+  title: string;
+  shortDescription: string | null;
+  content: string | null;
+  cover: string | null;
   createdAt: Date;
   updatedAt: Date;
-  authorId?: string;
+  logs: Log[];
 };
