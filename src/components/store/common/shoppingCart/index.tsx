@@ -11,7 +11,7 @@ import { cn } from "@/shared/utils/styling";
 import { RootState } from "@/store/shoppingCart";
 import { TCartListItemDB } from "@/types/product";
 import { TCartItemData } from "@/types/shoppingCart.d";
-import { getCartProducts } from "@/actions/product/product";
+import { getCartProducts } from "@/actions/product/cart";
 
 import CartItem from "./_components/cartItem";
 
@@ -22,16 +22,26 @@ type TProps = {
 };
 
 const ShoppingCart = ({ isVisible, quantity, handleOnClose }: TProps) => {
-  const [cartItems, setCartItems] = useState<TCartItemData[]>();
+  const [cartItems, setCartItems] = useState<TCartItemData[]>([]);
   const localCartItems = useSelector((state: RootState) => state.cart);
   const router = useRouter();
   useEffect(() => {
     const convertDBtoCartItems = (rawData: TCartListItemDB[]) => {
       const cartListItem: TCartItemData[] = [];
 
+      // Check if raw data is empty
+      if (!rawData || rawData.length === 0) {
+        return [];
+      }
+
       rawData.forEach((item) => {
-        // Find all cart items with this product ID
-        const cartItems = localCartItems.items.filter((f) => f.productId === item.id);
+        // Make sure item.id is valid and correctly typed for comparison
+        if (!item || !item.id) return;
+        // Find all cart items with this product ID (convert numbers to strings for comparison if needed)
+        const cartItems = localCartItems.items.filter((cartItem) => {
+          // Convert both IDs to strings to ensure proper comparison
+          return String(cartItem.productId) === String(item.id);
+        });
 
         // If there are no cart items with this product ID, skip
         if (cartItems.length === 0) return;
@@ -41,12 +51,14 @@ const ShoppingCart = ({ isVisible, quantity, handleOnClose }: TProps) => {
           // Find the variant info if available
           const variant = item.variants?.find((v) => v.id === cartItem.variantId);
 
+          // If we have a variant, use its prices
+          // If not, fall back to the product's default price
           cartListItem.push({
             productId: item.id,
-            imgUrl: item.images[0],
-            price: variant?.retail_price || item.price,
+            imgUrl: item.images && item.images.length > 0 ? item.images[0] : "/images/products/default.jpg",
+            price: variant?.retail_price || item.price || 0,
             quantity: cartItem.quantity,
-            productName: item.name,
+            productName: item.name || "Unknown Product",
             dealPrice: variant?.sale_price || item.salePrice || undefined,
             variantId: cartItem.variantId,
             // Include variant attributes information
@@ -55,24 +67,39 @@ const ShoppingCart = ({ isVisible, quantity, handleOnClose }: TProps) => {
         });
       });
 
-      if (cartListItem.length > 0) return cartListItem;
-      return null;
+      // Return empty array instead of null when no items found
+      return cartListItem.length > 0 ? cartListItem : [];
     };
-
     const getProductsFromDB = async () => {
-      const productsIDs = localCartItems.items.map((s) => +s.productId);
+      if (!localCartItems.items || localCartItems.items.length === 0) {
+        setCartItems([]);
+        return;
+      }
 
-      if (productsIDs?.length === 0) setCartItems([]);
+      try {
+        const productsIDs = localCartItems.items.map((s) => Number(s.productId));
+        const variantIDs = localCartItems.items
+          .map((s) => s.variantId)
+          .filter((id): id is number => id !== undefined && id !== null);
 
-      if (productsIDs && productsIDs.length > 0) {
-        const response = await getCartProducts(productsIDs);
+        const response = await getCartProducts(productsIDs, variantIDs.length > 0 ? variantIDs : undefined);
         if (response.success && response.res) {
-          // Type assertion to handle the response correctly
           const cartListItems = response.res as unknown as TCartListItemDB[];
+
           const finalResult = convertDBtoCartItems(cartListItems);
-          if (!finalResult) return;
+
+          if (!finalResult || finalResult.length === 0) {
+            setCartItems([]);
+            return;
+          }
           setCartItems(finalResult);
+        } else {
+          console.log("Cart API error:", response.error);
+          setCartItems([]);
         }
+      } catch (error) {
+        console.error("Error fetching cart products:", error);
+        setCartItems([]);
       }
     };
     if (localCartItems) {
@@ -80,7 +107,6 @@ const ShoppingCart = ({ isVisible, quantity, handleOnClose }: TProps) => {
     }
   }, [localCartItems]);
 
-  // Calculate total price
   const calculateTotal = () => {
     if (!cartItems || cartItems.length === 0) return 0;
 
@@ -132,9 +158,9 @@ const ShoppingCart = ({ isVisible, quantity, handleOnClose }: TProps) => {
               </Link>
             </div>
           </div>
-        )}
+        )}{" "}
         <div className="flex-1 overflow-y-auto">
-          {cartItems && cartItems.length ? (
+          {cartItems && Array.isArray(cartItems) && cartItems.length > 0 ? (
             cartItems.map((item) => (
               <CartItem data={item} onLinkClicked={handleOnClose} key={`${item.productId}-${item.variantId || ""}`} />
             ))
@@ -151,7 +177,7 @@ const ShoppingCart = ({ isVisible, quantity, handleOnClose }: TProps) => {
           )}
         </div>{" "}
         <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-300 flex flex-col items-center justify-center gap-4 py-4 px-6">
-          {!!cartItems?.length && (
+          {cartItems && Array.isArray(cartItems) && cartItems.length > 0 ? (
             <>
               <div className="w-full space-y-2 mb-2">
                 <div className="flex justify-between items-center text-sm text-gray-600">
@@ -191,8 +217,7 @@ const ShoppingCart = ({ isVisible, quantity, handleOnClose }: TProps) => {
                 </Link>
               </div>
             </>
-          )}
-          {!cartItems?.length && (
+          ) : (
             <Button
               onClick={handleOnClose}
               className="text-gray-500 text-sm w-4/5 border-gray-300 bg-gray-100 hover:border-gray-400 hover:bg-gray-200 active:border-gray-500 active:bg-gray-300 py-2.5"

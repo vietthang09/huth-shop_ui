@@ -9,7 +9,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { CheckIcon } from "@/components/icons/svgIcons";
 import { RootState } from "@/store/shoppingCart";
 import { TCartItemData } from "@/types/shoppingCart.d";
-import { getCartProducts } from "@/actions/product/product";
+import { getCartProducts } from "@/actions/product/cart";
 import { cn } from "@/shared/utils/styling";
 
 interface MiniCartNotificationProps {
@@ -26,7 +26,10 @@ const MiniCartNotification: React.FC<MiniCartNotificationProps> = ({ isVisible, 
     if (isVisible && cartState.items.length > 0) {
       const fetchLatestItem = async () => {
         const latestCartItem = cartState.items[cartState.items.length - 1];
-        const response = await getCartProducts([latestCartItem.productId]);
+        // Pass variant ID if it exists
+        const variantIds = latestCartItem.variantId ? [latestCartItem.variantId] : undefined;
+        // Convert string productId to number for the API
+        const response = await getCartProducts([Number(latestCartItem.productId)], variantIds);
 
         if (response.success && response.res && response.res.length > 0) {
           const product = response.res[0];

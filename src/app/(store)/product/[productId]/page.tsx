@@ -9,7 +9,7 @@ import { LikeIcon, MinusIcon } from "@/components/icons/svgIcons";
 import Gallery from "@/components/store/productPage/gallery";
 import ProductBoard from "@/components/store/productPage/productBoard";
 import { SK_Box } from "@/components/UI/skeleton";
-import { getOneProduct } from "@/actions/product/product";
+import { getOneProduct, getOneProductBySku } from "@/actions/product/product";
 
 // Define types for the product data
 interface ProductPrice {
@@ -54,8 +54,7 @@ const ProductPage = () => {
     const getProductFromDB = async () => {
       setLoading(true);
       try {
-        const response = await getOneProduct(productId.toString());
-        console.log("Product response:", response);
+        const response = await getOneProductBySku(productId.toString());
         if (response.success && response.data) {
           // Structure the product data for the UI
           const product = response.data;

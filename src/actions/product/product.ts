@@ -140,7 +140,51 @@ export const getAllProducts = async () => {
   }
 };
 
-export const getOneProduct = async (sku: string) => {
+export const getOneProduct = async (id: number) => {
+  try {
+    if (!id) {
+      return { success: false, error: "Invalid product ID" };
+    }
+
+    const product = await db.product.findUnique({
+      where: { id },
+      include: {
+        supplier: true,
+        category: true,
+        properties: {
+          include: {
+            inventory: true,
+            attributeSet: true,
+          },
+        },
+      },
+    });
+
+    if (!product) {
+      return { success: false, error: "Product not found" };
+    }
+
+    // Make sure prices are accessible in the response
+    const productWithPrices = {
+      ...product,
+      prices: product.properties.map((prop) => ({
+        id: prop.id,
+        net_price: prop.netPrice,
+        retail_price: prop.retailPrice,
+        sale_price: prop.salePrice,
+        attributeSetHash: prop.attributeSetHash,
+        inventory: prop.inventory?.quantity || 0,
+      })),
+    };
+
+    return { success: true, data: productWithPrices };
+  } catch (error) {
+    console.error("Error getting product:", error);
+    return { success: false, error: "Failed to get product" };
+  }
+};
+
+export const getOneProductBySku = async (sku: string) => {
   try {
     if (!sku) {
       return { success: false, error: "Invalid product SKU" };
@@ -290,10 +334,11 @@ export const updateProduct = async (data: UpdateProductInput) => {
 /**
  * Get products for the shopping cart by their IDs
  * This function retrieves products with their properties for the shopping cart display
+ * @param productIds Array of product IDs
+ * @param variantIds Optional array of variant IDs to fetch specific variants
  */
-export const getCartProducts = async (productIds: number[]) => {
+export const getCartProducts = async (productIds: number[], variantIds?: number[]) => {
   try {
-    console.log("Getting cart products for IDs:", productIds);
     if (!productIds || productIds.length === 0) {
       return { success: false, error: "No product IDs provided" };
     }
@@ -306,6 +351,7 @@ export const getCartProducts = async (productIds: number[]) => {
         supplier: true,
         category: true,
         properties: {
+          where: variantIds ? { id: { in: variantIds } } : undefined,
           include: {
             inventory: true,
             attributeSet: true,
@@ -316,12 +362,12 @@ export const getCartProducts = async (productIds: number[]) => {
 
     if (!products || products.length === 0) {
       return { success: false, error: "No products found" };
-    }
-
-    // Format the products for cart display
+    } // Format the products for cart display
     const cartItems = products.map((product) => ({
-      id: product.sku,
+      id: String(product.id), // Convert to string to match the productId in cart state
       name: product.title,
+      // This will already use the filtered properties if variantIds was provided
+      // thanks to the where clause in the database query
       price: product.properties.reduce((lowest, property) => {
         const propertyPrice = property.salePrice ?? property.retailPrice;
         return lowest === 0 || propertyPrice < lowest ? propertyPrice : lowest;
