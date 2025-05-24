@@ -46,6 +46,8 @@ const Login = () => {
         redirect: false,
       });
 
+      console.log("SignIn callback:", callback);
+
       if (callback?.error) {
         setError(callback.error);
         setLoading(false);

@@ -3,13 +3,11 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { getFormattedTopSellingProducts } from "@/actions/product/topSelling";
-import { TTopSellingCard } from "@/features/product/types";
-
 import ProductCard from "@/components/store/common/productCard";
+import { getTopSellingProducts, TopSellingProduct } from "@/actions/product/topSelling";
 
 export const TopSellingCards = () => {
-  const [products, setProducts] = useState<TTopSellingCard[]>([]);
+  const [products, setProducts] = useState<TopSellingProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -17,7 +15,8 @@ export const TopSellingCards = () => {
       setIsLoading(true);
       try {
         // Get top selling products from the database
-        const topSellingProducts = await getFormattedTopSellingProducts();
+        const topSellingProducts = await getTopSellingProducts({ period: "year" });
+        console.log("Top selling products:", topSellingProducts);
         if (topSellingProducts && topSellingProducts.length > 0) {
           setProducts(topSellingProducts);
         }
@@ -50,17 +49,13 @@ export const TopSellingCards = () => {
       <div className="flex lg:flex-wrap justify-between lg:justify-start gap-3.5 overflow-x-scroll pb-7 2xl:pb-0 2xl:overflow-x-hidden">
         {products.map((product) => (
           <ProductCard
-            id={product.id}
-            key={product.url}
-            name={product.name}
-            price={product.price}
-            dealPrice={product.dealPrice}
-            imgUrl={product.imgUrl}
-            specs={product.specs}
-            url={product.url}
+            id={product.slug}
+            key={product.slug}
+            name={product.title}
+            price={product.retailPrice}
+            dealPrice={product.salePrice}
+            imgUrl={product.image || ""}
             staticWidth
-            fromColor={product.fromColor}
-            toColor={product.toColor}
           />
         ))}
       </div>

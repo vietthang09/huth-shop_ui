@@ -3,11 +3,10 @@
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { revalidatePath } from "next/cache";
 
 // Validation schemas
 const signUpSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
+  fullName: z.string().optional(),
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
@@ -43,11 +42,14 @@ export const registerUser = async (data: SignUpFormValues) => {
     // Create user
     const user = await db.user.create({
       data: {
-        name: data.name,
+        fullname: data.fullName,
         email: data.email,
-        hashedPassword,
+        password: hashedPassword,
+        role: "admin",
       },
     });
+
+    console.log("User created:", user);
 
     // Return success without exposing sensitive data
     return { success: true, userId: user.id };
@@ -70,18 +72,18 @@ export const validateCredentials = async (data: SignInFormValues) => {
       where: { email: data.email },
     });
 
-    if (!user || !user.hashedPassword) {
+    if (!user || !user.password) {
       return { error: "Invalid credentials" };
     }
 
     // Compare passwords
-    const passwordMatch = await bcrypt.compare(data.password, user.hashedPassword);
+    const passwordMatch = await bcrypt.compare(data.password, user.password);
     if (!passwordMatch) {
       return { error: "Invalid credentials" };
     }
 
     // Return success with user data (excluding the hashed password)
-    const { hashedPassword: _, ...userData } = user;
+    const { password: _, ...userData } = user;
     return { success: true, user: userData };
   } catch (error) {
     console.error("Error validating credentials:", error);

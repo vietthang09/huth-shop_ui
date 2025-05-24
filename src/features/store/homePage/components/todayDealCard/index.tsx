@@ -3,23 +3,20 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { getFormattedHotDeals } from "@/actions/product/hotdeals";
-import { TDealCard } from "@/features/product/types";
-
 import ProductCard from "@/components/store/common/productCard";
+import { getSaleProducts } from "@/actions/product/saleProduct";
+import { Product } from "@/types/type";
 
 export const TodayDealCards = () => {
-  const [deals, setDeals] = useState<TDealCard[]>([]);
+  const [deals, setDeals] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchHotDeals = async () => {
       setIsLoading(true);
       try {
-        const hotDeals = await getFormattedHotDeals();
-        if (hotDeals && hotDeals.length > 0) {
-          setDeals(hotDeals);
-        }
+        const hotDeals = await getSaleProducts();
+        setDeals(hotDeals.products);
       } catch (error) {
         console.error("Error fetching hot deals:", error);
       } finally {
@@ -46,19 +43,15 @@ export const TodayDealCards = () => {
         </Link>
       </div>
       <div className="flex lg:flex-wrap justify-between lg:justify-start gap-3.5 overflow-x-scroll pb-7 2xl:pb-0 2xl:overflow-x-hidden">
-        {deals.map((deal, index) => (
+        {deals.map((deal) => (
           <ProductCard
-            id={deal.id}
-            key={deal.url}
-            name={deal.name}
-            price={deal.price}
-            dealPrice={deal.dealPrice}
-            imgUrl={deal.imgUrl}
-            specs={deal.specs}
-            url={deal.url}
+            id={deal.sku}
+            key={deal.id}
+            name={deal.title}
+            price={+deal.properties[0].retailPrice}
+            dealPrice={+(deal.properties?.[0]?.salePrice ?? 0)}
+            imgUrl={deal.image || ""}
             staticWidth
-            fromColor={deal.fromColor}
-            toColor={deal.toColor}
           />
         ))}
       </div>

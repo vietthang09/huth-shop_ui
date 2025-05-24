@@ -1,108 +1,206 @@
-"use server";
-
 import { db } from "@/lib/db";
-import { revalidatePath } from "next/cache";
-import { TTopSellingCard } from "@/features/product/types";
+
+export interface TopSellingProduct {
+  id: number;
+  title: string;
+  image: string | null;
+  totalSold: number;
+  retailPrice: any | null; // Using any to handle Prisma Decimal type
+  salePrice: any | null; // Using any to handle Prisma Decimal type
+  categoryName: string | null;
+  categoryId: number | null;
+  slug: string | null;
+}
 
 /**
- * Updates the top selling products in the database
+ * Get top selling products based on order quantities
+ * @param options Optional parameters to customize the query
+ * @returns Array of top selling products with sales information
  */
-export const updateTopSellingProducts = async (productIds: string[]) => {
-  if (!productIds) return { error: "Invalid product IDs!" };
+export async function getTopSellingProducts({
+  limit = 10,
+  categoryId,
+  period,
+}: {
+  limit?: number;
+  categoryId?: number;
+  period?: "day" | "week" | "month" | "year";
+} = {}): Promise<TopSellingProduct[]> {
+  try {    // Calculate date range for period filtering if specified
+    let dateFilterCondition = {};
+    if (period) {
+      const now = new Date();
+      let startDate = new Date();
+      
+      switch (period) {
+        case "day":
+          startDate.setDate(now.getDate() - 1);
+          break;
+        case "week":
+          startDate.setDate(now.getDate() - 7);
+          break;
+        case "month":
+          startDate.setMonth(now.getMonth() - 1);
+          break;
+        case "year":
+          startDate.setFullYear(now.getFullYear() - 1);
+          break;
+      }
 
-  try {
-    // First, reset the top selling status for all products
-    await db.product.updateMany({
-      data: {
-        isTopSelling: false,
-      },
-    });
-
-    // Then set the new top selling products
-    if (productIds.length > 0) {
-      // Update all selected products to be top selling
-      await Promise.all(
-        productIds.map(async (productId, index) => {
-          await db.product.update({
-            where: { id: productId },
-            data: {
-              isTopSelling: true,
-              topSellingOrder: index, // Store the order
-            },
-          });
-        })
-      );
+      dateFilterCondition = {
+        createdAt: {
+          gte: startDate,
+        }
+      };
     }
 
-    // Revalidate the home page to reflect changes
-    revalidatePath("/");
-    return { success: true };
-  } catch (error) {
-    console.error("Error updating top selling products:", error);
-    return { error: "Failed to update top selling products" };
-  }
-};
-
-/**
- * Gets the current top selling products with full details needed for display
- */
-export const getTopSellingProducts = async () => {
-  try {
-    // Get products marked as top selling
-    const topSellingProducts = await db.product.findMany({
+    // Get products with ordered quantities
+    const products = await db.product.findMany({
       where: {
-        isTopSelling: true,
+        ...(categoryId ? { categoryId } : {}),        properties: {
+          some: {
+            orderItems: {
+              some: {}
+            }
+          }
+        }
       },
-      orderBy: {
-        topSellingOrder: "asc",
-      },
-      take: 15,
-      select: {
-        id: true,
-        name: true,
-        images: true,
-        price: true,
-        salePrice: true,
-        specialFeatures: true,
-        isAvailable: true,
+      include: {
         category: {
           select: {
+            id: true,
             name: true,
-          },
+            slug: true
+          }
         },
+        properties: {
+          select: {
+            id: true,
+            retailPrice: true,
+            salePrice: true,
+            orderItems: {
+              select: {
+                quantity: true,
+                order: {
+                  select: {
+                    createdAt: true,
+                    status: true
+                  }
+                }
+              },                where: {
+                order: {
+                  status: {
+                    not: "CANCELLED"
+                  },
+                  ...(period ? dateFilterCondition : {})
+                }
+              }
+            }
+          }
+        }
       },
+      take: limit * 2 // Fetch extra to allow for filtering
     });
 
-    // The data is already in the format we need
-    return { success: true, data: topSellingProducts };
+    // Process and calculate total sold for each product
+    const processedProducts = products.map(product => {
+      // Calculate total quantity sold across all properties
+      const totalSold = product.properties.reduce(
+        (sum, prop) => sum + prop.orderItems.reduce(
+          (itemSum, orderItem) => itemSum + orderItem.quantity, 
+          0
+        ), 
+        0
+      );
+
+      // Find the best-selling property for pricing info
+      let bestSellingProperty = product.properties[0];
+      if (product.properties.length > 1) {
+        bestSellingProperty = product.properties.reduce((best, current) => {
+          const bestSold = best.orderItems.reduce((sum, item) => sum + item.quantity, 0);
+          const currentSold = current.orderItems.reduce((sum, item) => sum + item.quantity, 0);
+          return currentSold > bestSold ? current : best;
+        }, product.properties[0]);
+      }
+
+      return {
+        id: product.id,
+        title: product.title,
+        image: product.image,
+        totalSold,
+        retailPrice: bestSellingProperty?.retailPrice || null,
+        salePrice: bestSellingProperty?.salePrice || null,
+        categoryName: product.category?.name || null,
+        categoryId: product.category?.id || null,
+        slug: product.category?.slug || null
+      };
+    });
+
+    // Filter out products with no sales and sort by total sold
+    return processedProducts
+      .filter(product => product.totalSold > 0)
+      .sort((a, b) => b.totalSold - a.totalSold)
+      .slice(0, limit);
+
   } catch (error) {
     console.error("Error fetching top selling products:", error);
-    return { error: "Failed to fetch top selling products" };
-  }
-};
-
-/**
- * Gets top selling products formatted for the front-end TopSellingCards component
- */
-export const getFormattedTopSellingProducts = async (): Promise<TTopSellingCard[]> => {
-  try {
-    const response = await getTopSellingProducts();
-
-    if (!response.success || !response.data || response.data.length === 0) {
-      return [];
-    }
-
-    // Convert the database results to the TTopSellingCard format
-    return response.data.map((product) => ({
-      name: product.name,
-      imgUrl: product.images.slice(0, 2),
-      price: product.price,
-      dealPrice: product.salePrice || undefined,
-      specs: product.specialFeatures,
-      url: `/product/${product.id}`,
-    }));
-  } catch (error) {
-    console.error("Error formatting top selling products:", error);
     return [];
   }
-};
+}
+
+/**
+ * Get top selling products by category
+ * @returns Object with category IDs as keys and arrays of top products as values
+ */
+export async function getTopSellingProductsByCategory({
+  limit = 5,
+  categoryLimit = 3
+}: {
+  limit?: number;
+  categoryLimit?: number;
+} = {}): Promise<Record<number, TopSellingProduct[]>> {
+  try {
+    // Get all categories with at least one sold product
+    const categories = await db.category.findMany({
+      where: {
+        products: {
+          some: {
+            properties: {
+              some: {
+                orderItems: {
+                  some: {
+                    order: {
+                      status: {
+                        not: "CANCELLED"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      take: categoryLimit
+    });
+
+    const result: Record<number, TopSellingProduct[]> = {};
+
+    // For each category, get top selling products
+    for (const category of categories) {
+      const topProducts = await getTopSellingProducts({
+        limit,
+        categoryId: category.id
+      });
+      
+      if (topProducts.length > 0) {
+        result[category.id] = topProducts;
+      }
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Error fetching top selling products by category:", error);
+    return {};
+  }
+}

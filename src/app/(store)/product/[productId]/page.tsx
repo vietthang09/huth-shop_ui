@@ -5,31 +5,125 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { getOneProduct } from "@/actions/product/product";
 import { LikeIcon, MinusIcon } from "@/components/icons/svgIcons";
-import ProductCard from "@/components/store/common/productCard";
 import Gallery from "@/components/store/productPage/gallery";
 import ProductBoard from "@/components/store/productPage/productBoard";
 import { SK_Box } from "@/components/UI/skeleton";
-import { TProductPageInfo } from "@/types/product";
+import { getOneProduct, getOneProductBySku } from "@/actions/product/product";
+
+// Define types for the product data
+interface ProductPrice {
+  id: number;
+  net_price: number; // Changed from any to number
+  retail_price: number; // Changed from any to number
+  sale_price: number | null; // Changed from any to number|null
+  attributeSetHash: string;
+  inventory: number;
+}
+
+interface FormattedProduct {
+  id: number;
+  name: string;
+  price: number;
+  salePrice: number | null;
+  desc: string | undefined;
+  isAvailable: boolean;
+  category?: string;
+  supplier?: string;
+  properties?: ProductPrice[];
+  // Additional fields from the original UI
+  specialFeatures?: string[];
+  richDesc?: string;
+  path?: Array<{ name: string; url: string }>;
+  specifications?: Array<{
+    groupName: string;
+    specs: Array<{ name: string; value: string }>;
+  }>;
+  images?: string[];
+}
 
 const ProductPage = () => {
   const router = useRouter();
   const { productId } = useParams<{ productId: string[] }>();
-  const [productInfo, setProductInfo] = useState<TProductPageInfo | null | undefined>(null);
+  const [productInfo, setProductInfo] = useState<FormattedProduct | null | undefined>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
   if (!productId) router.push("/");
 
   useEffect(() => {
     const getProductFromDB = async () => {
-      const response = await getOneProduct(productId.toString());
-      setProductInfo(response.res as any);
+      setLoading(true);
+      try {
+        const response = await getOneProductBySku(productId.toString());
+        if (response.success && response.data) {
+          // Structure the product data for the UI
+          const product = response.data;
+
+          // Find the best price (lowest retail or sale price)
+          const prices = product.prices || [];
+
+          // Find the lowest price (either sale price or retail price)
+          let lowestPrice = 0;
+          let hasSalePrice = false;
+
+          if (prices.length > 0) {
+            prices.forEach((price: any) => {
+              const currentPrice = price.sale_price !== null ? price.sale_price : price.retail_price;
+              if (currentPrice !== null) {
+                if (lowestPrice === 0 || Number(currentPrice) < lowestPrice) {
+                  lowestPrice = Number(currentPrice);
+                }
+                if (price.sale_price !== null) {
+                  hasSalePrice = true;
+                }
+              }
+            });
+          }
+
+          // Create a formatted product object for the UI
+          const formattedProduct: FormattedProduct = {
+            id: product.id,
+            name: product.title,
+            price: lowestPrice,
+            salePrice: hasSalePrice ? lowestPrice : null,
+            desc: product.description || undefined,
+            isAvailable: prices.some((p: any) => p.inventory > 0),
+            category: product.category?.name,
+            supplier: product.supplier?.name,
+            properties: prices.map((p: any) => ({
+              id: p.id,
+              net_price: Number(p.net_price),
+              retail_price: Number(p.retail_price),
+              sale_price: p.sale_price !== null ? Number(p.sale_price) : null,
+              attributeSetHash: p.attributeSetHash,
+              inventory: p.inventory,
+            })),
+            // For now these are placeholders as they're not in the API response
+            path: [{ name: product.category?.name || "Category", url: "category" }],
+            // You might need to create specifications based on attributes or properties
+            specifications: [],
+            // Add placeholder for images until you have actual image data
+            images: ["/images/products/default.jpg"],
+          };
+
+          setProductInfo(formattedProduct);
+        } else {
+          console.error("Failed to fetch product:", response.error);
+          setProductInfo(undefined);
+        }
+      } catch (error) {
+        console.error("Error fetching product:", error);
+        setProductInfo(undefined);
+      } finally {
+        setLoading(false);
+      }
     };
+
     getProductFromDB();
   }, [productId, router]);
 
   if (productInfo === undefined) return "";
   let fullPath = "";
-
   return (
     <div className="storeContainer">
       <div className="w-full h-auto mt-[160px] flex flex-col">
@@ -70,18 +164,16 @@ const ProductPage = () => {
                     defaultQuantity: 1,
                     name: productInfo.name,
                     price: productInfo.price,
-                    dealPrice: productInfo.salePrice || undefined,
+                    dealPrice: productInfo.salePrice,
                     shortDesc: productInfo.desc || "",
-                    specialFeatures: productInfo.specialFeatures,
+                    specialFeatures: [],
+                    variants: productInfo.properties || [],
                   }}
                 />
-                {productInfo.richDesc && (
+                {productInfo.desc && (
                   <div className="mt-6 p-4 border border-gray-200 rounded-lg">
                     <h3 className="text-lg font-medium text-gray-700 mb-2">Mô tả sản phẩm</h3>
-                    <div
-                      className="text-sm text-gray-600 product-description"
-                      dangerouslySetInnerHTML={{ __html: productInfo.richDesc }}
-                    />
+                    <div className="text-sm text-gray-600 product-description">{productInfo.desc}</div>
                   </div>
                 )}
               </>
@@ -112,31 +204,87 @@ const ProductPage = () => {
                 Thông số kỹ thuật
               </h2>
               {productInfo ? (
-                productInfo.specifications?.map((spec, index) => (
-                  <section key={index} className="w-full py-5 border-b border-gray-300">
+                <>
+                  <section className="w-full py-5 border-b border-gray-300">
                     <div className="flex items-center w-full">
                       <button className="size-8 inline-block relative border-none bg-white rounded-sm hover:bg-gray-200">
                         <MinusIcon width={12} className="absolute top-3.5 left-2.5 stroke-gray-700" />
                       </button>
-                      <h3 className="ml-3 inline-block text-gray-700">{spec.groupName}</h3>
+                      <h3 className="ml-3 inline-block text-gray-700">Product Information</h3>
                     </div>
-                    {spec.specs.map((row, index) => (
-                      <div
-                        key={index}
-                        className="w-full pt-3 flex items-stretch bg-white text-sm rounded-lg hover:bg-gray-100"
-                      >
+
+                    {/* Basic Product Info */}
+                    <div className="w-full pt-3 flex items-stretch bg-white text-sm rounded-lg hover:bg-gray-100">
+                      <div className="min-w-[160px] flex items-start ml-[42px] text-gray-500">
+                        <span>Product Name</span>
+                      </div>
+                      <div className="font-medium text-gray-800">
+                        <span className="block leading-5 min-h-8 h-auto">{productInfo.name}</span>
+                      </div>
+                    </div>
+
+                    {/* Category */}
+                    {productInfo.category && (
+                      <div className="w-full pt-3 flex items-stretch bg-white text-sm rounded-lg hover:bg-gray-100">
                         <div className="min-w-[160px] flex items-start ml-[42px] text-gray-500">
-                          <span>{row.name}</span>
+                          <span>Category</span>
                         </div>
                         <div className="font-medium text-gray-800">
-                          <span key={index} className="block leading-5 min-h-8 h-auto">
-                            {row.value}
-                          </span>
+                          <span className="block leading-5 min-h-8 h-auto">{productInfo.category}</span>
                         </div>
                       </div>
-                    ))}
+                    )}
+
+                    {/* Supplier */}
+                    {productInfo.supplier && (
+                      <div className="w-full pt-3 flex items-stretch bg-white text-sm rounded-lg hover:bg-gray-100">
+                        <div className="min-w-[160px] flex items-start ml-[42px] text-gray-500">
+                          <span>Supplier</span>
+                        </div>
+                        <div className="font-medium text-gray-800">
+                          <span className="block leading-5 min-h-8 h-auto">{productInfo.supplier}</span>
+                        </div>
+                      </div>
+                    )}
                   </section>
-                ))
+
+                  {/* Product Variants/Properties */}
+                  {productInfo.properties && productInfo.properties.length > 0 && (
+                    <section className="w-full py-5 border-b border-gray-300">
+                      <div className="flex items-center w-full">
+                        <button className="size-8 inline-block relative border-none bg-white rounded-sm hover:bg-gray-200">
+                          <MinusIcon width={12} className="absolute top-3.5 left-2.5 stroke-gray-700" />
+                        </button>
+                        <h3 className="ml-3 inline-block text-gray-700">Pricing & Inventory</h3>
+                      </div>
+
+                      {productInfo.properties.map((property, index) => (
+                        <div
+                          key={index}
+                          className="w-full pt-3 flex items-stretch bg-white text-sm rounded-lg hover:bg-gray-100"
+                        >
+                          <div className="min-w-[160px] flex items-start ml-[42px] text-gray-500">
+                            <span>Variant {index + 1}</span>
+                          </div>
+                          <div className="font-medium text-gray-800">
+                            <span className="block leading-5 min-h-8 h-auto">
+                              Price:{" "}
+                              {property.sale_price !== null ? (
+                                <>
+                                  <del className="text-gray-500 mr-2">₫{property.retail_price.toLocaleString()}</del>
+                                  <span className="text-red-600">₫{property.sale_price.toLocaleString()}</span>
+                                </>
+                              ) : (
+                                <>₫{property.retail_price.toLocaleString()}</>
+                              )}{" "}
+                              | Stock: {property.inventory}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </section>
+                  )}
+                </>
               ) : (
                 <>
                   <div className="flex flex-col mt-4 mb-16 gap-4">
@@ -200,7 +348,7 @@ const ProductPage = () => {
                     </div>
                   </div>
                 </div>
-                <div className="my-4 ml-12 text-sm leading-5 text-gary-900">
+                <div className="my-4 ml-12 text-sm leading-5 text-gray-900">
                   <span>
                     {`Lorem ipsum dolor sit amet consectetur adipisicing elit. 
                     Temporibus suscipit debitis reiciendis repellendus! Repellat rem beatae quo quis 
