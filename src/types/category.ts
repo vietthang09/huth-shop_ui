@@ -5,5 +5,5 @@ export type Category = {
   name: string;
   slug: string;
   image: string | null;
-  products: Productt[];
+  products: Product[];
 };

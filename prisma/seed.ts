@@ -15,6 +15,7 @@ async function main() {
   await prisma.category.deleteMany({});
   await prisma.supplier.deleteMany({});
   await prisma.post.deleteMany({});
+  await prisma.topic.deleteMany({}); // Add topic deletion
   await prisma.user.deleteMany({});
 
   // Create users
@@ -167,15 +168,46 @@ async function main() {
     },
   });
 
+  // Create topics
+  const newsTopic = await prisma.topic.create({
+    data: {
+      name: "News",
+      slug: "news",
+      image: "https://example.com/images/news.jpg"
+    },
+  });
+
+  const tutorialsTopic = await prisma.topic.create({
+    data: {
+      name: "Tutorials",
+      slug: "tutorials",
+      image: "https://example.com/images/tutorials.jpg"
+    },
+  });
+
   // Create blog posts
   await prisma.post.create({
     data: {
       userId: adminUser.id,
+      topicId: newsTopic.id, // Associate with a topic
       slug: "welcome-to-our-store",
       title: "Welcome to Our Online Account Store",
-      shortDescription: "Learn about our services and offerings", // Changed from short_description to shortDescription
+      shortDescription: "Learn about our services and offerings",
       content: "This is a detailed post about our online account store and what we offer to customers.",
       cover: "https://example.com/images/welcome.jpg",
+    },
+  });
+
+  // Create another post for the tutorials topic
+  await prisma.post.create({
+    data: {
+      userId: adminUser.id,
+      topicId: tutorialsTopic.id,
+      slug: "how-to-use-our-platform",
+      title: "How to Use Our Platform",
+      shortDescription: "A beginner's guide to our account services",
+      content: "This tutorial will walk you through the process of purchasing and managing your accounts on our platform.",
+      cover: "https://example.com/images/tutorial.jpg",
     },
   });
 

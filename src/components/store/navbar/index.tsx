@@ -20,6 +20,7 @@ const NAVBAR_ITEMS = [
   { name: "Spotify", link: "/list/spotify" },
   { name: "Canva", link: "/list/canva" },
   { name: "AI", link: "/list/ai" },
+  { name: "Blog", link: "/blog" },
 ];
 
 const StoreNavBar = () => {

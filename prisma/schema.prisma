@@ -150,13 +150,23 @@ model OrderItem {  // Changed from OrderItems to OrderItem
   @@index([propertiesId])
 }
 
+model Topic {
+  id       Int     @id @default(autoincrement())
+  name     String
+  slug     String  @unique
+  image    String?
+  posts    Post[]
+}
+
 model Post {  // Changed from Posts to Post
   id                Int      @id @default(autoincrement())
   userId            Int?     // Author of the post
   user              User?   @relation(fields: [userId], references: [id], onDelete: SetNull)  // Changed from Users to User
+  topicId           Int?     // Topic of the post
+  topic             Topic?  @relation(fields: [topicId], references: [id], onDelete: SetNull)
   slug              String   @unique
   title             String
-  shortDescription String?  @db.Text
+  shortDescription  String?  @db.Text
   content           String?  @db.Text
   cover             String?  // URL to a cover image
   createdAt         DateTime @default(now())
@@ -164,6 +174,7 @@ model Post {  // Changed from Posts to Post
   logs              Log[]  // Changed from Logs[] to Log[]
 
   @@index([userId])
+  @@index([topicId])
 }
 
 model Log {  // Changed from Logs to Log
