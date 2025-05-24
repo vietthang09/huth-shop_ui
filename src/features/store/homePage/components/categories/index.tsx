@@ -2,21 +2,15 @@
 
 import { useEffect, useState } from "react";
 
-import { getAllCategoriesJSON } from "@/actions/category/category";
 import { SK_Box } from "@/components/UI/skeleton";
-import { TGroupJSON } from "@/types/categories";
+import { TGroupJSON } from "@/types/category";
 
 import CategoryListItem from "./catListItem";
 
 export const HomeCategoryList = () => {
   const [categories, setCategories] = useState<TGroupJSON[]>([]);
   useEffect(() => {
-    const getCategoriesDB = async () => {
-      const result = await getAllCategoriesJSON();
-      if (result.res) {
-        setCategories(result.res);
-      }
-    };
+    const getCategoriesDB = async () => {};
     getCategoriesDB();
   }, []);
 

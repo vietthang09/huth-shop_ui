@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 import { cn } from "@/shared/utils/styling";
 
-import AddVisit from "../common/addVisit";
+// import AddVisit from "../common/addVisit";
 
 import NavBarCategory from "./navCategory";
 import NavBarFavorite from "./navFavorite";
@@ -20,6 +20,7 @@ const NAVBAR_ITEMS = [
   { name: "Spotify", link: "/list/spotify" },
   { name: "Canva", link: "/list/canva" },
   { name: "AI", link: "/list/ai" },
+  { name: "Blog", link: "/blog" },
 ];
 
 const StoreNavBar = () => {
@@ -99,7 +100,6 @@ const StoreNavBar = () => {
           </div>
         </div>
       </section>
-      <AddVisit />
     </nav>
   );
 };

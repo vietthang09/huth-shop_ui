@@ -1,63 +1,54 @@
-import Link from "next/link";
-import Image from "next/image";
-import { Metadata } from "next";
-import { getPublishedBlogs } from "@/actions/blog";
+import { getAllPosts } from "@/actions/post/post";
+import { notFound } from "next/navigation";
+import BlogPostCard from "@/components/blog/BlogPostCard";
+import Pagination from "@/components/blog/Pagination";
 
-export const metadata: Metadata = {
-  title: "BITEX - Blog",
-  description: "Latest news, updates, and articles from BITEX",
-};
+export const revalidate = 3600; // Revalidate every hour
 
-const BlogListPage = async () => {
-  const blogs = await getPublishedBlogs();
+const BlogListPage = async ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
+  const currentPage = typeof searchParams.page === "string" ? parseInt(searchParams.page) : 1;
+  const pageSize = 9; // Posts per page
+
+  const result = await getAllPosts(currentPage, pageSize);
+
+  if (!result.success) {
+    notFound();
+  }
+
+  const { data: posts, pagination } = result;
 
   return (
-    <div className="max-w-5xl mx-auto pt-8 pb-16">
-      <div className="flex items-center text-sm mb-8">
-        <Link
-          href="/"
-          className="text-gray-500 hover:text-gray-900 after:content-[''] after:w-1 after:h-2 after:ml-2 after:inline-block after:bg-no-repeat after:bg-center after:bg-[url('/icons/arrowIcon01.svg')]"
-        >
-          Trang chủ
-        </Link>
-        <span className="text-gray-800">Blog</span>
+    <div className="container mx-auto px-4 py-12 max-w-7xl">
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">Our Blog</h1>
+        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          Latest news, guides, and insights about our products and services.
+        </p>
       </div>
 
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Latest Articles</h1>
+      {posts.length > 0 ? (
+        <>
+          {/* Featured post (first post) */}
+          {posts.length > 0 && (
+            <div className="mb-16">
+              <BlogPostCard post={posts[0]} variant="featured" />
+            </div>
+          )}
 
-      {Array.isArray(blogs) && blogs.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {blogs.map((blog) => (
-            <Link
-              key={blog.id}
-              href={`/blog/${blog.slug}`}
-              className="overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-            >
-              {blog.imgUrl && (
-                <div className="w-full h-48 relative">
-                  <Image
-                    src={blog.imgUrl}
-                    alt={blog.title}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  />
-                </div>
-              )}
-              <div className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">{blog.title}</h2>
-                <div className="text-sm text-gray-500 mb-4">
-                  <time dateTime={blog.createdAt?.toISOString()}>{new Date(blog.createdAt).toString()}</time>
-                </div>
-                <p className="text-gray-700">{blog.shortText}</p>
-                <div className="mt-4 text-blue-600 font-medium">Read more</div>
-              </div>
-            </Link>
-          ))}
-        </div>
+          {/* Regular posts */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {posts.slice(1).map((post) => (
+              <BlogPostCard key={post.id} post={post} />
+            ))}
+          </div>
+
+          {/* Pagination */}
+          <Pagination page={pagination.page} totalPages={pagination.totalPages} baseUrl="/blog/" />
+        </>
       ) : (
-        <div className="bg-gray-50 p-8 text-center rounded-lg">
-          <p className="text-gray-600">No articles published yet. Check back later!</p>
+        <div className="text-center py-16">
+          <h2 className="text-2xl font-medium text-gray-600 mb-4">No posts found</h2>
+          <p className="text-gray-500">Check back soon for new content!</p>
         </div>
       )}
     </div>

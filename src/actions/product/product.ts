@@ -1,296 +1,399 @@
 "use server";
-import { ProductSpec } from "@prisma/client";
-import { z } from "zod";
 import { revalidatePath } from "next/cache";
-
 import { db } from "@/lib/db";
-import {
-  TAddProductFormValues,
-  TCartListItemDB,
-  TPath,
-  TProductListItem,
-  TProductPageInfo,
-  TSpecification,
-} from "@/types/product";
+import { Product, Property, Attribute } from "@prisma/client";
+import { z } from "zod";
 
-const ValidateAddProduct = z.object({
-  name: z.string().min(3),
-  brandID: z.string().min(6),
-  specialFeatures: z.array(z.string()),
-  desc: z.string().optional(),
-  richDesc: z.string().optional(), // Add validation for rich description
-  images: z.array(z.string()),
-  categoryID: z.string().min(6),
-  price: z.string().min(1),
-  salePrice: z.string(),
-  specifications: z.array(
-    z.object({
-      specGroupID: z.string().min(6),
-      specValues: z.array(z.string()),
-    })
-  ),
+type ProductWithRelations = Product & {
+  properties: Property[];
+  supplier?: { name: string } | null;
+  category?: { name: string } | null;
+  productAttributes?: Array<{ attribute: Attribute }>;
+};
+
+interface CreateProductInput {
+  sku: string;
+  title: string;
+  description?: string;
+  image?: string;
+  supplierId?: number;
+  categoryId?: number;
+  attributes?: number[];
+}
+
+interface UpdateProductInput extends Partial<CreateProductInput> {
+  id: number;
+  properties?: Array<{
+    id: number;
+    net_price: number;
+    retail_price: number;
+    sale_price?: number;
+    inventory: number;
+  }>;
+  attributes?: Array<{
+    attributeId: number;
+    attributeSetHash: string;
+    netPrice: number;
+    retailPrice: number;
+    discount?: number;
+  }>;
+}
+
+// Update the product schema to include attributeIds and prices
+const productSchema = z.object({
+  sku: z.string().min(1, "SKU is required"),
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  supplierId: z.number().optional(),
+  categoryId: z.number().optional(),
+  attributeIds: z.array(z.number()).optional(),
+  attributePrices: z
+    .array(
+      z.object({
+        attributeId: z.number(),
+        netPrice: z.number().default(0),
+        retailPrice: z.number().default(0),
+        discount: z.number().optional(),
+      })
+    )
+    .optional(),
 });
 
-const convertStringToFloat = (str: string) => {
-  str.replace(/,/, ".");
-  return str ? parseFloat(str) : 0.0;
-};
-
-export const addProduct = async (formData: TAddProductFormValues) => {
+export async function addProduct(data: z.infer<typeof productSchema>) {
   try {
-    // Create the new product
-    await db.product.create({
+    console.log("Adding product with data:", JSON.stringify(data));
+    console.log("Attribute prices data:", data.attributePrices);
+    const validatedData = productSchema.parse(data);
+
+    // Create the product
+    const product = await db.product.create({
       data: {
-        name: formData.name,
-        desc: formData.desc,
-        richDesc: formData.richDesc,
-        isAvailable: formData.isAvailable,
-        brandID: formData.brandID,
-        price: parseFloat(formData.price),
-        salePrice: formData.salePrice ? parseFloat(formData.salePrice) : null,
-        images: formData.images,
-        specialFeatures: formData.specialFeatures.filter((feature) => feature.length > 0),
-        categoryID: formData.categoryID,
-        specifications: formData.specifications,
-        fromColor: formData.fromColor, // Add these fields
-        toColor: formData.toColor, // Add these fields
+        sku: validatedData.sku,
+        title: validatedData.title,
+        description: validatedData.description,
+        supplierId: validatedData.supplierId,
+        categoryId: validatedData.categoryId,
       },
-    });
+    }); // If there are selected attributes, create properties for them
+    if (validatedData.attributeIds && validatedData.attributeIds.length > 0) {
+      // Get the attribute details from the database
+      const attributes = await db.attribute.findMany({
+        where: {
+          id: {
+            in: validatedData.attributeIds,
+          },
+        },
+      });
 
-    // Revalidate paths to reflect changes
-    revalidatePath("/");
+      // Create property entries for each attribute with the provided prices
+      for (const attribute of attributes) {
+        // Find the price data for this attribute if it exists
+        const priceData = validatedData.attributePrices?.find((price) => price.attributeId === attribute.id);
+        // Calculate sale price if discount is provided
+        const retailPrice = priceData?.retailPrice || 0;
+        const discount = priceData?.discount || 0;
+        // Calculate the sale price if discount is provided and greater than 0
+        let salePrice = null;
+        if (discount > 0 && retailPrice > 0) {
+          const discountAmount = retailPrice * (discount / 100);
+          salePrice = retailPrice - discountAmount;
+        }
+
+        await db.property.create({
+          data: {
+            productId: product.id,
+            attributeSetHash: attribute.propertiesHash,
+            netPrice: priceData?.netPrice || 0,
+            retailPrice: retailPrice,
+            salePrice: salePrice,
+          },
+        });
+      }
+    }
+
     revalidatePath("/admin/products");
-    revalidatePath("/list");
-
-    return { res: "success" };
+    return { success: true, product };
   } catch (error) {
-    console.error("Error adding product:", error);
-    return { error: "Failed to add product" };
+    if (error instanceof z.ZodError) {
+      return { success: false, error: error.errors };
+    }
+
+    console.error("Error creating product:", error);
+    return { success: false, error: "Failed to create product." };
   }
-};
+}
 
 export const getAllProducts = async () => {
   try {
-    const result: TProductListItem[] | null = await db.product.findMany({
-      select: {
-        id: true,
-        name: true,
-        category: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
+    const products = await db.product.findMany({
+      include: {
+        supplier: { select: { name: true } },
+        category: { select: { name: true } },
+        properties: true,
       },
     });
 
-    if (!result) return { error: "Can't Get Data from Database!" };
-    return { res: result };
+    return { success: true, data: products };
   } catch (error) {
-    return { error: JSON.stringify(error) };
+    console.error("Error getting products:", error);
+    return { success: false, error: "Failed to get products" };
   }
 };
 
-export const getOneProduct = async (productID: string) => {
-  if (!productID || productID === "") return { error: "Invalid Product ID!" };
-
+export const getOneProduct = async (id: number) => {
   try {
-    const result = await db.product.findFirst({
-      where: {
-        id: productID,
-      },
-      select: {
-        id: true,
-        name: true,
-        desc: true,
-        richDesc: true,
-        images: true,
-        price: true,
-        salePrice: true,
-        specs: true,
-        specialFeatures: true,
-        isAvailable: true,
-        brandID: true,
-        fromColor: true, // Add these fields to ensure they're returned
-        toColor: true, // Add these fields to ensure they're returned
-        category: {
-          select: {
-            id: true,
+    if (!id) {
+      return { success: false, error: "Invalid product ID" };
+    }
+
+    const product = await db.product.findUnique({
+      where: { id },
+      include: {
+        supplier: true,
+        category: true,
+        properties: {
+          include: {
+            inventory: true,
+            attributeSet: true,
           },
         },
       },
     });
 
-    if (!result) return { error: "Product not found!" };
+    if (!product) {
+      return { success: false, error: "Product not found" };
+    }
 
-    // Create a formatted product object with specifications properly formatted
-    const formattedProduct = {
-      ...result,
-      specifications: result.specs || [],
-      // Ensure specialFeatures is an array with at least 3 items
-      specialFeatures:
-        Array.isArray(result.specialFeatures) && result.specialFeatures.length >= 3
-          ? result.specialFeatures
-          : [...(result.specialFeatures || []), "", "", ""].slice(0, 3),
+    // Make sure prices are accessible in the response
+    const productWithPrices = {
+      ...product,
+      prices: product.properties.map((prop) => ({
+        id: prop.id,
+        net_price: prop.netPrice,
+        retail_price: prop.retailPrice,
+        sale_price: prop.salePrice,
+        attributeSetHash: prop.attributeSetHash,
+        inventory: prop.inventory?.quantity || 0,
+      })),
     };
 
-    return { res: formattedProduct };
+    return { success: true, data: productWithPrices };
   } catch (error) {
-    console.error("Get product error:", error);
-    return { error: JSON.stringify(error) };
+    console.error("Error getting product:", error);
+    return { success: false, error: "Failed to get product" };
   }
 };
 
-export const getCartProducts = async (productIDs: string[]) => {
-  if (!productIDs || productIDs.length === 0) return { error: "Invalid Product List" };
-
+export const getOneProductBySku = async (sku: string) => {
   try {
-    const result: TCartListItemDB[] | null = await db.product.findMany({
-      where: {
-        id: { in: productIDs },
-      },
-      select: {
-        id: true,
-        name: true,
-        images: true,
-        price: true,
-        salePrice: true,
-      },
-    });
+    if (!sku) {
+      return { success: false, error: "Invalid product SKU" };
+    }
 
-    if (!result) return { error: "Can't Get Data from Database!" };
-    return { res: result };
-  } catch (error) {
-    return { error: JSON.stringify(error) };
-  }
-};
-
-export const deleteProduct = async (productID: string) => {
-  if (!productID || productID === "") return { error: "Invalid Data!" };
-  try {
-    const result = await db.product.delete({
-      where: {
-        id: productID,
+    const product = await db.product.findUnique({
+      where: { sku },
+      include: {
+        supplier: true,
+        category: true,
+        properties: {
+          include: {
+            inventory: true,
+            attributeSet: true,
+          },
+        },
       },
     });
 
-    if (!result) return { error: "Can't Delete!" };
-    return { res: result };
+    if (!product) {
+      return { success: false, error: "Product not found" };
+    }
+
+    // Make sure prices are accessible in the response
+    const productWithPrices = {
+      ...product,
+      prices: product.properties.map((prop) => ({
+        id: prop.id,
+        net_price: prop.netPrice,
+        retail_price: prop.retailPrice,
+        sale_price: prop.salePrice,
+        attributeSetHash: prop.attributeSetHash,
+        inventory: prop.inventory?.quantity || 0,
+      })),
+    };
+
+    return { success: true, data: productWithPrices };
   } catch (error) {
-    return { error: JSON.stringify(error) };
+    console.error("Error getting product:", error);
+    return { success: false, error: "Failed to get product" };
   }
 };
 
-export const updateProduct = async (id: string, formData: TAddProductFormValues) => {
+export const deleteProduct = async (productId: number) => {
   try {
-    // Update the product
-    const updated = await db.product.update({
+    await db.product.delete({
+      where: { id: productId },
+    });
+
+    revalidatePath("/products");
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    return { success: false, error: "Failed to delete product" };
+  }
+};
+
+export const updateProduct = async (data: UpdateProductInput) => {
+  try {
+    console.log("Updating product with data:", JSON.stringify(data));
+    const { id, attributes: attributesWithPrices, ...updateData } = data;
+
+    // Update basic product information
+    const product = await db.product.update({
       where: { id },
       data: {
-        name: formData.name,
-        desc: formData.desc,
-        richDesc: formData.richDesc,
-        isAvailable: formData.isAvailable,
-        brandID: formData.brandID,
-        price: parseFloat(formData.price),
-        salePrice: formData.salePrice ? parseFloat(formData.salePrice) : null,
-        images: formData.images,
-        specialFeatures: formData.specialFeatures.filter((feature) => feature.length > 0),
-        categoryID: formData.categoryID,
-        specifications: formData.specifications,
-        fromColor: formData.fromColor,
-        toColor: formData.toColor,
+        sku: updateData.sku,
+        title: updateData.title,
+        description: updateData.description,
+        supplierId: updateData.supplierId,
+        categoryId: updateData.categoryId,
       },
+    }); // Get all existing properties for this product
+    const existingProperties = await db.property.findMany({
+      where: { productId: id },
+      include: { attributeSet: true },
     });
 
-    console.log("Update result:", updated);
+    // Update properties if provided
+    if (attributesWithPrices && attributesWithPrices.length > 0) {
+      // Create a set of attribute hashes that are being sent in the update
+      const updatedAttributeHashes = new Set(attributesWithPrices.map((attr) => attr.attributeSetHash));
 
-    // Revalidate paths to reflect changes
-    revalidatePath("/");
+      // Delete properties that are no longer selected (not in the update list)
+      for (const property of existingProperties) {
+        if (!updatedAttributeHashes.has(property.attributeSetHash)) {
+          await db.property.delete({
+            where: { id: property.id },
+          });
+        }
+      }
+
+      // Process each attribute with its price data
+      for (const attr of attributesWithPrices) {
+        const { attributeId, attributeSetHash, netPrice, retailPrice, discount } = attr;
+
+        // Calculate sale price if discount is provided
+        let salePrice = null;
+        if (discount && discount > 0 && retailPrice > 0) {
+          const discountAmount = retailPrice * (discount / 100);
+          salePrice = retailPrice - discountAmount;
+        }
+
+        // Check if property already exists for this product and attribute set
+        const existingProperty = await db.property.findFirst({
+          where: {
+            productId: id,
+            attributeSetHash: attributeSetHash,
+          },
+        });
+
+        if (existingProperty) {
+          // Update existing property
+          await db.property.update({
+            where: { id: existingProperty.id },
+            data: {
+              netPrice,
+              retailPrice,
+              salePrice,
+            },
+          });
+        } else {
+          // Create new property
+          await db.property.create({
+            data: {
+              productId: id,
+              attributeSetHash,
+              netPrice,
+              retailPrice,
+              salePrice,
+            },
+          });
+        }
+      }
+    } // Make sure to revalidate all paths showing product data
     revalidatePath("/admin/products");
-    revalidatePath("/list");
+    revalidatePath("/products");
     revalidatePath(`/product/${id}`);
 
-    return { res: "success" };
+    return { success: true, product };
   } catch (error) {
     console.error("Error updating product:", error);
-    // Return the specific error message for debugging
-    return { error: `Failed to update product: ${error.message}` };
+    return { success: false, error: "Failed to update product." };
   }
 };
 
-const generateSpecTable = async (rawSpec: ProductSpec[]) => {
+/**
+ * Get products for the shopping cart by their IDs
+ * This function retrieves products with their properties for the shopping cart display
+ * @param productIds Array of product IDs
+ * @param variantIds Optional array of variant IDs to fetch specific variants
+ */
+export const getCartProducts = async (productIds: number[], variantIds?: number[]) => {
   try {
-    const specGroupIDs = rawSpec.map((spec) => spec.specGroupID);
+    if (!productIds || productIds.length === 0) {
+      return { success: false, error: "No product IDs provided" };
+    }
 
-    const result = await db.specGroup.findMany({
+    const products = await db.product.findMany({
       where: {
-        id: { in: specGroupIDs },
+        id: { in: productIds },
+      },
+      include: {
+        supplier: true,
+        category: true,
+        properties: {
+          where: variantIds ? { id: { in: variantIds } } : undefined,
+          include: {
+            inventory: true,
+            attributeSet: true,
+          },
+        },
       },
     });
-    if (!result || result.length === 0) return null;
 
-    const specifications: TSpecification[] = [];
+    if (!products || products.length === 0) {
+      return { success: false, error: "No products found" };
+    } // Format the products for cart display
+    const cartItems = products.map((product) => ({
+      id: String(product.id), // Convert to string to match the productId in cart state
+      name: product.title,
+      // This will already use the filtered properties if variantIds was provided
+      // thanks to the where clause in the database query
+      price: product.properties.reduce((lowest, property) => {
+        const propertyPrice = property.salePrice ?? property.retailPrice;
+        return lowest === 0 || propertyPrice < lowest ? propertyPrice : lowest;
+      }, 0),
+      salePrice: product.properties.some((p) => p.salePrice !== null)
+        ? product.properties.reduce((lowest, property) => {
+            if (property.salePrice === null) return lowest;
+            return lowest === 0 || property.salePrice < lowest ? property.salePrice : lowest;
+          }, 0)
+        : null,
+      images: product.image ? [product.image] : ["/images/products/default.jpg"],
+      isAvailable: product.properties.some((p) => p.inventory && p.inventory.quantity > 0),
+      // Add variants information for cart display
+      variants: product.properties.map((prop) => ({
+        id: prop.id,
+        retail_price: prop.retailPrice,
+        sale_price: prop.salePrice,
+        attributeSetHash: prop.attributeSetHash,
+        inventory: prop.inventory?.quantity || 0,
+        attributeName: prop.attributeSet?.name || "Default",
+      })),
+    }));
 
-    rawSpec.forEach((spec) => {
-      const groupSpecIndex = result.findIndex((g) => g.id === spec.specGroupID);
-      const tempSpecs: { name: string; value: string }[] = [];
-      spec.specValues.forEach((s, index) => {
-        tempSpecs.push({
-          name: result[groupSpecIndex].specs[index] || "",
-          value: s || "",
-        });
-      });
-
-      specifications.push({
-        groupName: result[groupSpecIndex].title || "",
-        specs: tempSpecs,
-      });
-    });
-    if (specifications.length === 0) return null;
-
-    return specifications;
-  } catch {
-    return null;
-  }
-};
-
-const getPathByCategoryID = async (categoryID: string, parentID: string | null) => {
-  try {
-    if (!categoryID || categoryID === "") return null;
-    if (!parentID || parentID === "") return null;
-    const result: TPath[] = await db.category.findMany({
-      where: {
-        OR: [{ id: categoryID }, { id: parentID }, { parentID: null }],
-      },
-      select: {
-        id: true,
-        parentID: true,
-        name: true,
-        url: true,
-      },
-    });
-    if (!result || result.length === 0) return null;
-
-    const path: TPath[] = [];
-    let tempCatID: string | null = categoryID;
-    let searchCount = 0;
-
-    const generatePath = () => {
-      const foundCatIndex = result.findIndex((cat) => cat.id === tempCatID);
-      if (foundCatIndex === -1) return;
-      path.unshift(result[foundCatIndex]);
-      tempCatID = result[foundCatIndex].parentID;
-      if (!tempCatID) return;
-      searchCount++;
-      if (searchCount <= 3) generatePath();
-      return;
-    };
-    generatePath();
-
-    if (!path || path.length === 0) return null;
-    return path;
-  } catch {
-    return null;
+    return { success: true, res: cartItems };
+  } catch (error) {
+    console.error("Error getting cart products:", error);
+    return { success: false, error: "Failed to get cart products" };
   }
 };

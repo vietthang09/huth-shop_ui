@@ -1,46 +1,33 @@
-import { OrderStatus } from "@prisma/client";
+import { Property } from "./property";
+import { User } from "./user";
 
-export type TOrderItem = {
-  productId: string;
-  quantity: number;
-  price: number;
-  totalPrice: number;
-  product?: {
-    name: string;
-    images: string[];
-    id: string;
-  };
-};
+export enum OrderStatus {
+  PENDING = 'PENDING',
+  PROCESSING = 'PROCESSING',
+  DELIVERED = 'DELIVERED',
+  CANCELLED = 'CANCELLED',
+  REFUNDED = 'REFUNDED'
+}
 
-export type TShippingInfo = {
-  fullName: string;
-  address: string;
-  city: string;
-  province: string;
-  postalCode: string;
-  phone: string;
-};
-
-export type TPaymentInfo = {
-  amount: number;
-  method: string;
-  status: string;
-  transactionId?: string;
-  paidAt?: Date;
-};
-
-export type TOrder = {
-  id: string;
-  userId: string;
+export type Order = {
+  id: number;
+  userId: number | null;
+  user: User | null;
+  total: number | string; // Decimal can be represented as string or number
   status: OrderStatus;
-  total: number;
+  notes: string | null;
   createdAt: Date;
   updatedAt: Date;
-  orderItems: TOrderItem[];
-  shippingInfo?: TShippingInfo;
-  paymentInfo?: TPaymentInfo;
-  user?: {
-    name: string;
-    email: string;
-  };
+  orderItems: OrderItem[];
+};
+
+export type OrderItem = {
+  id: number;
+  orderId: number;
+  order: Order;
+  propertiesId: number;
+  property: Property;
+  netPrice: number | string;
+  retailPrice: number | string;
+  quantity: number;
 };

@@ -13,7 +13,6 @@ import { cn } from "@/shared/utils/styling";
 const NavBarProfile = () => {
   const router = useRouter();
   const { data: session, status } = useSession();
-  console.log("Session data:", session);
   const loading = status === "loading";
   const isAuthenticated = status === "authenticated";
 
