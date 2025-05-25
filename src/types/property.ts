@@ -1,5 +1,5 @@
 import { Attribute } from "./attribute";
-import { Inventory } from "./inventory";
+import { Inventory, InventoryImportItem } from "./inventory";
 import { OrderItem } from "./order";
 import { Product } from "./product";
 
@@ -16,4 +16,5 @@ export type Property = {
   updatedAt: Date;
   inventory: Inventory | null;
   orderItems: OrderItem[];
+  importItems?: InventoryImportItem[];
 };

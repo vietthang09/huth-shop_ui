@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { FacebookIcon, InstagramIcon, LinkedinIcon, XIcon } from "@/components/icons/svgIcons";
+import { InstagramIcon, LinkedinIcon, XIcon } from "@/components/icons/svgIcons";
 import Button from "@/components/UI/button";
 
 const CATEGORIES = [
@@ -137,7 +137,7 @@ const Footer = () => {
               href={"https://www.facebook.com"}
               className="fill-gray-400 hover:fill-gray-800 transition-all duration-200"
             >
-              <FacebookIcon width={20} strokeWidth={0} className="fill-inherit" />
+              <InstagramIcon width={20} strokeWidth={0} className="fill-inherit" />
             </Link>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { Post } from "./blog";
+import { InventoryImport } from "./inventory";
 import { Log } from "./log";
 import { Order } from "./order";
 
@@ -15,4 +16,5 @@ export type User = {
   posts: Post[];
   logs: Log[];
   orders: Order[];
+  inventoryImports?: InventoryImport[];
 };

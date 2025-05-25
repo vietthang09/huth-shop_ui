@@ -10,8 +10,8 @@ import {
   SearchIcon,
   HeartIcon,
   StarIcon,
-  DeleteIcon,
   PlusIcon,
+  ReportIcon,
 } from "../../icons/svgIcons";
 
 // Create a context for sidebar collapsed state
@@ -110,6 +110,7 @@ const AdminSidebar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [orderCount, setOrderCount] = useState<number | null>(null);
+  const [pendingImportsCount, setPendingImportsCount] = useState<number | null>(null);
 
   // Fetch order count - in a real app this would come from an API
   useEffect(() => {
@@ -117,8 +118,22 @@ const AdminSidebar = () => {
     setTimeout(() => {
       setOrderCount(5); // This would be the result of your API call
     }, 500);
-  }, []);
 
+    // Fetch pending imports count
+    const fetchPendingImportsCount = async () => {
+      try {
+        const response = await fetch("/api/admin/pending-imports-count");
+        if (response.ok) {
+          const data = await response.json();
+          setPendingImportsCount(data.pendingCount);
+        }
+      } catch (error) {
+        console.error("Error fetching pending imports count:", error);
+      }
+    };
+
+    fetchPendingImportsCount();
+  }, []);
   const mainNavItems = [
     {
       href: "/admin",
@@ -155,21 +170,7 @@ const AdminSidebar = () => {
         />
       ),
     },
-    {
-      href: "/admin/inventory",
-      label: "Inventory",
-      icon: (
-        <SearchIcon
-          width={18}
-          strokeWidth={1.5}
-          stroke={pathname.includes("/admin/inventory") ? "#3B82F6" : "#6B7280"}
-          fill="none"
-          className="transition-colors duration-300"
-        />
-      ),
-    },
   ];
-
   // Orders section with dropdown for sub-pages
   const ordersSection = {
     href: "/admin/orders",
@@ -201,6 +202,84 @@ const AdminSidebar = () => {
       },
     ],
   };
+  // Inventory section with dropdown for sub-pages
+  const inventorySection = {
+    href: "/admin/inventory",
+    label: "Inventory",
+    icon: (
+      <ListIcon
+        width={18}
+        strokeWidth={1.5}
+        stroke={pathname.includes("/admin/inventory") ? "#3B82F6" : "#6B7280"}
+        fill="none"
+        className="transition-colors duration-300"
+      />
+    ),
+    badge: pendingImportsCount && pendingImportsCount > 0 ? pendingImportsCount.toString() : undefined,
+    hasDropdown: true,
+    children: [
+      {
+        href: "/admin/inventory",
+        label: "Overview",
+        isActive: pathname === "/admin/inventory",
+        icon: (
+          <SearchIcon
+            width={14}
+            strokeWidth={1.5}
+            stroke={pathname === "/admin/inventory" ? "#3B82F6" : "#6B7280"}
+            fill="none"
+            className="transition-colors duration-300"
+          />
+        ),
+      },
+      {
+        href: "/admin/inventory/imports",
+        label: "Imports",
+        isActive:
+          pathname === "/admin/inventory/imports" ||
+          (pathname.startsWith("/admin/inventory/imports/") && !pathname.includes("/new")),
+        icon: (
+          <ListIcon
+            width={14}
+            strokeWidth={1.5}
+            stroke={
+              pathname.includes("/admin/inventory/imports") && !pathname.includes("/reports") ? "#3B82F6" : "#6B7280"
+            }
+            fill="none"
+            className="transition-colors duration-300"
+          />
+        ),
+        badge: pendingImportsCount && pendingImportsCount > 0 ? pendingImportsCount.toString() : undefined,
+      },
+      {
+        href: "/admin/inventory/imports/new",
+        label: "New Import",
+        isActive: pathname === "/admin/inventory/imports/new",
+        icon: (
+          <PlusIcon
+            width={14}
+            strokeWidth={1.5}
+            stroke={pathname === "/admin/inventory/imports/new" ? "#3B82F6" : "#6B7280"}
+            className="transition-colors duration-300"
+          />
+        ),
+      },
+      {
+        href: "/admin/inventory/reports",
+        label: "Reports",
+        isActive: pathname === "/admin/inventory/reports",
+        icon: (
+          <ReportIcon
+            width={14}
+            strokeWidth={1.5}
+            stroke={pathname === "/admin/inventory/reports" ? "#3B82F6" : "#6B7280"}
+            fill="none"
+            className="transition-colors duration-300"
+          />
+        ),
+      },
+    ],
+  };
 
   const secondaryNavItems = [
     {
@@ -229,11 +308,16 @@ const AdminSidebar = () => {
       ),
     },
   ];
-
   const isActive = (path: string) => {
     if (path === "/admin" && pathname === "/admin") {
       return true;
     }
+
+    // Special case for inventory overview
+    if (path === "/admin/inventory" && pathname === "/admin/inventory") {
+      return true;
+    }
+
     return path !== "/admin" && pathname.includes(path);
   };
   const toggleMobileMenu = () => {
@@ -366,7 +450,7 @@ const AdminSidebar = () => {
               <div className="text-xs text-gray-500">admin@example.com</div>
             </div>
           )}
-        </div>
+        </div>{" "}
         <div className="space-y-1 mb-8">
           {mainNavItems.map((item) => (
             <NavItem
@@ -377,6 +461,27 @@ const AdminSidebar = () => {
               isActive={isActive(item.href)}
             />
           ))}
+
+          {/* Inventory with dropdown */}
+          <NavItem
+            href={inventorySection.href}
+            label={inventorySection.label}
+            icon={inventorySection.icon}
+            isActive={isActive(inventorySection.href)}
+            hasDropdown={inventorySection.hasDropdown}
+          >
+            {inventorySection.children.map((child) => (
+              <Link
+                key={child.href}
+                href={child.href}
+                className={`block py-2 px-3 rounded-md text-sm ${
+                  child.isActive ? "text-blue-600 bg-blue-50" : "text-gray-600 hover:text-blue-500 hover:bg-gray-50"
+                }`}
+              >
+                {child.label}
+              </Link>
+            ))}
+          </NavItem>
 
           {/* Orders with dropdown */}
           <NavItem

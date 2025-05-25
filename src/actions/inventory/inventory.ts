@@ -213,9 +213,7 @@ export async function checkInventoryAvailability(propertyId: number, requestedQu
       isAvailable,
       availableQuantity: inventory.quantity,
       requestedQuantity,
-      message: isAvailable 
-        ? "Stock available" 
-        : `Only ${inventory.quantity} items available`,
+      message: isAvailable ? "Stock available" : `Only ${inventory.quantity} items available`,
     };
   } catch (error) {
     console.error("Error checking inventory availability:", error);
@@ -258,46 +256,41 @@ export async function getLowStockInventory(threshold: number = 10) {
  * @param orderItems - Array of order items with property IDs and quantities
  * @returns Object indicating success or failure with details
  */
-export async function processOrderInventory(
-  orderItems: { propertyId: number; quantity: number }[]
-) {
+export async function processOrderInventory(orderItems: { propertyId: number; quantity: number }[]) {
   try {
     // Check if all items have sufficient inventory first
     for (const item of orderItems) {
-      const availability = await checkInventoryAvailability(
-        item.propertyId, 
-        item.quantity
-      );
-      
+      const availability = await checkInventoryAvailability(item.propertyId, item.quantity);
+
       if (!availability.isAvailable) {
         return {
           success: false,
           message: `Insufficient stock for property ID ${item.propertyId}. ${availability.message}`,
-          item
+          item,
         };
       }
     }
 
     // Process all inventory updates in a transaction
     const results = await db.$transaction(
-      orderItems.map(item => 
+      orderItems.map((item) =>
         db.inventory.update({
           where: { propertiesId: item.propertyId },
           data: {
             quantity: {
-              decrement: item.quantity
-            }
-          }
+              decrement: item.quantity,
+            },
+          },
         })
       )
     );
 
     revalidatePath("/admin/inventory");
-    
+
     return {
       success: true,
       message: "Inventory updated successfully for all order items",
-      results
+      results,
     };
   } catch (error) {
     console.error("Error processing order inventory:", error);
@@ -310,32 +303,137 @@ export async function processOrderInventory(
  * @param orderItems - Array of order items with property IDs and quantities to restore
  * @returns Object indicating success or failure with details
  */
-export async function restoreOrderInventory(
-  orderItems: { propertyId: number; quantity: number }[]
-) {
+export async function restoreOrderInventory(orderItems: { propertyId: number; quantity: number }[]) {
   try {
     const results = await db.$transaction(
-      orderItems.map(item => 
+      orderItems.map((item) =>
         db.inventory.update({
           where: { propertiesId: item.propertyId },
           data: {
             quantity: {
-              increment: item.quantity
-            }
-          }
+              increment: item.quantity,
+            },
+          },
         })
       )
     );
 
     revalidatePath("/admin/inventory");
-    
+
     return {
       success: true,
       message: "Inventory restored successfully for all order items",
-      results
+      results,
     };
   } catch (error) {
     console.error("Error restoring order inventory:", error);
     throw new Error("Failed to restore inventory");
+  }
+}
+
+/**
+ * Check if a product variant has any pending imports
+ * @param propertyId - ID of the product variant (Property)
+ * @returns Boolean indicating if there are pending imports
+ */
+export async function hasPendingImports(propertyId: number) {
+  try {
+    const pendingImports = await db.inventoryImportItem.findMany({
+      where: {
+        propertiesId: propertyId,
+        import: {
+          importStatus: {
+            in: ["PENDING", "PROCESSING"],
+          },
+        },
+      },
+      include: {
+        import: {
+          select: {
+            id: true,
+            importStatus: true,
+            reference: true,
+          },
+        },
+      },
+    });
+
+    return {
+      hasPending: pendingImports.length > 0,
+      pendingImports: pendingImports.map((item: any) => ({
+        importId: item.import.id,
+        importStatus: item.import.importStatus,
+        reference: item.import.reference,
+        quantity: item.quantity,
+      })),
+    };
+  } catch (error) {
+    console.error("Error checking pending imports:", error);
+    return { hasPending: false, pendingImports: [] };
+  }
+}
+
+/**
+ * Get inventory history for a product variant
+ * @param propertyId - ID of the product variant (Property)
+ * @returns Array of import records for this variant
+ */
+export async function getInventoryHistory(propertyId: number) {
+  try {
+    const inventory = await db.inventory.findUnique({
+      where: { propertiesId: propertyId },
+    });
+
+    if (!inventory) {
+      return [];
+    }
+
+    const importItems = await db.inventoryImportItem.findMany({
+      where: {
+        inventoryId: inventory.id,
+        import: {
+          importStatus: "COMPLETED",
+        },
+      },
+      include: {
+        import: {
+          include: {
+            supplier: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            user: {
+              select: {
+                id: true,
+                fullname: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        import: {
+          createdAt: "desc",
+        },
+      },
+    });
+    return importItems.map((item: any) => ({
+      id: item.id,
+      importId: item.importId,
+      date: item.import.createdAt,
+      quantity: item.quantity,
+      netPrice: Number(item.netPrice),
+      supplier: item.import.supplier.name,
+      createdBy: item.import.user.fullname || item.import.user.email,
+      reference: item.import.reference,
+      warrantyPeriod: item.warrantyPeriod,
+      warrantyExpiry: item.warrantyExpiry,
+    }));
+  } catch (error) {
+    console.error("Error fetching inventory history:", error);
+    throw new Error("Failed to fetch inventory history");
   }
 }

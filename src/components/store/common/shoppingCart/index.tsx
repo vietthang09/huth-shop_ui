@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-import { CloseIcon, ShoppingIconEmpty } from "@/components/icons/svgIcons";
+import { ShoppingIconEmpty } from "@/components/icons/svgIcons";
 import Button from "@/components/UI/button";
 import { cn } from "@/shared/utils/styling";
 import { RootState } from "@/store/shoppingCart";
@@ -139,7 +139,8 @@ const ShoppingCart = ({ isVisible, quantity, handleOnClose }: TProps) => {
         <div className="flex items-center justify-between py-3 border-b border-gray-300 mx-6">
           <h2 className="text-gray-800 text-xl font-medium">Shopping Cart ({quantity})</h2>
           <Button onClick={handleOnClose} className="p-2 size-11 border-white hover:border-gray-300">
-            <CloseIcon width={18} />
+            {/* <CloseIcon width={18} /> */}
+            Close
           </Button>
         </div>
         {/* Cart Summary Section */}

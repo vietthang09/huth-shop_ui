@@ -10,85 +10,88 @@ generator client {
 
 // Models based on the ERD
 
-model User {  // Changed from Users to User
-  id        Int      @id @default(autoincrement())
+model User {
+  id        Int       @id @default(autoincrement())
   fullname  String?
-  email     String   @unique
-  password  String   // Remember to hash passwords in your application
-  role      String?  // e.g., "admin", "customer"
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  isActive  Boolean  @default(true)
+  email     String    @unique
+  password  String // Remember to hash passwords in your application
+  role      String? // e.g., "admin", "customer"
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  isActive  Boolean   @default(true)
   lastLogin DateTime?
 
-  posts     Post[]  // Changed from Posts[] to Post[]
-  logs      Log[]   // Changed from Logs[] to Log[]
-  orders    Order[] // Changed from Orders[] to Order[]
+  posts            Post[] // Changed from Posts[] to Post[]
+  logs             Log[] // Changed from Logs[] to Log[]
+  orders           Order[] // Changed from Orders[] to Order[]
+  inventoryImports InventoryImport[] // Added relation for tracking who created imports
 }
 
-model Supplier {  // Changed from Suppliers to Supplier
-  id       Int        @id @default(autoincrement())
-  name     String     @unique
-  products Product[]  // Changed from Products[] to Product[]
+model Supplier {
+  id               Int               @id @default(autoincrement())
+  name             String            @unique
+  products         Product[] // Changed from Products[] to Product[]
+  inventoryImports InventoryImport[] // Added relation for tracking supplier of imports
 }
 
 model Category {
-  id       Int        @id @default(autoincrement())
+  id       Int       @id @default(autoincrement())
   name     String
-  slug     String     @unique
+  slug     String    @unique
   image    String?
-  products Product[]  // Changed from Products[] to Product[]
+  products Product[] // Changed from Products[] to Product[]
 }
 
-model Product {  // Changed from Products to Product
-  id          Int      @id @default(autoincrement())
-  sku         String   @unique // Stock Keeping Unit, usually unique
+model Product {
+  id          Int       @id @default(autoincrement())
+  sku         String    @unique // Stock Keeping Unit, usually unique
   title       String
-  description String?  @db.Text
+  description String?   @db.Text
   image       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   supplierId  Int?
-  supplier    Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)  // Changed from Suppliers to Supplier
+  supplier    Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull) // Changed from Suppliers to Supplier
   categoryId  Int?
   category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
-  properties  Property[] // Changed from Properties[] to Property[]
-  logs        Log[]      // Changed from Logs[] to Log[]
+  properties Property[] // Changed from Properties[] to Property[]
+  logs       Log[] // Changed from Logs[] to Log[]
 
   @@index([supplierId])
   @@index([categoryId])
 }
 
 // Existing Attributes model can be kept for backward compatibility
-model Attribute {  // Changed from Attributes to Attribute
-  id              Int      @id @default(autoincrement())
-  name            String?  // Optional descriptive name for the attribute set/hash
-  value           String?  // The actual value of the attribute (e.g., "Red", "Large")
-  unit            String?  // The unit of measurement if applicable (e.g., "cm", "kg")
-  propertiesHash  String   @unique // The unique hash identifying this attribute set
+model Attribute {
+  id             Int     @id @default(autoincrement())
+  name           String? // Optional descriptive name for the attribute set/hash
+  value          String? // The actual value of the attribute (e.g., "Red", "Large")
+  unit           String? // The unit of measurement if applicable (e.g., "cm", "kg")
+  propertiesHash String  @unique // The unique hash identifying this attribute set
 
   // Relation to Property entries that use this specific attribute set
-  propertyEntries Property[] @relation("AttributeSetToProperties")  // Changed from Properties[] to Property[]
+  propertyEntries Property[] @relation("AttributeSetToProperties") // Changed from Properties[] to Property[]
 }
 
-model Property {  // Changed from Properties to Property
-  id             Int      @id @default(autoincrement()) // Primary key for this variant
-  productId      Int
-  product        Product @relation(fields: [productId], references: [id], onDelete: Cascade)  // Changed from Products to Product
+model Property {
+  id        Int     @id @default(autoincrement()) // Primary key for this variant
+  productId Int
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade) // Changed from Products to Product
 
   // Foreign key to the Attribute table, identifying the set of attributes for this variant
   attributeSetHash String
-  attributeSet   Attribute @relation("AttributeSetToProperties", fields: [attributeSetHash], references: [propertiesHash])  // Changed from Attributes to Attribute
+  attributeSet     Attribute @relation("AttributeSetToProperties", fields: [attributeSetHash], references: [propertiesHash]) // Changed from Attributes to Attribute
 
-  netPrice      Decimal  @db.Decimal(10, 2)
-  retailPrice   Decimal  @db.Decimal(10, 2)
-  salePrice     Decimal? @db.Decimal(10, 2) // Optional sale price field
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  netPrice    Decimal  @db.Decimal(10, 2)
+  retailPrice Decimal  @db.Decimal(10, 2)
+  salePrice   Decimal? @db.Decimal(10, 2) // Optional sale price field
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  inventory      Inventory?    // Each product variant has one inventory record
-  orderItems    OrderItem[]   // Changed from OrderItems[] to OrderItem[]
+  inventory   Inventory? // Each product variant has one inventory record
+  orderItems  OrderItem[] // Changed from OrderItems[] to OrderItem[]
+  importItems InventoryImportItem[] // Added relation to import items
 
   // A product should have only one variant for a given attribute set
   @@unique([productId, attributeSetHash])
@@ -101,26 +104,107 @@ model Inventory {
   propertiesId Int      @unique // Ensures one-to-one relationship: one inventory record per product variant
   property     Property @relation(fields: [propertiesId], references: [id], onDelete: Cascade)
 
-  quantity     Int      @default(0) // Stock quantity
+  quantity Int @default(0) // Stock quantity
 
   // The ERD shows 'properties_hash' on Inventory. This could be a denormalized copy
   // from the related Property -> attributeSetHash for easier lookups if needed,
   // but the primary relational link is propertiesId.
   // properties_hash_value String?
   // @@index([properties_hash_value])
+
+  // Link to inventory import items
+  importItems InventoryImportItem[]
 }
 
-model Order {  // Changed from Orders to Order
-  id          Int      @id @default(autoincrement())
-  userId      Int?     // An order might be placed by a guest or a registered user
-  user        User?   @relation(fields: [userId], references: [id], onDelete: SetNull) // Changed from Users to User
-  total       Decimal  @db.Decimal(10, 2)
-  status      OrderStatus @default(PENDING)
-  notes       String?  @db.Text
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+// New models for inventory import feature
 
-  orderItems OrderItem[]    // Changed from OrderItems[] to OrderItem[]
+// Enum for tracking import payment status
+enum ImportPaymentStatus {
+  PENDING
+  PARTIALLY_PAID
+  PAID
+  CANCELLED
+}
+
+// Enum for tracking import status
+enum ImportStatus {
+  DRAFT
+  PENDING
+  PROCESSING
+  COMPLETED
+  CANCELLED
+}
+
+// Main import model to track imports
+model InventoryImport {
+  id Int @id @default(autoincrement())
+
+  // Who created the import
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  // Which supplier provided the import
+  supplierId Int
+  supplier   Supplier @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+
+  // Import details
+  reference   String? // Reference number for the import
+  description String? @db.Text
+  totalAmount Decimal @db.Decimal(10, 2)
+
+  // Status tracking
+  paymentStatus ImportPaymentStatus @default(PENDING)
+  importStatus  ImportStatus        @default(DRAFT)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Related import items
+  importItems InventoryImportItem[]
+
+  @@index([userId])
+  @@index([supplierId])
+}
+
+// Import items - detailed entries for each product variant in an import
+model InventoryImportItem {
+  id Int @id @default(autoincrement())
+
+  // Link to parent import
+  importId Int
+  import   InventoryImport @relation(fields: [importId], references: [id], onDelete: Cascade)
+
+  // Which product variant is being imported
+  propertiesId Int
+  property     Property @relation(fields: [propertiesId], references: [id], onDelete: Restrict)
+
+  // Link to inventory record that will be updated
+  inventoryId Int
+  inventory   Inventory @relation(fields: [inventoryId], references: [id], onDelete: Restrict)
+
+  // Import details for this item
+  quantity       Int
+  netPrice       Decimal   @db.Decimal(10, 2)
+  warrantyPeriod Int? // Warranty period in days
+  warrantyExpiry DateTime? // Optional expiry date for warranty
+  notes          String?   @db.Text
+
+  @@index([importId])
+  @@index([propertiesId])
+  @@index([inventoryId])
+}
+
+model Order {
+  id        Int         @id @default(autoincrement())
+  userId    Int? // An order might be placed by a guest or a registered user
+  user      User?       @relation(fields: [userId], references: [id], onDelete: SetNull) // Changed from Users to User
+  total     Decimal     @db.Decimal(10, 2)
+  status    OrderStatus @default(PENDING)
+  notes     String?     @db.Text
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  orderItems OrderItem[] // Changed from OrderItems[] to OrderItem[]
 
   @@index([userId])
 }
@@ -133,61 +217,61 @@ enum OrderStatus {
   REFUNDED
 }
 
-model OrderItem {  // Changed from OrderItems to OrderItem
-  id            Int      @id @default(autoincrement())
-  orderId       Int
-  order         Order   @relation(fields: [orderId], references: [id], onDelete: Cascade) // Changed from Orders to Order
+model OrderItem {
+  id      Int   @id @default(autoincrement())
+  orderId Int
+  order   Order @relation(fields: [orderId], references: [id], onDelete: Cascade) // Changed from Orders to Order
 
   // Refers to the specific product variant (Property entry) that was ordered
-  propertiesId  Int
-  property      Property @relation(fields: [propertiesId], references: [id], onDelete: Restrict) // Changed from Properties to Property
+  propertiesId Int
+  property     Property @relation(fields: [propertiesId], references: [id], onDelete: Restrict) // Changed from Properties to Property
 
-  netPrice     Decimal  @db.Decimal(10, 2) // Price at the time of purchase (changed from net_price)
-  retailPrice  Decimal  @db.Decimal(10, 2) // Price at the time of purchase (changed from retail_price)
-  quantity      Int
+  netPrice    Decimal @db.Decimal(10, 2) // Price at the time of purchase (changed from net_price)
+  retailPrice Decimal @db.Decimal(10, 2) // Price at the time of purchase (changed from retail_price)
+  quantity    Int
 
   @@index([orderId])
   @@index([propertiesId])
 }
 
 model Topic {
-  id       Int     @id @default(autoincrement())
-  name     String
-  slug     String  @unique
-  image    String?
-  posts    Post[]
+  id    Int     @id @default(autoincrement())
+  name  String
+  slug  String  @unique
+  image String?
+  posts Post[]
 }
 
-model Post {  // Changed from Posts to Post
-  id                Int      @id @default(autoincrement())
-  userId            Int?     // Author of the post
-  user              User?   @relation(fields: [userId], references: [id], onDelete: SetNull)  // Changed from Users to User
-  topicId           Int?     // Topic of the post
-  topic             Topic?  @relation(fields: [topicId], references: [id], onDelete: SetNull)
-  slug              String   @unique
-  title             String
-  shortDescription  String?  @db.Text
-  content           String?  @db.Text
-  cover             String?  // URL to a cover image
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  logs              Log[]  // Changed from Logs[] to Log[]
+model Post {
+  id               Int      @id @default(autoincrement())
+  userId           Int? // Author of the post
+  user             User?    @relation(fields: [userId], references: [id], onDelete: SetNull) // Changed from Users to User
+  topicId          Int? // Topic of the post
+  topic            Topic?   @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  slug             String   @unique
+  title            String
+  shortDescription String?  @db.Text
+  content          String?  @db.Text
+  cover            String? // URL to a cover image
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  logs             Log[] // Changed from Logs[] to Log[]
 
   @@index([userId])
   @@index([topicId])
 }
 
-model Log {  // Changed from Logs to Log
+model Log {
   id          Int      @id @default(autoincrement())
-  userId      Int?     // User who performed the action, or related to the log
-  user        User?   @relation(fields: [userId], references: [id], onDelete: SetNull)  // Changed from Users to User
-  productId   Int?     // Product related to the log
-  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)  // Changed from Products to Product
-  postId      Int?     // Post related to the log
-  post        Post?   @relation(fields: [postId], references: [id], onDelete: SetNull)  // Changed from Posts to Post
-  title       String?  // e.g., "USER_LOGIN", "PRODUCT_UPDATED"
+  userId      Int? // User who performed the action, or related to the log
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull) // Changed from Users to User
+  productId   Int? // Product related to the log
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull) // Changed from Products to Product
+  postId      Int? // Post related to the log
+  post        Post?    @relation(fields: [postId], references: [id], onDelete: SetNull) // Changed from Posts to Post
+  title       String? // e.g., "USER_LOGIN", "PRODUCT_UPDATED"
   description String?  @db.Text // More details about the logged event
-  createdAt  DateTime @default(now())  // Changed from created_at to createdAt
+  createdAt   DateTime @default(now()) // Changed from created_at to createdAt
 
   @@index([userId])
   @@index([productId])
