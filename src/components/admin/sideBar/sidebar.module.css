@@ -1,0 +1,270 @@
+/* Enhanced sidebar styles */
+.sidebar {
+  --sidebar-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --sidebar-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --sidebar-collapsed-width: 80px;
+  --sidebar-expanded-width: 300px;
+}
+
+/* Custom scrollbar styles */
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5);
+  border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.7);
+}
+
+/* Enhanced navigation item styles */
+.navItem {
+  position: relative;
+  overflow: hidden;
+}
+
+.navItem::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.1), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 1;
+}
+
+.navItem:hover::before {
+  transform: translateX(0);
+}
+
+.navItemContent {
+  position: relative;
+  z-index: 2;
+}
+
+/* Active state enhancement */
+.navItemActive {
+  background: linear-gradient(135deg, 
+    rgba(59, 130, 246, 0.1) 0%, 
+    rgba(147, 197, 253, 0.15) 50%, 
+    rgba(59, 130, 246, 0.1) 100%);
+  border-left: 3px solid #3b82f6;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+}
+
+/* Badge animation */
+.badge {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Dropdown animations */
+.dropdownEnter {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dropdownEnterActive {
+  opacity: 1;
+  max-height: 400px;
+  transform: translateY(0);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dropdownExit {
+  opacity: 1;
+  max-height: 400px;
+  transform: translateY(0);
+}
+
+.dropdownExitActive {
+  opacity: 0;
+  max-height: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+/* Enhanced micro-interactions */
+.navItem:hover .icon {
+  transform: scale(1.1) rotate(5deg);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.navItem:active .icon {
+  transform: scale(0.95);
+  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced dropdown child hover effects */
+.dropdownChild {
+  position: relative;
+  overflow: hidden;
+}
+
+.dropdownChild::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.dropdownChild:hover::before {
+  left: 100%;
+}
+
+/* Enhanced badge pulse animation */
+.badge.hasUpdates {
+  animation: badgePulse 2s infinite;
+}
+
+@keyframes badgePulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+/* Enhanced loading state */
+.loadingState {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.loadingState * {
+  animation: none !important;
+}
+
+/* Enhanced error state */
+.errorState {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.05));
+  border-left: 3px solid #ef4444;
+}
+
+/* Enhanced success state */
+.successState {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(22, 163, 74, 0.05));
+  border-left: 3px solid #22c55e;
+}
+
+/* Mobile enhancements */
+@media (max-width: 1024px) {
+  .sidebar {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.95);
+  }
+}
+
+/* Focus styles for accessibility */
+.focusRing:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+/* Loading shimmer effect */
+.shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Tooltip styles */
+.tooltip {
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(5px);
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.tooltipVisible {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Enhanced gradient backgrounds */
+.gradientBackground {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.gradientBackgroundBlue {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+/* Smooth transitions for all interactive elements */
+
+
+/* Dark mode support (if needed) */
+@media (prefers-color-scheme: dark) {
+  .sidebar {
+    --sidebar-bg: rgba(17, 24, 39, 0.95);
+    --sidebar-border: rgba(75, 85, 99, 0.3);
+    --sidebar-text: rgba(243, 244, 246, 0.9);
+  }
+}
+
+/* Print styles */
+@media print {
+  .sidebar {
+    display: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .sidebar {
+    border-color: #000;
+  }
+  
+  .navItem {
+    border: 1px solid #000;
+  }
+  
+  .navItemActive {
+    background: #000;
+    color: #fff;
+  }
+}
+
+/* Reduced motion support */
+
