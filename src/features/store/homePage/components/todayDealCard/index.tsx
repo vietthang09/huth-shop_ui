@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 import ProductCard from "@/components/store/common/productCard";
 import { getSaleProducts } from "@/actions/product/saleProduct";
-import { Product } from "@/types/type";
+import { Product } from "@/types/product";
 
 export const TodayDealCards = () => {
   const [deals, setDeals] = useState<Product[]>([]);
@@ -43,6 +43,7 @@ export const TodayDealCards = () => {
         </Link>
       </div>
       <div className="flex lg:flex-wrap justify-between lg:justify-start gap-3.5 overflow-x-scroll pb-7 2xl:pb-0 2xl:overflow-x-hidden">
+        {" "}
         {deals.map((deal) => (
           <ProductCard
             id={deal.sku}
@@ -52,6 +53,7 @@ export const TodayDealCards = () => {
             dealPrice={+(deal.properties?.[0]?.salePrice ?? 0)}
             imgUrl={deal.image || ""}
             staticWidth
+            cardColor={deal.cardColor}
           />
         ))}
       </div>

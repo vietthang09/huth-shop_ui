@@ -16,6 +16,7 @@ interface CreateProductInput {
   title: string;
   description?: string;
   image?: string;
+  cardColor?: string;
   supplierId?: number;
   categoryId?: number;
   attributes?: number[];
@@ -44,6 +45,7 @@ const productSchema = z.object({
   sku: z.string().min(1, "SKU is required"),
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
+  cardColor: z.string().optional(),
   supplierId: z.number().optional(),
   categoryId: z.number().optional(),
   attributeIds: z.array(z.number()).optional(),
@@ -63,14 +65,13 @@ export async function addProduct(data: z.infer<typeof productSchema>) {
   try {
     console.log("Adding product with data:", JSON.stringify(data));
     console.log("Attribute prices data:", data.attributePrices);
-    const validatedData = productSchema.parse(data);
-
-    // Create the product
+    const validatedData = productSchema.parse(data); // Create the product
     const product = await db.product.create({
       data: {
         sku: validatedData.sku,
         title: validatedData.title,
         description: validatedData.description,
+        cardColor: validatedData.cardColor,
         supplierId: validatedData.supplierId,
         categoryId: validatedData.categoryId,
       },
@@ -245,15 +246,14 @@ export const deleteProduct = async (productId: number) => {
 export const updateProduct = async (data: UpdateProductInput) => {
   try {
     console.log("Updating product with data:", JSON.stringify(data));
-    const { id, attributes: attributesWithPrices, ...updateData } = data;
-
-    // Update basic product information
+    const { id, attributes: attributesWithPrices, ...updateData } = data; // Update basic product information
     const product = await db.product.update({
       where: { id },
       data: {
         sku: updateData.sku,
         title: updateData.title,
         description: updateData.description,
+        cardColor: updateData.cardColor,
         supplierId: updateData.supplierId,
         categoryId: updateData.categoryId,
       },

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { getOrder, formatOrderStatus, getOrderStatusColor } from "@/actions/order";
+import { getOrderForTracking, formatOrderStatus, getOrderStatusColor } from "@/actions/order";
 import Image from "next/image";
 
 export default function OrderTrackingPage() {
@@ -23,7 +23,7 @@ export default function OrderTrackingPage() {
         setError(null);
 
         try {
-            const result = await getOrder(parseInt(orderId), email.trim() || undefined);
+            const result = await getOrderForTracking(parseInt(orderId), email.trim() || undefined);
 
             if (result.success && result.order) {
                 setOrder(result.order);
@@ -255,9 +255,9 @@ export default function OrderTrackingPage() {
                                             <div className="font-medium">
                                                 {item.property?.product?.title}
                                             </div>
-                                            {item.property?.name && (
+                                            {item.attributes?.name && (
                                                 <div className="text-sm text-gray-500">
-                                                    Option: {item.property.name}
+                                                    Option: {item.attributes.name} {item.attributes.value} {item.attributes.unit}
                                                 </div>
                                             )}
                                             <div className="text-sm">
