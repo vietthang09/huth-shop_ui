@@ -239,6 +239,84 @@ export async function getOrder(orderId: number) {
 }
 
 /**
+ * Get a specific order by ID for tracking (public access with email verification)
+ */
+export async function getOrderForTracking(orderId: number, email?: string) {
+  try {
+    // Find the order
+    const order = await db.order.findUnique({
+      where: { id: orderId },
+      include: {
+        user: {
+          select: {
+            fullname: true,
+            email: true,
+          },
+        },
+        orderItems: {
+          include: {
+            property: {
+              include: {
+                product: {
+                  select: {
+                    title: true,
+                    image: true,
+                    description: true,
+                  },
+                },
+                attributeSet: {
+                  select: {
+                    name: true,
+                    value: true,
+                    unit: true,
+                    propertiesHash: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Check if the order exists
+    if (!order) {
+      return { error: "Order not found" };
+    }
+
+    // If email is provided, verify it matches the order's user email
+    if (email && order.user?.email && order.user.email.toLowerCase() !== email.toLowerCase()) {
+      return { error: "Order not found. Please check your order ID and email." };
+    }
+
+    // Format order items to include readily accessible product titles and attributes
+    const formattedOrder = {
+      ...order,
+      total: Number(order.total), // Convert Decimal to number
+      orderItems: order.orderItems.map((item) => ({
+        ...item,
+        netPrice: Number(item.netPrice),
+        retailPrice: Number(item.retailPrice),
+        price: Number(item.retailPrice), // Use retailPrice as the display price
+        productTitle: item.property.product.title,
+        productImage: item.property.product.image,
+        productDescription: item.property.product.description,
+        attributes: {
+          name: item.property.attributeSet.name,
+          value: item.property.attributeSet.value,
+          unit: item.property.attributeSet.unit,
+        },
+      })),
+    };
+
+    return { success: true, order: formattedOrder };
+  } catch (error: any) {
+    console.error("Error getting order for tracking:", error);
+    return { error: error.message || "Failed to get order" };
+  }
+}
+
+/**
  * Get all orders for the current user
  */
 export async function getUserOrders(page = 1, limit = 10) {
@@ -246,7 +324,7 @@ export async function getUserOrders(page = 1, limit = 10) {
     // Get current user
     const session = await auth();
     if (!session?.user?.id) {
-      return { error: "You must be logged in to view your orders" };
+      return { success: false, error: "You must be logged in to view your orders" };
     }
 
     // Calculate pagination
@@ -279,9 +357,20 @@ export async function getUserOrders(page = 1, limit = 10) {
       db.order.count({ where: { userId: session.user.id } }),
     ]);
 
+    // Convert Decimal types to numbers for frontend consumption
+    const serializedOrders = orders.map((order) => ({
+      ...order,
+      total: Number(order.total),
+      orderItems: order.orderItems.map((item) => ({
+        ...item,
+        netPrice: Number(item.netPrice),
+        retailPrice: Number(item.retailPrice),
+      })),
+    }));
+
     return {
       success: true,
-      orders,
+      orders: serializedOrders,
       pagination: {
         totalItems: totalCount,
         totalPages: Math.ceil(totalCount / limit),
@@ -291,7 +380,7 @@ export async function getUserOrders(page = 1, limit = 10) {
     };
   } catch (error: any) {
     console.error("Error getting user orders:", error);
-    return { error: error.message || "Failed to get orders" };
+    return { success: false, error: error.message || "Failed to get orders" };
   }
 }
 
@@ -489,10 +578,9 @@ export async function addOrderItem(orderId: number, item: z.infer<typeof OrderIt
       const inventory = await db.inventory.findUnique({
         where: { propertiesId: propertyId },
       });
-
       if (inventory) {
         await db.inventory.update({
-          where: { propertiesId: validatedItem.propertyId },
+          where: { propertiesId: propertyId },
           data: { quantity: inventory.quantity - validatedItem.quantity },
         });
       }
@@ -532,10 +620,8 @@ export async function updateOrderItem(orderItemId: number, updates: { quantity?:
     // Check if the user owns this order or is an admin
     if (orderItem.order.userId !== session.user.id && session.user.role !== "admin") {
       return { error: "You do not have permission to modify this order" };
-    }
-
-    // Calculate price adjustment for order total
-    const priceDifference = orderItem.retailPrice * (updates.quantity! - orderItem.quantity);
+    } // Calculate price adjustment for order total
+    const priceDifference = Number(orderItem.retailPrice) * (updates.quantity! - orderItem.quantity);
 
     // Update the order item
     const updatedItem = await db.orderItem.update({
@@ -607,10 +693,8 @@ export async function removeOrderItem(orderItemId: number) {
     // Check if the user owns this order or is an admin
     if (orderItem.order.userId !== session.user.id && session.user.role !== "admin") {
       return { error: "You do not have permission to modify this order" };
-    }
-
-    // Calculate price adjustment for order total
-    const priceDifference = -(orderItem.retailPrice * orderItem.quantity);
+    } // Calculate price adjustment for order total
+    const priceDifference = -(Number(orderItem.retailPrice) * orderItem.quantity);
 
     // Remove the item
     await db.orderItem.delete({

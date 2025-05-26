@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 
-import { getAllProducts } from "@/actions/product/product";
 import { getProductsByCategory } from "@/actions/product/categoryProducts";
 import ProductCard from "@/components/store/common/productCard";
 import Filters from "@/components/store/listPage/filters";
@@ -15,7 +14,9 @@ import { ChevronLeft, ChevronRight, Filter, Search, SortDesc } from "lucide-reac
 interface ProductType {
   id: number;
   title: string;
+  sku: string;
   image?: string | null;
+  cardColor?: string | null;
   properties: Array<{
     retailPrice: number | any; // Using any to handle Prisma Decimal type
     salePrice?: number | null | any; // Using any to handle Prisma Decimal type
@@ -54,13 +55,14 @@ const ListPage = () => {
     priceMinMaxLimitation: [0, 10000000],
     brands: [],
     search: "",
+    category: "",
   });
   // Extract category from URL parameters
   useEffect(() => {
     const params = pathname.split("/").filter((segment) => segment && segment !== "list");
     if (params.length > 0) {
       const categoryId = params[0];
-      if (!categoryId) {
+      if (categoryId) {
         setFilters((prevFilters) => ({
           ...prevFilters,
           category: categoryId,
@@ -307,6 +309,7 @@ const ListPage = () => {
   const isProductAvailable = (product: ProductType) => {
     return product.isAvailable !== undefined ? product.isAvailable : true;
   };
+
   const fetchProducts = useCallback(async () => {
     setIsLoading(true);
     setPageStatus("pageLoading");
@@ -315,8 +318,8 @@ const ListPage = () => {
       let response;
       const pageParams = searchParams.get("page") ? parseInt(searchParams.get("page") as string) : 1;
       const sortBy = getSortMapping(sortConfig);
-      console.log("filters", filters);
       if (filters.category) {
+        console.log("Fetching products by category:", filters.category);
         // Use the category-specific function when we have a category
         response = await getProductsByCategory(filters.category, {
           page: pageParams,
@@ -376,55 +379,6 @@ const ListPage = () => {
           }
         } else {
           setError(response.error || "Failed to fetch category products");
-          setPageStatus("categoryHasNoProduct");
-        }
-      } else {
-        // Fallback to getting all products when no category is specified
-        response = await getAllProducts();
-
-        if (response.success && response.data) {
-          // Add type assertion to ensure compatibility with ProductType
-          const productsData = response.data as unknown as ProductType[];
-          setProducts(productsData);
-          setTotalItems(productsData.length); // Set total items for client-side pagination
-
-          // Get min and max prices for price filter
-          let minPrice = Number.MAX_VALUE;
-          let maxPrice = 0;
-
-          productsData.forEach((product) => {
-            product.properties.forEach((prop) => {
-              const price = Number(prop.retailPrice);
-              minPrice = Math.min(minPrice, price);
-              maxPrice = Math.max(maxPrice, price);
-            });
-          });
-
-          // Set price range filter
-          setFilters((prev) => ({
-            ...prev,
-            priceMinMax: [minPrice, maxPrice],
-            priceMinMaxLimitation: [minPrice, maxPrice],
-          }));
-
-          // Extract available brands for filter
-          const brands = Array.from(
-            new Set(productsData.filter((p) => p.supplier?.name).map((p) => p.supplier?.name))
-          ).map((name, id) => ({
-            id,
-            name: name as string,
-            isSelected: false,
-          }));
-
-          setFilters((prev) => ({
-            ...prev,
-            brands,
-          }));
-
-          // Apply initial filtering based on URL parameters
-          applyFilters(productsData);
-        } else {
-          setError(response.error || "Failed to fetch products");
           setPageStatus("categoryHasNoProduct");
         }
       }
@@ -570,21 +524,22 @@ const ListPage = () => {
               </div>
             ) : (
               <>
+                {" "}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                   {paginatedProducts.map((product) => (
                     <ProductCard
                       key={product.id}
-                      id={product.id.toString()}
+                      id={product.sku}
                       name={product.title}
                       price={getLowestPrice(product.properties)}
                       dealPrice={getLowestSalePrice(product.properties) as number | undefined}
                       imgUrl={product.image || "/images/products/default.jpg"}
                       isAvailable={isProductAvailable(product)}
                       staticWidth={false}
+                      cardColor={product.cardColor || undefined}
                     />
                   ))}
                 </div>
-
                 {/* Pagination */}
                 {totalPages > 1 && (
                   <div className="flex justify-center mt-8">

@@ -9,6 +9,7 @@ export type Product = {
   title: string;
   description: string | null;
   image: string | null;
+  cardColor: string | null;
   createdAt: Date;
   updatedAt: Date;
   supplierId: number | null;
@@ -39,6 +40,7 @@ export type TProductBoard = {
   defaultQuantity: number;
   specialFeatures?: string[];
   variants?: ProductVariant[];
+  cardColor?: string | null;
 };
 
 // Variant type for cart items

@@ -47,14 +47,16 @@ export const TopSellingCards = () => {
         </Link>
       </div>
       <div className="flex lg:flex-wrap justify-between lg:justify-start gap-3.5 overflow-x-scroll pb-7 2xl:pb-0 2xl:overflow-x-hidden">
+        {" "}
         {products.map((product) => (
           <ProductCard
-            id={product.slug}
-            key={product.slug}
+            id={product.slug || product.id.toString()}
+            key={product.slug || product.id.toString()}
             name={product.title}
             price={product.retailPrice}
             dealPrice={product.salePrice}
             imgUrl={product.image || ""}
+            cardColor={product.cardColor || undefined}
             staticWidth
           />
         ))}

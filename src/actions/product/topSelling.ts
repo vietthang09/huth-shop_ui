@@ -4,6 +4,7 @@ export interface TopSellingProduct {
   id: number;
   title: string;
   image: string | null;
+  cardColor: string | null;
   totalSold: number;
   retailPrice: any | null; // Using any to handle Prisma Decimal type
   salePrice: any | null; // Using any to handle Prisma Decimal type
@@ -26,12 +27,13 @@ export async function getTopSellingProducts({
   categoryId?: number;
   period?: "day" | "week" | "month" | "year";
 } = {}): Promise<TopSellingProduct[]> {
-  try {    // Calculate date range for period filtering if specified
+  try {
+    // Calculate date range for period filtering if specified
     let dateFilterCondition = {};
     if (period) {
       const now = new Date();
       let startDate = new Date();
-      
+
       switch (period) {
         case "day":
           startDate.setDate(now.getDate() - 1);
@@ -50,28 +52,31 @@ export async function getTopSellingProducts({
       dateFilterCondition = {
         createdAt: {
           gte: startDate,
-        }
+        },
       };
-    }
-
-    // Get products with ordered quantities
+    } // Get products with ordered quantities
     const products = await db.product.findMany({
       where: {
-        ...(categoryId ? { categoryId } : {}),        properties: {
+        ...(categoryId ? { categoryId } : {}),
+        properties: {
           some: {
             orderItems: {
-              some: {}
-            }
-          }
-        }
+              some: {},
+            },
+          },
+        },
       },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        image: true,
+        cardColor: true,
         category: {
           select: {
             id: true,
             name: true,
-            slug: true
-          }
+            slug: true,
+          },
         },
         properties: {
           select: {
@@ -84,32 +89,30 @@ export async function getTopSellingProducts({
                 order: {
                   select: {
                     createdAt: true,
-                    status: true
-                  }
-                }
-              },                where: {
+                    status: true,
+                  },
+                },
+              },
+              where: {
                 order: {
                   status: {
-                    not: "CANCELLED"
+                    not: "CANCELLED",
                   },
-                  ...(period ? dateFilterCondition : {})
-                }
-              }
-            }
-          }
-        }
+                  ...(period ? dateFilterCondition : {}),
+                },
+              },
+            },
+          },
+        },
       },
-      take: limit * 2 // Fetch extra to allow for filtering
+      take: limit * 2, // Fetch extra to allow for filtering
     });
 
     // Process and calculate total sold for each product
-    const processedProducts = products.map(product => {
+    const processedProducts = products.map((product) => {
       // Calculate total quantity sold across all properties
       const totalSold = product.properties.reduce(
-        (sum, prop) => sum + prop.orderItems.reduce(
-          (itemSum, orderItem) => itemSum + orderItem.quantity, 
-          0
-        ), 
+        (sum, prop) => sum + prop.orderItems.reduce((itemSum, orderItem) => itemSum + orderItem.quantity, 0),
         0
       );
 
@@ -122,26 +125,25 @@ export async function getTopSellingProducts({
           return currentSold > bestSold ? current : best;
         }, product.properties[0]);
       }
-
       return {
         id: product.id,
         title: product.title,
         image: product.image,
+        cardColor: product.cardColor,
         totalSold,
         retailPrice: bestSellingProperty?.retailPrice || null,
         salePrice: bestSellingProperty?.salePrice || null,
         categoryName: product.category?.name || null,
         categoryId: product.category?.id || null,
-        slug: product.category?.slug || null
+        slug: product.category?.slug || null,
       };
     });
 
     // Filter out products with no sales and sort by total sold
     return processedProducts
-      .filter(product => product.totalSold > 0)
+      .filter((product) => product.totalSold > 0)
       .sort((a, b) => b.totalSold - a.totalSold)
       .slice(0, limit);
-
   } catch (error) {
     console.error("Error fetching top selling products:", error);
     return [];
@@ -154,7 +156,7 @@ export async function getTopSellingProducts({
  */
 export async function getTopSellingProductsByCategory({
   limit = 5,
-  categoryLimit = 3
+  categoryLimit = 3,
 }: {
   limit?: number;
   categoryLimit?: number;
@@ -171,17 +173,17 @@ export async function getTopSellingProductsByCategory({
                   some: {
                     order: {
                       status: {
-                        not: "CANCELLED"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+                        not: "CANCELLED",
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
-      take: categoryLimit
+      take: categoryLimit,
     });
 
     const result: Record<number, TopSellingProduct[]> = {};
@@ -190,9 +192,9 @@ export async function getTopSellingProductsByCategory({
     for (const category of categories) {
       const topProducts = await getTopSellingProducts({
         limit,
-        categoryId: category.id
+        categoryId: category.id,
       });
-      
+
       if (topProducts.length > 0) {
         result[category.id] = topProducts;
       }
