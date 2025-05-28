@@ -55,6 +55,7 @@ export const authOptions: NextAuthOptions = {
         // Make sure ID is stored as a number
         token.id = Number(user.id);
         token.role = user.role;
+        token.fullname = user.fullname;
       }
       return token;
     },
@@ -62,6 +63,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = Number(token.id);
         session.user.role = token.role as string;
+        session.user.fullname = token.fullname as string | null;
       }
       return session;
     },

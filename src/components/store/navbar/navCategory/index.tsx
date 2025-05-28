@@ -8,7 +8,13 @@ import Button from "@/components/UI/button";
 import { useToggleMenu } from "@/hooks/useToggleMenu";
 import { cn } from "@/shared/utils/styling";
 import { getAllCategories } from "@/actions/category/category";
-import { Category } from "@/types/type";
+
+interface CategoryItem {
+  id: number;
+  name: string;
+  slug: string;
+  image: string | null;
+}
 
 type TProps = {
   isNavbarVisible: boolean;
@@ -17,17 +23,16 @@ type TProps = {
 const NavBarCategory = ({ isNavbarVisible: isNavbarHide }: TProps) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isActive, setIsActive] = useToggleMenu(false, dropdownRef);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
 
   const toggleMenu = (event?: React.MouseEvent<HTMLButtonElement>) => {
     event?.stopPropagation();
     setIsActive(!isActive);
   };
-
   useEffect(() => {
     const getCategoriesDB = async () => {
       const result = await getAllCategories();
-      if (result.success) {
+      if (result.success && result.data) {
         setCategories(result.data);
       }
     };
@@ -39,6 +44,7 @@ const NavBarCategory = ({ isNavbarVisible: isNavbarHide }: TProps) => {
   return (
     <div className="relative flex items-center select-none">
       <Button
+        variant="secondary"
         onClick={toggleMenu}
         className={cn(
           "w-auto px-4 py-2 border rounded-md transition-all duration-300",

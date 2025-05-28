@@ -9,7 +9,6 @@ import { TCartState, RootState } from "@/store/shoppingCart";
 import { toggleCart } from "@/store/shoppingCart";
 
 import ShoppingCart from "../../common/shoppingCart";
-import MiniCartNotification from "../../common/miniCartNotification";
 
 const NavBarShopping = () => {
   const dispatch = useDispatch();
@@ -63,12 +62,6 @@ const NavBarShopping = () => {
         isVisible={cartData ? cartData.isVisible : false}
         quantity={cartItemQuantity}
         handleOnClose={() => handleCartVisibility(false)}
-      />
-
-      {/* Mini cart notification */}
-      <MiniCartNotification
-        isVisible={showNotification && !(cartData?.isVisible || false)}
-        onClose={() => setShowNotification(false)}
       />
     </div>
   );

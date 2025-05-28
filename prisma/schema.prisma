@@ -30,8 +30,7 @@ model User {
 model Supplier {
   id               Int               @id @default(autoincrement())
   name             String            @unique
-  products         Product[] // Changed from Products[] to Product[]
-  inventoryImports InventoryImport[] // Added relation for tracking supplier of imports
+  inventoryImports InventoryImport[] // Only relation is through imports
 }
 
 model Category {
@@ -51,15 +50,12 @@ model Product {
   cardColor   String?   // Color for product card in UI (hex, color name, or CSS class)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  supplierId  Int?
-  supplier    Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull) // Changed from Suppliers to Supplier
   categoryId  Int?
   category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
   properties Property[] // Changed from Properties[] to Property[]
   logs       Log[] // Changed from Logs[] to Log[]
 
-  @@index([supplierId])
   @@index([categoryId])
 }
 
@@ -84,8 +80,7 @@ model Property {
   attributeSetHash String
   attributeSet     Attribute @relation("AttributeSetToProperties", fields: [attributeSetHash], references: [propertiesHash]) // Changed from Attributes to Attribute
 
-  netPrice    Decimal  @db.Decimal(10, 2)
-  retailPrice Decimal  @db.Decimal(10, 2)
+  retailPrice Decimal  @default(0) @db.Decimal(10, 2)
   salePrice   Decimal? @db.Decimal(10, 2) // Optional sale price field
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

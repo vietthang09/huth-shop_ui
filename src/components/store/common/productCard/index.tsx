@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { cn } from "@/shared/utils/styling";
 import { BadgePercent, Heart, ShoppingCart } from "lucide-react";
+import { fCurrency } from "@/shared/utils/format-number";
 
 type ProductCardProps = {
   id: string;
@@ -13,7 +14,8 @@ type ProductCardProps = {
   dealPrice?: number;
   isAvailable?: boolean;
   staticWidth?: boolean;
-  cardColor?: string;
+  cardColor: string;
+  className?: string;
 };
 
 const ProductCard = ({
@@ -24,14 +26,16 @@ const ProductCard = ({
   dealPrice = undefined,
   isAvailable = true,
   staticWidth = false,
-  cardColor,
+  cardColor = "blue-500",
+  className,
 }: ProductCardProps) => {
   return (
     <div
       className={cn(
         "rounded-xl transition-all duration-500 flex items-center justify-center relative hover:drop-shadow-sm hover:[&_.imageWrapper>img:last-child]:opacity-100 hover:[&_.imageWrapper>img:last-child]:scale-[1.05]",
         "bg-black overflow-hidden",
-        staticWidth && "w-64"
+        staticWidth && "w-64",
+        className
       )}
     >
       <div
@@ -40,11 +44,8 @@ const ProductCard = ({
       <div
         className={`absolute bottom-0 translate-y-1/2 left-0 -translate-x-1/2 h-56 w-56 rounded-full blur-3xl bg-${cardColor}`}
       />
-      <button className={`w-8 h-8 p-2 absolute top-2 right-2 bg-white rounded-full flex items-center justify-center`}>
-        <Heart />
-      </button>
       {!isAvailable && (
-        <div className="w-full border border-red-500 flex left-2 right-2 bottom-2 top-2 bg-white/40 backdrop-blur-[1px] absolute z-[1] items-center justify-center rounded-lg">
+        <div className="w-full flex inset-0 bg-white/40 backdrop-blur-[1px] absolute z-[1] items-center justify-center rounded-lg">
           <span className="mt-14 text-gray-100 font-light px-6 py-1 backdrop-blur-[6px] rounded-md shadow-gray-200 bg-black/60">
             Hết hàng
           </span>
@@ -52,13 +53,7 @@ const ProductCard = ({
       )}
       {dealPrice && (
         <div className="z-20 flex space-x-1 absolute left-6 top-4 text-center -translate-x-1/2 -rotate-45 text-white bg-red-700 text-lg px-16 py-[2px] items-center justify-center">
-          <span className="text-sm font-semibold">
-            Sale{" "}
-            {(100 - (dealPrice / price) * 100).toLocaleString("vi-VN", {
-              maximumFractionDigits: 0,
-            })}
-            %
-          </span>
+          <span className="text-xs font-semibold">Giảm {100 - (dealPrice / price) * 100} %</span>
         </div>
       )}
       <div className="z-10 w-full h-full">
@@ -76,7 +71,7 @@ const ProductCard = ({
         <div className="z-20 p-3 space-y-2 bg-linear-to-b from-black/10 to-black">
           <Link href={`/product/${id}`} className="inline-block text-lg font-medium text-white">
             {name}
-          </Link>{" "}
+          </Link>
           <p
             className={`border px-3 py-[2px] font-medium text-xs w-fit rounded-full bg-${cardColor} border-${cardColor}`}
           >
@@ -87,19 +82,12 @@ const ProductCard = ({
               {dealPrice ? (
                 <div className="space-x-2">
                   <span className="w-full line-through text-white text-sm ml-2">
-                    {price.toLocaleString("vi-VN", { minimumFractionDigits: 0 })}₫
+                    {fCurrency(price, { currency: "VND" })}
                   </span>
-                  <span className="text-lg font-medium text-white">
-                    {dealPrice.toLocaleString("vi-VN", {
-                      minimumFractionDigits: 0,
-                    })}
-                    ₫
-                  </span>
+                  <span className="text-lg font-medium text-white">{fCurrency(dealPrice, { currency: "VND" })}</span>
                 </div>
               ) : (
-                <span className="text-lg font-medium text-white">
-                  {price.toLocaleString("vi-VN", { minimumFractionDigits: 0 })}₫
-                </span>
+                <span className="text-lg font-medium text-white">{fCurrency(price, { currency: "VND" })}</span>
               )}
             </div>
             <button className={`rounded-full p-[5px] flex items-center justify-between`}>

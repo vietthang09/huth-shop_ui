@@ -8,13 +8,13 @@ import { createInventoryImport } from "@/actions/inventory/import";
 import { getSuppliers } from "@/actions/supplier/supplier";
 import Button from "@/components/UI/button";
 import Input from "@/components/UI/input";
+import { useSession } from "next-auth/react";
 import {
   CreateInventoryImportDTO,
   CreateInventoryImportItemDTO,
   ImportPaymentStatus,
   ImportStatus,
 } from "@/types/inventory";
-import { db } from "@/lib/db";
 
 // Helper function to get product properties with details
 async function getProductProperties() {
@@ -33,6 +33,7 @@ async function getProductProperties() {
 
 export default function NewImportPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [suppliers, setSuppliers] = useState<{ id: number; name: string }[]>([]);
   const [properties, setProperties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -201,10 +202,12 @@ export default function NewImportPage() {
         setSaving(false);
         return;
       }
-
+      if (!session) {
+        return;
+      }
       // Prepare data for API
       const importData: CreateInventoryImportDTO = {
-        userId: 6, // Assuming current user ID, should be retrieved from auth context
+        userId: session.user.id, // Assuming current user ID, should be retrieved from auth context
         supplierId: formData.supplierId,
         reference: formData.reference,
         description: formData.description,

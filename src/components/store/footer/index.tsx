@@ -4,25 +4,8 @@ import Link from "next/link";
 import { InstagramIcon, LinkedinIcon, XIcon } from "@/components/icons/svgIcons";
 import Button from "@/components/UI/button";
 
-const CATEGORIES = [
-  "Computer & Laptop",
-  "Tablets & iPad",
-  "Printer & Cameras",
-  "Smart Phones",
-  "OLED Smart TVs",
-  "Keyboard & Mouse",
-  "Video Games",
-  "Sports & Outdoors",
-  "Smart Watches",
-];
-const CUSTOMER_SERVICES = [
-  "Privacy Policy",
-  "Refund Policy",
-  "Shipping & Return",
-  "Terms & Conditions",
-  "Advanced Search",
-  "Store Locations",
-];
+const CATEGORIES = ["Netflix", "Adobe", "Google", "Microsoft", "Spotify", "Canva", "AI"];
+const CUSTOMER_SERVICES = ["Chính sách bảo mật", "Chính sách hoàn tiền", "Điều khoản dịch vụ"];
 const LEGALS = ["Conditions of Use & Sale", "Privacy Notice", "Imprint", "Cookies Notice", "Interest-Based Ads Notice"];
 
 const CURRENT_YEAR = new Date().getFullYear();

@@ -21,7 +21,6 @@ export const getCartProducts = async (productIds: number[], variantIds?: number[
         id: { in: productIds },
       },
       include: {
-        supplier: true,
         category: true,
         properties: {
           where: variantIds ? { id: { in: variantIds } } : undefined,
@@ -37,9 +36,6 @@ export const getCartProducts = async (productIds: number[], variantIds?: number[
       console.log("No products found in DB");
       return { success: false, error: "No products found" };
     }
-
-    console.log("Found products:", products.length);
-
     // Format the products for cart display
     const cartItems = products.map((product) => ({
       id: String(product.id), // Convert to string to match the productId in cart state

@@ -18,13 +18,15 @@ const CollectionCard = ({ collection }: TProps) => {
           </Link>
         ))}
       </div>
-      <div className="absolute top-2 right-3.5 w-[140px] h-[180px] z-[1]">
-        <Image src={collection.imgUrl} alt={collection.name} fill sizes="(max-width:140px)" className="object-cover" />
+      <div className="absolute top-2 right-3.5 w-[140px] h-[180px] z-[1] rounded-lg">
+        <Image
+          src={collection.imgUrl}
+          alt={collection.name}
+          fill
+          sizes="(max-width:140px)"
+          className="object-cover rounded-lg"
+        />
       </div>
-      <Link
-        href={collection.url}
-        className="w-auto absolute right-5 bottom-5 pr-5 text-sm font-medium text-gray-600 bg-[url('/icons/arrowIcon01.svg')] bg-no-repeat bg-[position:right_center] hover:font-medium hover:text-gray-900"
-      >{`Tất cả ${collection.name}`}</Link>
     </div>
   );
 };

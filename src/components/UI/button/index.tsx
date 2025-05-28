@@ -26,7 +26,7 @@ const Button = ({
   };
 
   const variantClasses = {
-    primary: "bg-blue-600 border border-blue-700 text-white hover:bg-blue-700 active:bg-blue-800 disabled:bg-blue-400",
+    primary: "bg-blue-700 border border-blue-700 text-white hover:bg-blue-700 active:bg-blue-800 disabled:bg-blue-400",
     secondary:
       "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 active:bg-gray-200 disabled:bg-gray-100",
     danger: "bg-red-600 border border-red-700 text-white hover:bg-red-700 active:bg-red-800 disabled:bg-red-400",

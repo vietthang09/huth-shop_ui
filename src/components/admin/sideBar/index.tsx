@@ -408,6 +408,27 @@ const AdminSidebar = () => {
         ),
       },
       {
+        href: "/admin/attributes",
+        label: "Attributes",
+        icon: (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width={20}
+            height={20}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke={isActive("/admin/attributes") ? "#3B82F6" : "#6B7280"}
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="transition-colors duration-300"
+          >
+            <path d="M12 2L2 7v10l10 5 10-5V7l-10-5z"></path>
+            <path d="M2 7l10 5M12 22V12M22 7l-10 5"></path>
+          </svg>
+        ),
+      },
+      {
         href: "/admin/suppliers",
         label: "Suppliers",
         icon: (

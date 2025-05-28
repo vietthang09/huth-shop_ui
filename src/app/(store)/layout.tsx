@@ -8,13 +8,11 @@ import StoreFooter from "./../../components/store/footer/index";
 
 const StoreLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <main className="bg-gray-50">
-      <Provider store={shoppingCartStore}>
-        <StoreNavBar />
-        {children}
-        <StoreFooter />
-      </Provider>
-    </main>
+    <Provider store={shoppingCartStore}>
+      <StoreNavBar />
+      <main className="my-36">{children}</main>
+      <StoreFooter />
+    </Provider>
   );
 };
 

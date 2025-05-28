@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 
-import { StarIcon, HeartIcon } from "@/components/icons/svgIcons";
+import { StarIcon } from "@/components/icons/svgIcons";
 import { TProductBoard } from "@/types/product";
 
 import Quantity from "../../common/quantity";
 import AddToCartButton from "../addToCartButton";
+import { fCurrency } from "@/shared/utils/format-number";
 
 // Define TCartItem locally to avoid import issues
 type TCartItem = {
@@ -18,124 +19,231 @@ type TCartItem = {
 
 const ProductBoard = ({ boardData }: { boardData: TProductBoard }) => {
   const { name, id, isAvailable, specialFeatures, price, shortDesc, dealPrice, defaultQuantity, variants } = boardData;
+
   const [quantity, setQuantity] = useState(defaultQuantity > 1 ? defaultQuantity : 1);
   const [selectedVariant, setSelectedVariant] = useState<number | null>(
     variants && variants.length > 0 ? variants[0].id : null
   );
 
-  const handleQuantityChange = (isReducing: boolean) => {
+  // Memoized calculations
+  const selectedVariantData = useMemo(() => {
+    if (!variants || !selectedVariant) return null;
+    return variants.find((v) => v.id === selectedVariant);
+  }, [variants, selectedVariant]);
+
+  const currentPrice = useMemo(() => {
+    if (selectedVariantData) {
+      return selectedVariantData.sale_price || selectedVariantData.retail_price;
+    }
+    return dealPrice || price;
+  }, [selectedVariantData, dealPrice, price]);
+
+  const originalPrice = useMemo(() => {
+    if (selectedVariantData && selectedVariantData.sale_price) {
+      return selectedVariantData.retail_price;
+    }
+    return dealPrice ? price : null;
+  }, [selectedVariantData, dealPrice, price]);
+
+  const savings = useMemo(() => {
+    if (originalPrice && currentPrice) {
+      return originalPrice - currentPrice;
+    }
+    return 0;
+  }, [originalPrice, currentPrice]);
+
+  const isOutOfStock = useMemo(() => {
+    if (selectedVariantData) {
+      return selectedVariantData.inventory <= 0;
+    }
+    return !isAvailable;
+  }, [selectedVariantData, isAvailable]);
+
+  // Event handlers
+  const handleQuantityChange = useCallback((isReducing: boolean) => {
     setQuantity((prev) => {
       if (isReducing) {
         return prev > 1 ? prev - 1 : 1;
       }
       return prev + 1;
     });
-  };
+  }, []);
 
-  const handleVariantChange = (variantId: number) => {
+  const handleVariantChange = useCallback((variantId: number) => {
     setSelectedVariant(variantId);
-    console.log("Selected variant:", variantId);
-    // Here you could also update price based on the selected variant
-  };
-  const cartItemData: TCartItem = {
-    productId: id.toString(), // Convert number to string for TCartItem
-    quantity: quantity,
-    variantId: selectedVariant,
-  };
+  }, []);
+
+  const cartItemData: TCartItem = useMemo(
+    () => ({
+      productId: id.toString(),
+      quantity: quantity,
+      variantId: selectedVariant,
+    }),
+    [id, quantity, selectedVariant]
+  );
+
   return (
-    <div className="w-full relative flex flex-col">
-      <button className="absolute right-0 top-0 border-none p-1 bg-white">
-        <HeartIcon
-          width={22}
-          className="fill-white cursor-pointer transition-colors duration-300 stroke-1 stroke-gray-400 hover:fill-gray-300"
-        />
-      </button>
-      <section className="block w-full">
-        <div className="flex items-center gap-0.5">
-          <StarIcon width={15} stroke="#856B0F" fill="#FFD643" />
-          <StarIcon width={15} stroke="#856B0F" fill="#FFD643" />
-          <StarIcon width={15} stroke="#856B0F" fill="#FFD643" />
-          <StarIcon width={15} stroke="#856B0F" fill="#FFD643" />
-          <StarIcon width={15} stroke="#856B0F" fill="#FFD643" />
-          <Link href={"#"} className="ml-4 text-xs text-bitex-blue-300">
-            880 Đánh giá của người dùng
-          </Link>
+    <div className="w-full relative flex flex-col bg-white rounded-lg">
+      {/* Rating Section */}
+      <section className="mb-6">
+        <div className="flex items-center gap-1 mb-2">
+          {[...Array(5)].map((_, index) => (
+            <StarIcon key={index} width={16} stroke="#F59E0B" fill="#FCD34D" className="drop-shadow-sm" />
+          ))}
+          <span className="ml-2 text-sm text-gray-600 font-medium">4.8</span>
         </div>
+        <Link
+          href="#reviews"
+          className="text-sm text-blue-600 hover:text-blue-700 transition-colors duration-200 hover:underline"
+        >
+          880 đánh giá từ khách hàng
+        </Link>
       </section>
-      <h1 className="block text-2xl leading-9 font-medium my-2.5 mt-8 text-gray-700">{name}</h1>
-      <span className="block text-xs text-gray-700 mb-4">{shortDesc}</span>
-      <hr className="w-full border-t border-gray-300 mb-5" />
-      <div className="flex flex-col gap-3 text-sm text-gray-500 mb-12">
-        {specialFeatures && specialFeatures?.map((feature, index) => <span key={index}>{feature}</span>)}
-      </div>
-      <h2 className="text-3xl font-medium text-gray-800 mb-5">
-        {(dealPrice ? dealPrice : price).toLocaleString("en-us", {
-          minimumIntegerDigits: 2,
-          minimumFractionDigits: 2,
-        })}{" "}
-        €
-      </h2>
-      {dealPrice && (
-        <div className="mb-5 text-sm">
-          <span className="text-white rounded-sm bg-bitex-red-500 px-3 py-1">
-            {`
-            Tiết kiệm
-            ${(price - dealPrice).toLocaleString("en-us", {
-              minimumIntegerDigits: 2,
-              minimumFractionDigits: 2,
-            })} €`}
-          </span>
-          <span className="mt-[10px] block text-gray-800">Giá trước đây {price} €</span>
-        </div>
-      )}{" "}
-      <hr className="w-full border-t border-gray-300 mb-5" />
-      {/* ----------------- VARIANT SELECTION SECTION ----------------- */}
-      {variants && variants.length > 0 && (
-        <div className="mb-5">
-          <h3 className="text-sm font-medium text-gray-700 mb-2">Select Variant:</h3>
-          <div className="flex flex-wrap gap-2">
-            {variants.map((variant) => (
-              <button
-                key={variant.id}
-                onClick={() => handleVariantChange(variant.id)}
-                className={`px-3 py-2 border rounded-md text-sm ${
-                  selectedVariant === variant.id
-                    ? "border-blue-500 bg-blue-50 text-blue-700"
-                    : "border-gray-300 bg-white text-gray-800 hover:bg-gray-50"
-                } ${variant.inventory <= 0 ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-                disabled={variant.inventory <= 0}
-              >
-                <div className="flex flex-col">
-                  <span>
-                    {variant.sale_price !== null ? (
-                      <>
-                        <span className="text-red-600 font-medium">₫{variant.sale_price.toLocaleString()}</span>
-                        <span className="text-gray-500 ml-1 line-through text-xs">
-                          ₫{variant.retail_price.toLocaleString()}
-                        </span>
-                      </>
-                    ) : (
-                      <span className="font-medium">₫{variant.retail_price.toLocaleString()}</span>
-                    )}
-                  </span>
-                  <span className="text-xs text-gray-500 mt-1">Stock: {variant.inventory}</span>
-                </div>
-              </button>
+
+      {/* Product Title */}
+      <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 leading-tight mb-3">{name}</h1>
+
+      {/* Short Description */}
+      <p className="text-gray-600 text-sm leading-relaxed mb-6">{shortDesc}</p>
+
+      <hr className="border-gray-200 mb-6" />
+
+      {/* Special Features */}
+      {specialFeatures && specialFeatures.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Tính năng nổi bật:</h3>
+          <ul className="space-y-2">
+            {specialFeatures.map((feature, index) => (
+              <li key={index} className="flex items-start gap-2 text-sm text-gray-600">
+                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
+                <span>{feature}</span>
+              </li>
             ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Price Section */}
+      <div className="mb-6">
+        <div className="flex items-baseline gap-3 mb-2">
+          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
+            {fCurrency(currentPrice, { currency: "VND" })}
+          </h2>
+          {originalPrice && (
+            <span className="text-lg text-gray-500 line-through">{fCurrency(originalPrice, { currency: "VND" })}</span>
+          )}
+        </div>
+
+        {savings > 0 && (
+          <div className="flex items-center gap-3">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+              {`Tiết kiệm ${fCurrency(savings, { currency: "VND" })}`}
+            </span>
+            <span className="text-sm text-green-600 font-medium">-{Math.round((savings / originalPrice!) * 100)}%</span>
+          </div>
+        )}
+      </div>
+
+      <hr className="border-gray-200 mb-6" />
+
+      {/* Variant Selection */}
+      {variants && variants.length > 0 && (
+        <div className="mb-6">
+          <h3 className="text-base font-semibold text-gray-900 mb-4">Chọn phiên bản:</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {variants.map((variant) => {
+              const isSelected = selectedVariant === variant.id;
+              const isDisabled = variant.inventory <= 0;
+
+              return (
+                <button
+                  key={variant.id}
+                  onClick={() => !isDisabled && handleVariantChange(variant.id)}
+                  disabled={isDisabled}
+                  className={`
+                    relative p-4 border-2 rounded-lg text-left transition-all duration-200
+                    ${
+                      isSelected
+                        ? "border-blue-500 bg-blue-50 shadow-md"
+                        : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm"
+                    }
+                    ${isDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
+                  `}
+                  aria-pressed={isSelected}
+                  aria-label={`Select variant ${variant.attributeName || "Default"} with price ${
+                    variant.sale_price || variant.retail_price
+                  }`}
+                >
+                  {isSelected && <div className="absolute top-2 right-2 w-2 h-2 bg-blue-500 rounded-full"></div>}{" "}
+                  <div className="space-y-1">
+                    {/* Variant Name */}
+                    {variant.attributeName && (
+                      <div className="text-sm font-medium text-gray-900 mb-2">{variant.attributeName}</div>
+                    )}
+
+                    <div className="flex items-baseline gap-2">
+                      {variant.sale_price ? (
+                        <>
+                          <span className="text-lg font-bold text-red-600">
+                            {fCurrency(variant.sale_price, { currency: "VND" })}{" "}
+                          </span>
+                          <span className="text-sm text-gray-500 line-through">
+                            {fCurrency(variant.retail_price, { currency: "VND" })}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-lg font-bold text-gray-900">
+                          {fCurrency(variant.retail_price, { currency: "VND" })}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span
+                        className={`text-xs font-medium ${
+                          variant.inventory > 10
+                            ? "text-green-600"
+                            : variant.inventory > 0
+                            ? "text-yellow-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {variant.inventory > 0 ? `Còn ${variant.inventory} sản phẩm` : "Hết hàng"}
+                      </span>
+
+                      {variant.sale_price && (
+                        <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full font-medium">
+                          -{Math.round(((variant.retail_price - variant.sale_price) / variant.retail_price) * 100)}%
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
-      {/* ----------------- ADD TO CART SECTION ----------------- */}
-      <section className="flex items-center w-full">
-        <Quantity onChange={handleQuantityChange} quantity={quantity} />
-        <AddToCartButton
-          cartItemData={cartItemData}
-          disabled={
-            !isAvailable ||
-            (selectedVariant !== null && variants?.find((v) => v.id === selectedVariant)?.inventory === 0)
-          }
-        />
+
+      {/* Add to Cart Section */}
+      <section className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-6 border-t border-gray-200">
+        <div className="flex-shrink-0">
+          <Quantity onChange={handleQuantityChange} quantity={quantity} />
+        </div>
+
+        <div className="flex-1">
+          <AddToCartButton cartItemData={cartItemData} disabled={isOutOfStock} />
+        </div>
       </section>
+
+      {/* Stock Warning */}
+      {isOutOfStock && (
+        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-sm text-red-700 font-medium">
+            Sản phẩm hiện tại đã hết hàng. Vui lòng chọn phiên bản khác hoặc liên hệ để được thông báo khi có hàng.
+          </p>
+        </div>
+      )}
     </div>
   );
 };

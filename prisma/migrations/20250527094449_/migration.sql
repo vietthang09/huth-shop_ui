@@ -1,80 +1,3 @@
-/*
-  Warnings:
-
-  - You are about to drop the `attributes` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `logs` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `order_items` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `orders` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `posts` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `products` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `properties` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `suppliers` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `users` table. If the table is not empty, all the data it contains will be lost.
-
-*/
--- DropForeignKey
-ALTER TABLE `inventory` DROP FOREIGN KEY `Inventory_propertiesId_fkey`;
-
--- DropForeignKey
-ALTER TABLE `logs` DROP FOREIGN KEY `Logs_postId_fkey`;
-
--- DropForeignKey
-ALTER TABLE `logs` DROP FOREIGN KEY `Logs_productId_fkey`;
-
--- DropForeignKey
-ALTER TABLE `logs` DROP FOREIGN KEY `Logs_userId_fkey`;
-
--- DropForeignKey
-ALTER TABLE `order_items` DROP FOREIGN KEY `Order_Items_orderId_fkey`;
-
--- DropForeignKey
-ALTER TABLE `order_items` DROP FOREIGN KEY `Order_Items_propertiesId_fkey`;
-
--- DropForeignKey
-ALTER TABLE `orders` DROP FOREIGN KEY `Orders_userId_fkey`;
-
--- DropForeignKey
-ALTER TABLE `posts` DROP FOREIGN KEY `Posts_userId_fkey`;
-
--- DropForeignKey
-ALTER TABLE `products` DROP FOREIGN KEY `Products_categoryId_fkey`;
-
--- DropForeignKey
-ALTER TABLE `products` DROP FOREIGN KEY `Products_supplierId_fkey`;
-
--- DropForeignKey
-ALTER TABLE `properties` DROP FOREIGN KEY `Properties_attributeSetHash_fkey`;
-
--- DropForeignKey
-ALTER TABLE `properties` DROP FOREIGN KEY `Properties_productId_fkey`;
-
--- DropTable
-DROP TABLE `attributes`;
-
--- DropTable
-DROP TABLE `logs`;
-
--- DropTable
-DROP TABLE `order_items`;
-
--- DropTable
-DROP TABLE `orders`;
-
--- DropTable
-DROP TABLE `posts`;
-
--- DropTable
-DROP TABLE `products`;
-
--- DropTable
-DROP TABLE `properties`;
-
--- DropTable
-DROP TABLE `suppliers`;
-
--- DropTable
-DROP TABLE `users`;
-
 -- CreateTable
 CREATE TABLE `User` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
@@ -101,19 +24,31 @@ CREATE TABLE `Supplier` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
+CREATE TABLE `Category` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(191) NOT NULL,
+    `slug` VARCHAR(191) NOT NULL,
+    `image` VARCHAR(191) NULL,
+
+    UNIQUE INDEX `Category_slug_key`(`slug`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `Product` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `sku` VARCHAR(191) NOT NULL,
     `title` VARCHAR(191) NOT NULL,
     `description` TEXT NULL,
     `image` VARCHAR(191) NULL,
+    `cardColor` VARCHAR(191) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
-    `supplierId` INTEGER NULL,
+    `retailPrice` DECIMAL(10, 2) NOT NULL,
+    `salePrice` DECIMAL(10, 2) NOT NULL,
     `categoryId` INTEGER NULL,
 
     UNIQUE INDEX `Product_sku_key`(`sku`),
-    INDEX `Product_supplierId_idx`(`supplierId`),
     INDEX `Product_categoryId_idx`(`categoryId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -135,14 +70,57 @@ CREATE TABLE `Property` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `productId` INTEGER NOT NULL,
     `attributeSetHash` VARCHAR(191) NOT NULL,
-    `netPrice` DECIMAL(10, 2) NOT NULL,
-    `retailPrice` DECIMAL(10, 2) NOT NULL,
-    `salePrice` DECIMAL(10, 2) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
     INDEX `Property_attributeSetHash_idx`(`attributeSetHash`),
     UNIQUE INDEX `Property_productId_attributeSetHash_key`(`productId`, `attributeSetHash`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Inventory` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `propertiesId` INTEGER NOT NULL,
+    `quantity` INTEGER NOT NULL DEFAULT 0,
+
+    UNIQUE INDEX `Inventory_propertiesId_key`(`propertiesId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `InventoryImport` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `userId` INTEGER NOT NULL,
+    `supplierId` INTEGER NOT NULL,
+    `reference` VARCHAR(191) NULL,
+    `description` TEXT NULL,
+    `totalAmount` DECIMAL(10, 2) NOT NULL,
+    `paymentStatus` ENUM('PENDING', 'PARTIALLY_PAID', 'PAID', 'CANCELLED') NOT NULL DEFAULT 'PENDING',
+    `importStatus` ENUM('DRAFT', 'PENDING', 'PROCESSING', 'COMPLETED', 'CANCELLED') NOT NULL DEFAULT 'DRAFT',
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    INDEX `InventoryImport_userId_idx`(`userId`),
+    INDEX `InventoryImport_supplierId_idx`(`supplierId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `InventoryImportItem` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `importId` INTEGER NOT NULL,
+    `propertiesId` INTEGER NOT NULL,
+    `inventoryId` INTEGER NOT NULL,
+    `quantity` INTEGER NOT NULL,
+    `netPrice` DECIMAL(10, 2) NOT NULL,
+    `warrantyPeriod` INTEGER NULL,
+    `warrantyExpiry` DATETIME(3) NULL,
+    `notes` TEXT NULL,
+
+    INDEX `InventoryImportItem_importId_idx`(`importId`),
+    INDEX `InventoryImportItem_propertiesId_idx`(`propertiesId`),
+    INDEX `InventoryImportItem_inventoryId_idx`(`inventoryId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -175,9 +153,21 @@ CREATE TABLE `OrderItem` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
+CREATE TABLE `Topic` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(191) NOT NULL,
+    `slug` VARCHAR(191) NOT NULL,
+    `image` VARCHAR(191) NULL,
+
+    UNIQUE INDEX `Topic_slug_key`(`slug`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `Post` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `userId` INTEGER NULL,
+    `topicId` INTEGER NULL,
     `slug` VARCHAR(191) NOT NULL,
     `title` VARCHAR(191) NOT NULL,
     `shortDescription` TEXT NULL,
@@ -188,6 +178,7 @@ CREATE TABLE `Post` (
 
     UNIQUE INDEX `Post_slug_key`(`slug`),
     INDEX `Post_userId_idx`(`userId`),
+    INDEX `Post_topicId_idx`(`topicId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -208,9 +199,6 @@ CREATE TABLE `Log` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
-ALTER TABLE `Product` ADD CONSTRAINT `Product_supplierId_fkey` FOREIGN KEY (`supplierId`) REFERENCES `Supplier`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE `Product` ADD CONSTRAINT `Product_categoryId_fkey` FOREIGN KEY (`categoryId`) REFERENCES `Category`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -223,6 +211,21 @@ ALTER TABLE `Property` ADD CONSTRAINT `Property_attributeSetHash_fkey` FOREIGN K
 ALTER TABLE `Inventory` ADD CONSTRAINT `Inventory_propertiesId_fkey` FOREIGN KEY (`propertiesId`) REFERENCES `Property`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE `InventoryImport` ADD CONSTRAINT `InventoryImport_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `InventoryImport` ADD CONSTRAINT `InventoryImport_supplierId_fkey` FOREIGN KEY (`supplierId`) REFERENCES `Supplier`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `InventoryImportItem` ADD CONSTRAINT `InventoryImportItem_importId_fkey` FOREIGN KEY (`importId`) REFERENCES `InventoryImport`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `InventoryImportItem` ADD CONSTRAINT `InventoryImportItem_propertiesId_fkey` FOREIGN KEY (`propertiesId`) REFERENCES `Property`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `InventoryImportItem` ADD CONSTRAINT `InventoryImportItem_inventoryId_fkey` FOREIGN KEY (`inventoryId`) REFERENCES `Inventory`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE `Order` ADD CONSTRAINT `Order_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -233,6 +236,9 @@ ALTER TABLE `OrderItem` ADD CONSTRAINT `OrderItem_propertiesId_fkey` FOREIGN KEY
 
 -- AddForeignKey
 ALTER TABLE `Post` ADD CONSTRAINT `Post_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Post` ADD CONSTRAINT `Post_topicId_fkey` FOREIGN KEY (`topicId`) REFERENCES `Topic`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Log` ADD CONSTRAINT `Log_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;

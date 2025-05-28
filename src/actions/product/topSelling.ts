@@ -1,10 +1,11 @@
+"use server";
 import { db } from "@/lib/db";
 
 export interface TopSellingProduct {
   id: number;
   title: string;
   image: string | null;
-  cardColor: string | null;
+  cardColor: string;
   totalSold: number;
   retailPrice: any | null; // Using any to handle Prisma Decimal type
   salePrice: any | null; // Using any to handle Prisma Decimal type
@@ -26,7 +27,7 @@ export async function getTopSellingProducts({
   limit?: number;
   categoryId?: number;
   period?: "day" | "week" | "month" | "year";
-} = {}): Promise<TopSellingProduct[]> {
+} = {}): Promise<any> {
   try {
     // Calculate date range for period filtering if specified
     let dateFilterCondition = {};
@@ -107,7 +108,6 @@ export async function getTopSellingProducts({
       },
       take: limit * 2, // Fetch extra to allow for filtering
     });
-
     // Process and calculate total sold for each product
     const processedProducts = products.map((product) => {
       // Calculate total quantity sold across all properties
@@ -138,7 +138,6 @@ export async function getTopSellingProducts({
         slug: product.category?.slug || null,
       };
     });
-
     // Filter out products with no sales and sort by total sold
     return processedProducts
       .filter((product) => product.totalSold > 0)

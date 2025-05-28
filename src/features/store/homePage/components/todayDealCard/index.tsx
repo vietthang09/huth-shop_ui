@@ -15,7 +15,7 @@ export const TodayDealCards = () => {
     const fetchHotDeals = async () => {
       setIsLoading(true);
       try {
-        const hotDeals = await getSaleProducts();
+        const hotDeals = await getSaleProducts({ limit: 4 });
         setDeals(hotDeals.products);
       } catch (error) {
         console.error("Error fetching hot deals:", error);
@@ -42,17 +42,16 @@ export const TodayDealCards = () => {
           Xem tất cả
         </Link>
       </div>
-      <div className="flex lg:flex-wrap justify-between lg:justify-start gap-3.5 overflow-x-scroll pb-7 2xl:pb-0 2xl:overflow-x-hidden">
-        {" "}
+      <div className="grid grid-cols-12 gap-4">
         {deals.map((deal) => (
           <ProductCard
+            className="col-span-3"
             id={deal.sku}
             key={deal.id}
             name={deal.title}
             price={+deal.properties[0].retailPrice}
             dealPrice={+(deal.properties?.[0]?.salePrice ?? 0)}
             imgUrl={deal.image || ""}
-            staticWidth
             cardColor={deal.cardColor}
           />
         ))}

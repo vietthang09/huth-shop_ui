@@ -9,7 +9,7 @@ export type Product = {
   title: string;
   description: string | null;
   image: string | null;
-  cardColor: string | null;
+  cardColor: string;
   createdAt: Date;
   updatedAt: Date;
   supplierId: number | null;
@@ -27,6 +27,7 @@ export interface ProductVariant {
   sale_price: number | null;
   attributeSetHash: string;
   inventory: number;
+  attributeName?: string; // Optional variant name from attribute
 }
 
 // Type for the ProductBoard component

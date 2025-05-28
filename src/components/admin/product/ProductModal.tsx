@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { addProduct, updateProduct } from "@/actions/product/product";
 import { getAllCategories } from "@/actions/category/category";
-import { getSuppliers } from "@/actions/supplier/supplier";
 import { getAttributes } from "@/actions/attribute/attribute";
 
 interface ProductModalProps {
@@ -15,7 +14,6 @@ interface ProductModalProps {
     title: string;
     description?: string;
     cardColor?: string;
-    supplierId?: number;
     categoryId?: number;
     properties: Array<{
       id: number;
@@ -50,16 +48,14 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
     sku: "",
     title: "",
     description: "",
+    image: "",
     cardColor: "",
-    supplierId: "",
     categoryId: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [categories, setCategories] = useState<Array<{ id: number; name: string }>>([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
-  const [suppliers, setSuppliers] = useState<Array<{ id: number; name: string }>>([]);
-  const [loadingSuppliers, setLoadingSuppliers] = useState(false);
   const [attributes, setAttributes] = useState<AttributeWithPrice[]>([]);
   const [loadingAttributes, setLoadingAttributes] = useState(false);
 
@@ -160,32 +156,16 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
       }
     };
 
-    const fetchSuppliers = async () => {
-      setLoadingSuppliers(true);
-      try {
-        const response = await getSuppliers();
-        if (response.suppliers) {
-          setSuppliers(response.suppliers);
-        } else {
-          console.error("Failed to fetch suppliers:", response.error);
-        }
-      } catch (err) {
-        console.error("Error fetching suppliers:", err);
-      } finally {
-        setLoadingSuppliers(false);
-      }
-    };
     if (isOpen) {
       fetchCategories();
-      fetchSuppliers();
       fetchAttributes(); // If in edit mode, populate form with existing product data
       if (product) {
         setFormData({
           sku: product.sku || "",
           title: product.title || "",
           description: product.description || "",
+          image: product.image || "",
           cardColor: product.cardColor || "",
-          supplierId: product.supplierId?.toString() || "",
           categoryId: product.categoryId?.toString() || "",
         });
       } else {
@@ -194,8 +174,8 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
           sku: "",
           title: "",
           description: "",
+          image: "",
           cardColor: "",
-          supplierId: "",
           categoryId: "",
         });
         setSelectedAttributes(new Set());
@@ -279,7 +259,6 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
 
       const productData = {
         ...formData,
-        supplierId: formData.supplierId ? parseInt(formData.supplierId) : undefined,
         categoryId: formData.categoryId ? parseInt(formData.categoryId) : undefined,
         attributeIds: attributeIds,
         attributePrices: attributePricesData,
@@ -299,8 +278,8 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
           sku: "",
           title: "",
           description: "",
+          image: "",
           cardColor: "",
-          supplierId: "",
           categoryId: "",
         });
         setSelectedAttributes(new Set());
@@ -378,7 +357,22 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
-            </div>{" "}
+            </div>
+            <div>
+              <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-1">
+                Image URL*
+              </label>
+              <input
+                type="url"
+                id="image"
+                name="image"
+                value={formData.image}
+                onChange={handleChange}
+                required
+                placeholder="https://example.com/image.jpg"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
             <div className="md:col-span-2">
               <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
                 Description
@@ -405,26 +399,6 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
                 placeholder="#ffffff or color name"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
-            </div>
-            <div>
-              <label htmlFor="supplierId" className="block text-sm font-medium text-gray-700 mb-1">
-                Supplier
-              </label>
-              <select
-                id="supplierId"
-                name="supplierId"
-                value={formData.supplierId}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                disabled={loadingSuppliers}
-              >
-                <option value="">{loadingSuppliers ? "Loading suppliers..." : "Select Supplier"}</option>
-                {suppliers.map((supplier) => (
-                  <option key={supplier.id} value={supplier.id}>
-                    {supplier.name}
-                  </option>
-                ))}
-              </select>
             </div>
             <div>
               <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700 mb-1">
@@ -500,12 +474,6 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
                       >
                         Discount
                       </th>
-                      <th
-                        scope="col"
-                        className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Hash
-                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -541,6 +509,7 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
                                     ? attributePrices[attribute.id]?.netPrice
                                     : attribute.netPrice
                                 }
+                                disabled
                                 onChange={(e) => handleAttributePriceChange(attribute.id, "netPrice", e.target.value)}
                                 className="w-20 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                                 placeholder="0.00"
@@ -592,12 +561,6 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
                               />
                             </div>
                           )}
-                        </td>
-                        <td
-                          className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-[120px]"
-                          title={attribute.propertiesHash}
-                        >
-                          {attribute.propertiesHash}
                         </td>
                       </tr>
                     ))}
