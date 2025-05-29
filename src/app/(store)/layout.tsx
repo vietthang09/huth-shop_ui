@@ -10,7 +10,7 @@ const StoreLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <Provider store={shoppingCartStore}>
       <StoreNavBar />
-      <main className="my-36">{children}</main>
+      <main className="my-36 max-w-7xl mx-auto px-4 lg:px-0">{children}</main>
       <StoreFooter />
     </Provider>
   );

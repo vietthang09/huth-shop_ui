@@ -36,6 +36,7 @@ export type TProductBoard = {
   name: string;
   price: number;
   dealPrice?: number | null;
+  keywords?: string;
   shortDesc: string;
   isAvailable: boolean;
   defaultQuantity: number;
@@ -67,14 +68,6 @@ export type TCartListItemDB = {
 
 // Type for product filters
 export type TFilters = {
-  stockStatus: "all" | "inStock" | "outStock";
-  priceMinMax: [number, number];
-  priceMinMaxLimitation: [number, number];
-  brands: Array<{
-    id: number;
-    name: string;
-    isSelected: boolean;
-  }>;
   category?: string;
   search?: string;
 };

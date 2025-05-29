@@ -1,15 +1,15 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import parse from "html-react-parser";
 
-import { LikeIcon, MinusIcon } from "@/components/icons/svgIcons";
+import { MinusIcon } from "@/components/icons/svgIcons";
 import Gallery from "@/components/store/productPage/gallery";
 import ProductBoard from "@/components/store/productPage/productBoard";
 import { SK_Box } from "@/components/UI/skeleton";
-import { getOneProduct, getOneProductBySku } from "@/actions/product/product";
+import { getOneProductBySku } from "@/actions/product/product";
 
 // Define types for the product data
 interface ProductPrice {
@@ -32,6 +32,7 @@ interface FormattedProduct {
   category?: string;
   supplier?: string;
   properties?: ProductPrice[];
+  keywords?: string; // Added keywords field
   // Additional fields from the original UI
   specialFeatures?: string[];
   richDesc?: string;
@@ -92,6 +93,7 @@ const ProductPage = () => {
             desc: product.description || undefined,
             isAvailable: prices.some((p: any) => p.inventory > 0),
             category: product.category?.name,
+            keywords: product.keywords || undefined,
             properties: prices.map((p: any) => ({
               id: p.id,
               net_price: Number(p.net_price),
@@ -183,10 +185,12 @@ const ProductPage = () => {
                 fullPath += "/" + item.url;
                 return (
                   <div key={item.url + index} className="flex items-center space-x-2">
-                    <Link href={"/list/" + item.name.toLowerCase()} className="hover:text-blue-600 transition-colors">
+                    <Link
+                      href={"/danh-muc/" + item.name.toLowerCase()}
+                      className="hover:text-blue-600 transition-colors"
+                    >
                       {item.name}
                     </Link>
-                    {/* {index < productInfo.path!.length - 1 && <span className="text-gray-400">/</span>} */}
                   </div>
                 );
               })}
@@ -215,29 +219,23 @@ const ProductPage = () => {
                   defaultQuantity: 1,
                   name: productInfo.name,
                   price: productInfo.price,
+                  keywords: productInfo.keywords,
                   dealPrice: productInfo.salePrice,
                   shortDesc: productInfo.desc || "",
                   specialFeatures: [],
                   variants:
-                    productInfo.properties?.map((prop) => ({
-                      id: prop.id,
-                      retail_price: prop.retail_price,
-                      sale_price: prop.sale_price,
-                      attributeSetHash: prop.attributeSetHash,
-                      inventory: prop.inventory,
-                      attributeName: prop.attributeName || "Default",
-                    })) || [],
+                    productInfo.properties
+                      ?.sort((a, b) => a.retail_price - b.retail_price)
+                      .map((prop) => ({
+                        id: prop.id,
+                        retail_price: prop.retail_price,
+                        sale_price: prop.sale_price,
+                        attributeSetHash: prop.attributeSetHash,
+                        inventory: prop.inventory,
+                        attributeName: prop.attributeName || "Default",
+                      })) || [],
                 }}
               />
-              {productInfo.desc && (
-                <div className="bg-gray-50 p-6 rounded-xl border">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                    <span className="w-1 h-6 bg-blue-600 rounded-full mr-3"></span>
-                    Mô tả sản phẩm
-                  </h3>
-                  <div className="text-gray-700 leading-relaxed product-description">{productInfo.desc}</div>
-                </div>
-              )}
             </div>
           ) : (
             <div className="space-y-6">
@@ -259,75 +257,78 @@ const ProductPage = () => {
       </div>
 
       {/* Specifications and Reviews */}
-      <div className="w-full mt-16 space-y-16">
-        {/* Specifications Section */}
-        <section className="w-full">
-          <div className="mb-8">
-            <h2 className="text-3xl font-light text-gray-900 pb-4 border-b-2 border-gray-200 flex items-center">
-              <span className="w-1 h-8 bg-blue-600 rounded-full mr-4"></span>
-              Thông số kỹ thuật
-            </h2>
-          </div>
+      <div className="w-full mt-16 grid grid-cols-3">
+        <div className="col-span-3 lg:col-span-2 order-2 lg:order-1">{parse(productInfo?.desc || "")}</div>
+        <div className="col-span-3 lg:col-span-1 order-1 lg:order-2">
+          <section className="w-full">
+            <div className="mb-8">
+              <h2 className="text-3xl font-light text-gray-900 pb-4 border-b-2 border-gray-200 flex items-center">
+                <span className="w-1 h-8 bg-blue-600 rounded-full mr-4"></span>
+                Thông số kỹ thuật
+              </h2>
+            </div>
 
-          {productInfo ? (
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              {/* Basic Product Info */}
-              <div className="border-b border-gray-100">
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <MinusIcon width={16} className="mr-3 stroke-gray-600" />
-                    Thông tin cơ bản
-                  </h3>
+            {productInfo ? (
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                {" "}
+                {/* Basic Product Info */}
+                <div className="border-b border-gray-100">
+                  <div className="p-4">
+                    <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                      <MinusIcon width={12} className="mr-2 stroke-gray-600" />
+                      Thông tin cơ bản
+                    </h3>
 
-                  <div className="grid gap-4">
-                    <div className="flex py-3 hover:bg-gray-50 rounded-lg px-4 transition-colors">
-                      <div className="w-40 text-gray-600 font-medium">Tên sản phẩm:</div>
-                      <div className="text-gray-800 flex-1">{productInfo.name}</div>
-                    </div>
+                    <div className="space-y-2">
+                      <div className="flex py-1.5 text-sm">
+                        <div className="w-28 text-gray-500 text-xs">Tên sản phẩm:</div>
+                        <div className="text-gray-700 flex-1 text-xs">{productInfo.name}</div>
+                      </div>
 
-                    {productInfo.category && (
-                      <div className="flex py-3 hover:bg-gray-50 rounded-lg px-4 transition-colors">
-                        <div className="w-40 text-gray-600 font-medium">Danh mục:</div>
-                        <div className="text-gray-800 flex-1">
-                          <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                            {productInfo.category}
+                      {productInfo.category && (
+                        <div className="flex py-1.5 text-sm">
+                          <div className="w-28 text-gray-500 text-xs">Danh mục:</div>
+                          <div className="text-gray-700 flex-1">
+                            <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs">
+                              {productInfo.category}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex py-1.5 text-sm">
+                        <div className="w-28 text-gray-500 text-xs">Tình trạng:</div>
+                        <div className="text-gray-700 flex-1">
+                          <span
+                            className={`px-2 py-0.5 rounded text-xs ${
+                              productInfo.isAvailable ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
+                            }`}
+                          >
+                            {productInfo.isAvailable ? "Còn hàng" : "Hết hàng"}
                           </span>
                         </div>
-                      </div>
-                    )}
-
-                    <div className="flex py-3 hover:bg-gray-50 rounded-lg px-4 transition-colors">
-                      <div className="w-40 text-gray-600 font-medium">Tình trạng:</div>
-                      <div className="text-gray-800 flex-1">
-                        <span
-                          className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            productInfo.isAvailable ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                          }`}
-                        >
-                          {productInfo.isAvailable ? "Còn hàng" : "Hết hàng"}
-                        </span>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="space-y-8">
-              <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <SK_Box width="200px" height="24px" className="mb-6" />
-                <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="flex items-center space-x-4">
-                      <SK_Box width="120px" height="20px" />
-                      <SK_Box width="60%" height="20px" />
-                    </div>
-                  ))}
+            ) : (
+              <div className="space-y-8">
+                <div className="bg-white rounded-xl border border-gray-200 p-6">
+                  <SK_Box width="200px" height="24px" className="mb-6" />
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex items-center space-x-4">
+                        <SK_Box width="120px" height="20px" />
+                        <SK_Box width="60%" height="20px" />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-        </section>
+            )}
+          </section>
+        </div>
       </div>
     </div>
   );

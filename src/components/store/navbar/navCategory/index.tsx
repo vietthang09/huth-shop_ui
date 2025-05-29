@@ -66,7 +66,7 @@ const NavBarCategory = ({ isNavbarVisible: isNavbarHide }: TProps) => {
         {categories.map((item, index) => (
           <Link
             key={index}
-            href={`/list/${item.slug}`}
+            href={`/danh-muc/${item.slug}`}
             className="block px-4 py-3 text-gray-600 text-sm transition-all duration-300 hover:pl-5 hover:bg-gray-100"
           >
             {item.name}

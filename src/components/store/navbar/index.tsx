@@ -18,13 +18,13 @@ interface NavbarItem {
 }
 
 const NAVBAR_ITEMS: NavbarItem[] = [
-  { name: "Netflix", link: "/list/netflix", ariaLabel: "Browse Netflix accounts" },
-  { name: "Adobe", link: "/list/adobe", ariaLabel: "Browse Adobe accounts" },
-  { name: "Google", link: "/list/google", ariaLabel: "Browse Google accounts" },
-  { name: "Microsoft", link: "/list/microsoft", ariaLabel: "Browse Microsoft accounts" },
-  { name: "Spotify", link: "/list/spotify", ariaLabel: "Browse Spotify accounts" },
-  { name: "Canva", link: "/list/canva", ariaLabel: "Browse Canva accounts" },
-  { name: "AI", link: "/list/ai", ariaLabel: "Browse AI tool accounts" },
+  { name: "Netflix", link: "/danh-muc/netflix", ariaLabel: "Browse Netflix accounts" },
+  { name: "Adobe", link: "/danh-muc/adobe", ariaLabel: "Browse Adobe accounts" },
+  { name: "Google", link: "/danh-muc/google", ariaLabel: "Browse Google accounts" },
+  { name: "Microsoft", link: "/danh-muc/microsoft", ariaLabel: "Browse Microsoft accounts" },
+  { name: "Spotify", link: "/danh-muc/spotify", ariaLabel: "Browse Spotify accounts" },
+  { name: "Canva", link: "/danh-muc/canva", ariaLabel: "Browse Canva accounts" },
+  { name: "AI", link: "/danh-muc/ai", ariaLabel: "Browse AI tool accounts" },
   { name: "Blog", link: "/blog", ariaLabel: "Read our blog" },
 ];
 

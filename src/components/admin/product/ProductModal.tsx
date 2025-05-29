@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { addProduct, updateProduct } from "@/actions/product/product";
 import { getAllCategories } from "@/actions/category/category";
 import { getAttributes } from "@/actions/attribute/attribute";
+import ProductSunEditor from "@/components/admin/product/sunEditor";
 
 interface ProductModalProps {
   isOpen: boolean;
@@ -13,7 +14,9 @@ interface ProductModalProps {
     sku: string;
     title: string;
     description?: string;
+    image?: string;
     cardColor?: string;
+    keywords?: string;
     categoryId?: number;
     properties: Array<{
       id: number;
@@ -50,6 +53,7 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
     description: "",
     image: "",
     cardColor: "",
+    keywords: "",
     categoryId: "",
   });
   const [loading, setLoading] = useState(false);
@@ -155,10 +159,11 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
         setLoadingCategories(false);
       }
     };
-
     if (isOpen) {
       fetchCategories();
-      fetchAttributes(); // If in edit mode, populate form with existing product data
+      fetchAttributes();
+
+      // If in edit mode, populate form with existing product data
       if (product) {
         setFormData({
           sku: product.sku || "",
@@ -166,6 +171,7 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
           description: product.description || "",
           image: product.image || "",
           cardColor: product.cardColor || "",
+          keywords: product.keywords || "",
           categoryId: product.categoryId?.toString() || "",
         });
       } else {
@@ -176,6 +182,7 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
           description: "",
           image: "",
           cardColor: "",
+          keywords: "",
           categoryId: "",
         });
         setSelectedAttributes(new Set());
@@ -280,6 +287,7 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
           description: "",
           image: "",
           cardColor: "",
+          keywords: "",
           categoryId: "",
         });
         setSelectedAttributes(new Set());
@@ -372,24 +380,20 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
                 placeholder="https://example.com/image.jpg"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
-            </div>
+            </div>{" "}
             <div className="md:col-span-2">
               <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
                 Description
               </label>
-              <textarea
-                id="description"
-                name="description"
+              <ProductSunEditor
                 value={formData.description}
-                onChange={handleChange}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                onChange={(content) => setFormData((prev) => ({ ...prev, description: content }))}
               />
             </div>
             <div>
               <label htmlFor="cardColor" className="block text-sm font-medium text-gray-700 mb-1">
                 Card Color
-              </label>
+              </label>{" "}
               <input
                 type="text"
                 id="cardColor"
@@ -397,6 +401,20 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
                 value={formData.cardColor}
                 onChange={handleChange}
                 placeholder="#ffffff or color name"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label htmlFor="keywords" className="block text-sm font-medium text-gray-700 mb-1">
+                Keywords
+              </label>
+              <input
+                type="text"
+                id="keywords"
+                name="keywords"
+                value={formData.keywords}
+                onChange={handleChange}
+                placeholder="SEO keywords, separated by commas"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
@@ -504,11 +522,14 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
                                 type="number"
                                 min="0"
                                 step="0.01"
-                                value={
-                                  attributePrices[attribute.id]?.netPrice !== null
-                                    ? attributePrices[attribute.id]?.netPrice
-                                    : attribute.netPrice
-                                }
+                                value={(() => {
+                                  const priceValue = attributePrices[attribute.id]?.netPrice;
+                                  const attrValue = attribute.netPrice;
+                                  if (priceValue !== null && priceValue !== undefined) return priceValue;
+                                  if (attrValue !== "" && attrValue !== null && attrValue !== undefined)
+                                    return attrValue;
+                                  return "";
+                                })()}
                                 disabled
                                 onChange={(e) => handleAttributePriceChange(attribute.id, "netPrice", e.target.value)}
                                 className="w-20 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -526,11 +547,14 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
                                 type="number"
                                 min="0"
                                 step="0.01"
-                                value={
-                                  attributePrices[attribute.id]?.retailPrice !== null
-                                    ? attributePrices[attribute.id]?.retailPrice
-                                    : attribute.retailPrice
-                                }
+                                value={(() => {
+                                  const priceValue = attributePrices[attribute.id]?.retailPrice;
+                                  const attrValue = attribute.retailPrice;
+                                  if (priceValue !== null && priceValue !== undefined) return priceValue;
+                                  if (attrValue !== "" && attrValue !== null && attrValue !== undefined)
+                                    return attrValue;
+                                  return "";
+                                })()}
                                 onChange={(e) =>
                                   handleAttributePriceChange(attribute.id, "retailPrice", e.target.value)
                                 }
@@ -550,11 +574,14 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
                                 min="0"
                                 max="100"
                                 step="1"
-                                value={
-                                  attributePrices[attribute.id]?.discount !== null
-                                    ? attributePrices[attribute.id]?.discount
-                                    : attribute.discount
-                                }
+                                value={(() => {
+                                  const priceValue = attributePrices[attribute.id]?.discount;
+                                  const attrValue = attribute.discount;
+                                  if (priceValue !== null && priceValue !== undefined) return priceValue;
+                                  if (attrValue !== "" && attrValue !== null && attrValue !== undefined)
+                                    return attrValue;
+                                  return "";
+                                })()}
                                 onChange={(e) => handleAttributePriceChange(attribute.id, "discount", e.target.value)}
                                 className="w-20 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                                 placeholder="0"

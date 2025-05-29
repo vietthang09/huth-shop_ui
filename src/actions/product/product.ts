@@ -9,6 +9,7 @@ interface CreateProductInput {
   description?: string;
   image: string;
   cardColor?: string;
+  keywords?: string;
   categoryId?: number;
   attributes?: number[];
 }
@@ -39,6 +40,7 @@ const productSchema = z.object({
   image: z.string().min(1, "Ảnh sản phẩm là bắt buộc"),
   description: z.string().optional(),
   cardColor: z.string().optional(),
+  keywords: z.string().optional(),
   categoryId: z.number().optional(),
   attributeIds: z.array(z.number()).optional(),
   attributePrices: z
@@ -64,6 +66,7 @@ export async function addProduct(data: z.infer<typeof productSchema>) {
         description: validatedData.description,
         image: validatedData.image,
         cardColor: validatedData.cardColor,
+        keywords: validatedData.keywords,
         categoryId: validatedData.categoryId,
       },
     }); // If there are selected attributes, create properties for them
@@ -247,6 +250,7 @@ export const updateProduct = async (data: UpdateProductInput) => {
         title: updateData.title,
         description: updateData.description,
         image: updateData.image,
+        keywords: updateData.keywords,
         cardColor: updateData.cardColor,
         categoryId: updateData.categoryId,
       },

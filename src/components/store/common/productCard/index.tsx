@@ -58,7 +58,7 @@ const ProductCard = ({
       )}
       <div className="z-10 w-full h-full">
         <Link
-          href={`/product/${id}`}
+          href={`/san-pham/${id}`}
           className="imageWrapper w-full h-[240px] flex items-center justify-center relative rounded-t-xl overflow-hidden transition-all duration-500"
         >
           <Image
@@ -69,7 +69,7 @@ const ProductCard = ({
           />
         </Link>
         <div className="z-20 p-3 space-y-2 bg-linear-to-b from-black/10 to-black">
-          <Link href={`/product/${id}`} className="inline-block text-lg font-medium text-white">
+          <Link href={`/san-pham/${id}`} className="inline-block text-lg font-medium text-white">
             {name}
           </Link>
           <p

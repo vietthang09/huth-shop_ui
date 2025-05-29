@@ -361,10 +361,7 @@ const AdminSidebar = () => {
 
   // Use custom hooks for better state management
   const { isCollapsed, isMobileMenuOpen, toggleCollapse, toggleMobileMenu } = useSidebarState();
-  const { loading: isLoading, error, navigationData, orderCount, pendingImportsCount } = useSidebarData();
-
-  // Add keyboard navigation
-  const keyboardNav = useKeyboardNavigation();
+  const { loading: isLoading, orderCount, pendingImportsCount } = useSidebarData();
 
   // Enhanced active state checker with memoization
   const isActive = useCallback((path: string) => getActiveState(pathname, path), [pathname]);
@@ -374,7 +371,7 @@ const AdminSidebar = () => {
     () => [
       {
         href: "/admin",
-        label: "Dashboard",
+        label: "Thống kê",
         icon: (
           <StarIcon
             width={20}
@@ -387,7 +384,7 @@ const AdminSidebar = () => {
       },
       {
         href: "/admin/products",
-        label: "Products",
+        label: "Sản phẩm",
         icon: (
           <ShoppingIconFill
             width={20}
@@ -398,7 +395,7 @@ const AdminSidebar = () => {
       },
       {
         href: "/admin/categories",
-        label: "Categories",
+        label: "Danh mục",
         icon: (
           <ListIcon
             width={20}
@@ -409,7 +406,7 @@ const AdminSidebar = () => {
       },
       {
         href: "/admin/attributes",
-        label: "Attributes",
+        label: "Thuộc tính",
         icon: (
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -430,7 +427,7 @@ const AdminSidebar = () => {
       },
       {
         href: "/admin/suppliers",
-        label: "Suppliers",
+        label: "Nhà cung cấp",
         icon: (
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -456,7 +453,7 @@ const AdminSidebar = () => {
   const inventorySection: NavSection = useMemo(
     () => ({
       href: "/admin/inventory",
-      label: "Inventory",
+      label: "Kho",
       icon: (
         <ListIcon
           width={20}
@@ -471,7 +468,7 @@ const AdminSidebar = () => {
       children: [
         {
           href: "/admin/inventory",
-          label: "Overview",
+          label: "Tổng quan",
           isActive: pathname === "/admin/inventory",
           icon: (
             <SearchIcon
@@ -485,7 +482,7 @@ const AdminSidebar = () => {
         },
         {
           href: "/admin/inventory/imports",
-          label: "Imports",
+          label: "Quản lý nhập hàng",
           isActive:
             pathname === "/admin/inventory/imports" ||
             (pathname.startsWith("/admin/inventory/imports/") && !pathname.includes("/new")),
@@ -504,7 +501,7 @@ const AdminSidebar = () => {
         },
         {
           href: "/admin/inventory/imports/new",
-          label: "New Import",
+          label: "Nhập hàng",
           isActive: pathname === "/admin/inventory/imports/new",
           icon: (
             <PlusIcon
@@ -517,7 +514,7 @@ const AdminSidebar = () => {
         },
         {
           href: "/admin/inventory/reports",
-          label: "Reports",
+          label: "Thống kê",
           isActive: pathname === "/admin/inventory/reports",
           icon: (
             <ReportIcon
@@ -537,7 +534,7 @@ const AdminSidebar = () => {
   const ordersSection: NavSection = useMemo(
     () => ({
       href: "/admin/orders",
-      label: "Orders",
+      label: "Đơn hàng",
       icon: (
         <ClockIcon
           width={20}
@@ -550,17 +547,12 @@ const AdminSidebar = () => {
       children: [
         {
           href: "/admin/orders",
-          label: "All Orders",
+          label: "Tất cả",
           isActive: pathname === "/admin/orders",
         },
         {
-          href: "/admin/orders/new",
-          label: "Create Order",
-          isActive: pathname === "/admin/orders/new",
-        },
-        {
           href: "/admin/orders/export",
-          label: "Export Data",
+          label: "Xất dữ liệu",
           isActive: pathname === "/admin/orders/export",
         },
       ],
@@ -572,7 +564,7 @@ const AdminSidebar = () => {
     () => [
       {
         href: "/admin/post",
-        label: "Blog Posts",
+        label: "Viết bài",
         icon: (
           <PlusIcon
             width={20}
@@ -584,7 +576,7 @@ const AdminSidebar = () => {
       },
       {
         href: "/admin/users",
-        label: "Users",
+        label: "Người dùng",
         icon: (
           <ProfileIcon
             width={20}
@@ -808,7 +800,7 @@ const AdminSidebar = () => {
         <div className="mb-6">
           {!isCollapsed && (
             <h3 className="text-xs uppercase font-bold text-gray-400 tracking-wider px-4 mb-3 transition-all duration-300">
-              Content Management
+              Quản lý nội dung
             </h3>
           )}
           <nav className="space-y-2" aria-label="Secondary navigation">

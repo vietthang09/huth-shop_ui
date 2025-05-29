@@ -2,7 +2,7 @@ export const COMPANIES_LOGOS = [
   {
     width: 104,
     bgPositionX: 0,
-    url: "/list/photography/scanners/epson",
+    url: "/danh-muc/photography/scanners/epson",
   },
   {
     width: 50,
@@ -17,12 +17,12 @@ export const COMPANIES_LOGOS = [
   {
     width: 44,
     bgPositionX: -207,
-    url: "/list/smartphones/apple-iphone",
+    url: "/danh-muc/smartphones/apple-iphone",
   },
   {
     width: 47,
     bgPositionX: -252,
-    url: "/list/smartphones/xiaomi",
+    url: "/danh-muc/smartphones/xiaomi",
   },
   {
     width: 54,
@@ -37,6 +37,6 @@ export const COMPANIES_LOGOS = [
   {
     width: 98,
     bgPositionX: -411,
-    url: "/list/pc-laptops/laptops/asus",
+    url: "/danh-muc/pc-laptops/laptops/asus",
   },
 ];

@@ -48,6 +48,7 @@ model Product {
   description String?   @db.Text
   image       String?
   cardColor   String?   // Color for product card in UI (hex, color name, or CSS class)
+  keywords    String? // Optional array of keywords for search and SEO
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   categoryId  Int?

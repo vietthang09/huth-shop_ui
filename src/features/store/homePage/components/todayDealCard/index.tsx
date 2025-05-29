@@ -15,7 +15,7 @@ export const TodayDealCards = () => {
     const fetchHotDeals = async () => {
       setIsLoading(true);
       try {
-        const hotDeals = await getSaleProducts({ limit: 4 });
+        const hotDeals = await getSaleProducts({ limit: 10 });
         setDeals(hotDeals.products);
       } catch (error) {
         console.error("Error fetching hot deals:", error);
@@ -42,10 +42,10 @@ export const TodayDealCards = () => {
           Xem tất cả
         </Link>
       </div>
-      <div className="grid grid-cols-12 gap-4">
+      <div className="grid grid-cols-10 gap-4">
         {deals.map((deal) => (
           <ProductCard
-            className="col-span-3"
+            className="col-span-10 lg:col-span-2"
             id={deal.sku}
             key={deal.id}
             name={deal.title}
