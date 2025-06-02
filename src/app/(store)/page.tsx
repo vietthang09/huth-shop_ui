@@ -1,10 +1,10 @@
 import { Metadata } from "next";
 
 import {
+  Carousel,
   CollectionCards,
   CompanyLogoList,
-  TodayDealCards,
-  TopSellingCards,
+  TabbedProductCards,
   WideCardRow,
 } from "@/features/store/homePage/components";
 import { threeSaleCards, twoSaleCards } from "@/features/store/homePage/constants";
@@ -15,12 +15,12 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-    <div>
+    <div className="space-y-4">
+      <Carousel />
       <WideCardRow cards={threeSaleCards} />
-      <TodayDealCards />
+      <TabbedProductCards />
       <WideCardRow cards={twoSaleCards} />
       <CollectionCards />
-      <TopSellingCards />
       <CompanyLogoList />
     </div>
   );

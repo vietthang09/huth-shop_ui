@@ -29,13 +29,15 @@ const NavBarCategory = ({ isNavbarVisible: isNavbarHide }: TProps) => {
     event?.stopPropagation();
     setIsActive(!isActive);
   };
+
+  const getCategoriesDB = async () => {
+    const result = await getAllCategories();
+    if (result.success && result.data) {
+      setCategories(result.data);
+    }
+  };
+
   useEffect(() => {
-    const getCategoriesDB = async () => {
-      const result = await getAllCategories();
-      if (result.success && result.data) {
-        setCategories(result.data);
-      }
-    };
     getCategoriesDB();
   }, []);
 

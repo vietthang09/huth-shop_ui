@@ -400,13 +400,10 @@ export const searchProducts = async (
     includeCategory?: boolean;
     includeProperties?: boolean;
     limit?: number;
+    priceFilter?: [number, number]; // [min, max] price range
   }
 ) => {
   try {
-    console.log("hello");
-    if (!query || query.trim().length === 0) {
-      return { success: false, error: "Search query is required" };
-    }
     const searchTerm = query.trim();
     const limit = options?.limit || 50;
     const products = await db.product.findMany({
@@ -457,10 +454,8 @@ export const searchProducts = async (
 
     if (!products || products.length === 0) {
       return { success: true, data: [], message: "No products found matching your search" };
-    }
-
-    // Format the response with additional search-relevant information
-    const formattedProducts = products.map((product: any) => ({
+    } // Format the response with additional search-relevant information
+    let formattedProducts = products.map((product: any) => ({
       ...product,
       // Add a relevance score based on where the match was found
       relevanceScore: calculateRelevanceScore(product, searchTerm.toLowerCase()),
@@ -477,7 +472,24 @@ export const searchProducts = async (
               : "Default",
           })),
         }),
+      // Calculate lowest price for filtering
+      lowestPrice:
+        product.properties && product.properties.length > 0
+          ? product.properties.reduce((lowest: number, prop: any) => {
+              const price = Number(prop.salePrice ?? prop.retailPrice);
+              return lowest === 0 || price < lowest ? price : lowest;
+            }, 0)
+          : 0,
     }));
+
+    // Apply price filter if provided
+    if (options?.priceFilter && options.priceFilter.length === 2) {
+      const [minPrice, maxPrice] = options.priceFilter;
+      formattedProducts = formattedProducts.filter((product) => {
+        const price = product.lowestPrice;
+        return price >= minPrice && price <= maxPrice;
+      });
+    }
 
     // Sort by relevance score (higher is better)
     formattedProducts.sort((a, b) => b.relevanceScore - a.relevanceScore);

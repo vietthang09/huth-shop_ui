@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/shared/utils/styling";
 
 import NavBarCategory from "./navCategory";
-import NavBarFavorite from "./navFavorite";
 import NavBarProfile from "./navProfile";
 import NavBarShopping from "./navShopping";
 
@@ -63,7 +62,7 @@ const StoreNavBar = () => {
       if (searchQuery.trim()) {
         // Navigate to the list page with search parameter
         const encodedQuery = encodeURIComponent(searchQuery.trim());
-        router.push(`/list?search=${encodedQuery}`);
+        router.push(`/danh-muc?tim-kiem=${encodedQuery}`);
         // Clear the search input after submission
         setSearchQuery("");
       }
@@ -112,7 +111,7 @@ const StoreNavBar = () => {
           {/* Search bar */}
           <form onSubmit={handleSearchSubmit} className="h-11 relative flex-1 mx-6 sm:mx-10" role="search">
             <label htmlFor="navbar-search" className="sr-only">
-              Search for products
+              Tìm sản phẩm
             </label>
             <input
               id="navbar-search"
