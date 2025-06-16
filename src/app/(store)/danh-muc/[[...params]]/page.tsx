@@ -49,7 +49,19 @@ const ListPage = () => {
   // Filters state
   const [filters, setFilters] = useState<TFilters>({
     category: "",
-  });
+  }); // Apply filters to products (client-side filtering for additional filters on server results)
+  const applyFilters = useCallback((productList: ProductType[]) => {
+    setPageStatus("filterLoading");
+
+    let filtered = [...productList];
+
+    // The main search filtering is already done on the server
+    // This is for any additional client-side filtering if needed
+
+    setFilteredProducts(filtered);
+    setPageStatus(filtered.length > 0 ? "filledProductList" : "filterHasNoProduct");
+  }, []);
+
   // Extract category from URL parameters
   useEffect(() => {
     const params = pathname.split("/").filter((segment) => segment && segment !== "danh-muc");
@@ -156,9 +168,7 @@ const ListPage = () => {
           });
 
           // For search results, we'll have limited brand filtering since supplier isn't included
-          const brands: Array<{ id: number; name: string; isSelected: boolean }> = [];
-
-          // Set price range filter and brands
+          const brands: Array<{ id: number; name: string; isSelected: boolean }> = []; // Set price range filter and brands
           setFilters((prev) => ({
             ...prev,
             priceMinMax: [minPrice === Number.MAX_VALUE ? 0 : minPrice, maxPrice],
@@ -167,8 +177,9 @@ const ListPage = () => {
             search: searchQuery,
           }));
 
-          // Apply any additional filters client-side
-          applyFilters(productsData as unknown as ProductType[]);
+          // Display search results directly (server-side filtering is already done)
+          setFilteredProducts(productsData as unknown as ProductType[]);
+          setPageStatus(productsData.length > 0 ? "filledProductList" : "filterHasNoProduct");
         } else {
           setError(response.error || "Failed to search products");
           setPageStatus("filterHasNoProduct");
@@ -244,9 +255,7 @@ const ListPage = () => {
             minPrice = Math.min(minPrice, lowestPrice || 0);
             maxPrice = Math.max(maxPrice, lowestPrice || 0);
           }); // Extract available brands for filter (getAllProducts doesn't include supplier)
-          const brands: Array<{ id: number; name: string; isSelected: boolean }> = [];
-
-          // Set price range filter and brands
+          const brands: Array<{ id: number; name: string; isSelected: boolean }> = []; // Set price range filter and brands
           setFilters((prev) => ({
             ...prev,
             priceMinMax: [minPrice === Number.MAX_VALUE ? 0 : minPrice, maxPrice],
@@ -254,8 +263,9 @@ const ListPage = () => {
             brands,
           }));
 
-          // Apply filters
-          // applyFilters(productsData as unknown as ProductType[]);
+          // Display all products
+          setFilteredProducts(productsData as unknown as ProductType[]);
+          setPageStatus(productsData.length > 0 ? "filledProductList" : "categoryHasNoProduct");
         } else {
           setError(response.error || "Failed to fetch products");
           setPageStatus("categoryHasNoProduct");
@@ -274,9 +284,18 @@ const ListPage = () => {
     console.log("Fetching products with filters:", filters);
     fetchProducts();
   }, [searchParams]);
-
   return (
-    <div className="container mx-auto">
+    <div className="container mx-auto px-4 py-8">
+      {/* Search Results Header */}
+      {searchParams.get("search") && (
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Search Results for "{searchParams.get("search")}"</h1>
+          <p className="text-gray-600">
+            {isLoading ? "Searching..." : `Found ${totalItems} product${totalItems !== 1 ? "s" : ""}`}
+          </p>
+        </div>
+      )}
+
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Product Grid */}
         <div className="flex-1">
@@ -290,28 +309,46 @@ const ListPage = () => {
             </div>
           ) : filteredProducts.length === 0 ? (
             <div className="text-center py-10">
-              <p className="text-gray-500 text-lg">No products found</p>
-              <button
-                onClick={() => {
-                  // Reset filters
-                  setFilters({
-                    search: "",
-                    category: filters.category,
-                  });
-                  setSearchTerm("");
-                }}
-                className="mt-4 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
-              >
-                Clear Filters
-              </button>
+              {searchParams.get("search") ? (
+                <>
+                  <Search className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-medium text-gray-900 mb-2">No products found</h3>
+                  <p className="text-gray-500 mb-4">No products match your search for "{searchParams.get("search")}"</p>
+                  <button
+                    onClick={() => {
+                      router.push("/danh-muc");
+                    }}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                  >
+                    Browse All Products
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="text-gray-500 text-lg">No products found</p>
+                  <button
+                    onClick={() => {
+                      // Reset filters
+                      setFilters({
+                        search: "",
+                        category: filters.category,
+                      });
+                      setSearchTerm("");
+                    }}
+                    className="mt-4 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+                  >
+                    Clear Filters
+                  </button>
+                </>
+              )}
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-10 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                 {paginatedProducts.map((product) => (
                   <ProductCard
                     key={product.id}
-                    className="col-span-10 lg:col-span-2"
+                    className="w-full"
                     id={product.sku}
                     name={product.title}
                     price={getLowestPrice(product.properties)}
@@ -322,6 +359,29 @@ const ListPage = () => {
                   />
                 ))}
               </div>
+
+              {/* Pagination for search results */}
+              {!searchParams.get("search") && totalItems > itemsPerPage && (
+                <div className="flex justify-center items-center mt-8 space-x-2">
+                  <button
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <span className="px-4 py-2 text-sm text-gray-700">
+                    Page {currentPage} of {Math.ceil(totalItems / itemsPerPage)}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage(Math.min(Math.ceil(totalItems / itemsPerPage), currentPage + 1))}
+                    disabled={currentPage >= Math.ceil(totalItems / itemsPerPage)}
+                    className="px-3 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              )}
             </>
           )}
         </div>

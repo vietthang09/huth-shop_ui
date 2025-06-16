@@ -1,204 +1,204 @@
 "use client";
-import Image from "next/image";
+
 import Link from "next/link";
-import { useCallback, useEffect, useState, useRef } from "react";
-import { useRouter } from "next/navigation";
-
-import { cn } from "@/shared/utils/styling";
-
-import NavBarCategory from "./navCategory";
-import NavBarProfile from "./navProfile";
-import NavBarShopping from "./navShopping";
-
-interface NavbarItem {
-  name: string;
-  link: string;
-  ariaLabel?: string;
-}
-
-const NAVBAR_ITEMS: NavbarItem[] = [
-  { name: "Netflix", link: "/danh-muc/netflix", ariaLabel: "Browse Netflix accounts" },
-  { name: "Adobe", link: "/danh-muc/adobe", ariaLabel: "Browse Adobe accounts" },
-  { name: "Google", link: "/danh-muc/google", ariaLabel: "Browse Google accounts" },
-  { name: "Microsoft", link: "/danh-muc/microsoft", ariaLabel: "Browse Microsoft accounts" },
-  { name: "Spotify", link: "/danh-muc/spotify", ariaLabel: "Browse Spotify accounts" },
-  { name: "Canva", link: "/danh-muc/canva", ariaLabel: "Browse Canva accounts" },
-  { name: "AI", link: "/danh-muc/ai", ariaLabel: "Browse AI tool accounts" },
-  { name: "Blog", link: "/blog", ariaLabel: "Read our blog" },
-];
-
-// Custom hook for scroll behavior
-const useScrollHide = (threshold: number = 100) => {
-  const [isHidden, setIsHidden] = useState(false);
-  const prevScrollY = useRef(0);
-
-  const handleScroll = useCallback(() => {
-    const currentScrollY = window.scrollY;
-    const shouldHide = prevScrollY.current < currentScrollY && currentScrollY > threshold;
-
-    setIsHidden(shouldHide);
-    prevScrollY.current = currentScrollY;
-  }, [threshold]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
-
-  return isHidden;
-};
+import { Search, Clock } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 
 const StoreNavBar = () => {
-  const hideNavbar = useScrollHide(100);
-  const [searchQuery, setSearchQuery] = useState("");
-  const router = useRouter();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const searchRef = useRef<HTMLDivElement>(null);
 
-  const handleSearchSubmit = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault();
-      if (searchQuery.trim()) {
-        // Navigate to the list page with search parameter
-        const encodedQuery = encodeURIComponent(searchQuery.trim());
-        router.push(`/danh-muc?tim-kiem=${encodedQuery}`);
-        // Clear the search input after submission
-        setSearchQuery("");
-      }
-    },
-    [searchQuery, router]
+  // Mock suggestion data
+  const mockSuggestions = [
+    "Tài khoản game online",
+    "Tài khoản Liên Minh Huyền Thoại",
+    "Tài khoản PUBG Mobile",
+    "Tài khoản Free Fire",
+    "Tài khoản Valorant",
+    "Tài khoản Steam",
+    "Tài khoản Epic Games",
+    "Tài khoản Riot Games",
+  ];
+
+  const filteredSuggestions = mockSuggestions.filter((suggestion) =>
+    suggestion.toLowerCase().includes(searchValue.toLowerCase())
   );
 
-  // Handle keyboard shortcuts
+  // Load recent searches from localStorage on component mount
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Focus search on Ctrl+K or Cmd+K
-      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
-        e.preventDefault();
-        const searchInput = document.getElementById("navbar-search");
-        if (searchInput) {
-          searchInput.focus();
-        }
+    const saved = localStorage.getItem("recentSearches");
+    if (saved) {
+      setRecentSearches(JSON.parse(saved));
+    }
+  }, []);
+
+  // Save recent searches to localStorage
+  const saveRecentSearch = (search: string) => {
+    if (!search.trim()) return;
+
+    const updatedRecent = [search, ...recentSearches.filter((item) => item !== search)].slice(0, 5);
+    setRecentSearches(updatedRecent);
+    localStorage.setItem("recentSearches", JSON.stringify(updatedRecent));
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 0);
+    };
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setIsFocused(false);
       }
     };
 
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("scroll", handleScroll);
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setSearchValue(suggestion);
+    saveRecentSearch(suggestion);
+    setIsFocused(false);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchValue.trim()) {
+      saveRecentSearch(searchValue);
+      setIsFocused(false);
+    }
+  };
 
   return (
     <nav
-      className={cn(
-        "flex flex-col bg-white shadow-sm transition-transform duration-300 ease-in-out",
-        "pt-5 fixed w-full z-50 top-0",
-        hideNavbar && "-translate-y-full"
-      )}
-      role="navigation"
-      aria-label="Main navigation"
+      className={`fixed top-0 z-50 w-full px-4 2xl:px-0 py-4 transition-colors duration-300 ${
+        isScrolled ? "bg-white shadow" : "bg-transparent"
+      }`}
     >
-      {/* Top section with logo, search, and actions */}
-      <section className="w-full">
-        <div className="storeContainer w-full relative flex justify-between items-center">
-          {/* Logo */}
-          <Link
-            href="/"
-            className="mr-0 xl:mr-20 lg:mr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-            aria-label="Go to homepage"
-          >
-            <Image alt="Bitex Logo" src="/images/logo.png" width={125} height={40} quality={100} priority />
-          </Link>{" "}
-          {/* Search bar */}
-          <form onSubmit={handleSearchSubmit} className="h-11 relative flex-1 mx-6 sm:mx-10" role="search">
-            <label htmlFor="navbar-search" className="sr-only">
-              Tìm sản phẩm
-            </label>
-            <input
-              id="navbar-search"
-              type="search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={cn(
-                "text-gray-800 hidden sm:block pl-4 pr-4 sm:pl-12 sm:pr-16",
-                "size-full border-gray-300 focus:border-blue-500 border rounded-lg",
-                "outline-none focus:ring-2 focus:ring-blue-200 transition-colors"
-              )}
-              placeholder="Search for products..."
-              autoComplete="off"
-            />
-            <button
-              type="submit"
-              className="absolute top-3.5 left-5 hidden sm:block p-0.5 hover:bg-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-blue-200"
-              aria-label="Submit search"
-            >
-              <Image src="/icons/searchIcon.svg" width={16} height={16} alt="" role="presentation" />
-            </button>
-
-            {/* Keyboard shortcut hint */}
-            <div className="absolute top-3 right-3 hidden sm:block text-xs text-gray-400 pointer-events-none">
-              <kbd className="px-1.5 py-0.5 text-xs font-semibold text-gray-500 bg-gray-100 border border-gray-200 rounded">
-                ⌘K
-              </kbd>
+      <div className="max-w-7xl mx-auto w-full relative flex justify-between items-center">
+        <Link
+          href="/"
+          className={`mr-0 xl:mr-20 lg:mr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded font-bold text-2xl transition-colors duration-300 ${
+            isScrolled ? "text-gray-900" : "text-white"
+          }`}
+          aria-label="Go to homepage"
+        >
+          Bitex
+        </Link>
+        <div className="relative" ref={searchRef}>
+          <form onSubmit={handleSearchSubmit}>
+            <div className="h-full flex bg-white pl-6 px-1 py-1 border border-gray-200 rounded-full">
+              <input
+                placeholder="Tìm trong VT Plus"
+                autoComplete="off"
+                className="min-w-96 text-sm outline-none"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                onFocus={() => setIsFocused(true)}
+              />
+              <button type="submit" className="bg-red-500 p-2 rounded-full" aria-label="Submit search">
+                <Search className="text-white w-4 h-4" />
+              </button>
             </div>
-
-            {/* Mobile search button */}
-            <button
-              type="button"
-              onClick={() => {
-                // For mobile, show search input or navigate directly if search has text
-                if (searchQuery.trim()) {
-                  handleSearchSubmit(new Event("submit") as any);
-                } else {
-                  // You could implement a mobile search modal here
-                  router.push("/list");
-                }
-              }}
-              className="sm:hidden p-2 hover:bg-gray-100 rounded focus:outline-none focus:ring-2 focus:ring-blue-200"
-              aria-label="Search products"
-            >
-              <Image src="/icons/searchIcon.svg" width={20} height={20} alt="" role="presentation" />
-            </button>
           </form>
-          {/* Action buttons */}
-          <div className="text-gray-500 flex items-center gap-2 pr-2 md:pr-0">
-            <NavBarProfile />
-            <NavBarShopping />
-          </div>
-        </div>
-      </section>
 
-      {/* Bottom section with categories and navigation */}
-      <section className="w-full border-b border-t border-gray-300 mt-5">
-        <div className="storeContainer h-[50px] flex justify-between items-center">
-          <div className="flex items-center h-full">
-            <NavBarCategory isNavbarVisible={!hideNavbar} />
-
-            <div className="h-4 border-l border-gray-300 mx-4 hidden sm:block" aria-hidden="true" />
-
-            <nav role="navigation" aria-label="Product categories">
-              <ul className="hidden lg:flex items-center space-x-1">
-                {NAVBAR_ITEMS.map(({ name, link, ariaLabel }) => (
-                  <li key={name}>
-                    <Link
-                      href={link}
-                      className={cn(
-                        "px-4 py-2 rounded-md text-sm text-gray-700",
-                        "transition-colors duration-200",
-                        "hover:bg-gray-100 hover:text-gray-900",
-                        "focus:outline-none focus:ring-2 focus:ring-blue-200",
-                        "active:bg-gray-200"
-                      )}
-                      aria-label={ariaLabel || `Browse ${name} accounts`}
+          {/* Floating suggestions dropdown */}
+          {isFocused && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto z-10">
+              {searchValue.trim() === "" ? (
+                // Show recent searches when input is empty
+                <>
+                  {recentSearches.length > 0 && (
+                    <>
+                      <div className="px-4 py-2 text-xs font-medium text-gray-500 border-b border-gray-100">
+                        Tìm kiếm gần đây
+                      </div>
+                      {recentSearches.map((search, index) => (
+                        <div
+                          key={index}
+                          className="px-4 py-3 hover:bg-gray-50 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
+                          onClick={() => handleSuggestionClick(search)}
+                        >
+                          <div className="flex items-center">
+                            <Clock className="w-4 h-4 text-gray-400 mr-3" />
+                            <span>{search}</span>
+                          </div>
+                        </div>
+                      ))}
+                      {/* Divider between sections */}
+                      <div className="border-t-2 border-gray-200 my-2"></div>
+                      <div className="px-4 py-2 text-xs font-medium text-gray-500 border-b border-gray-100">
+                        Gợi ý tìm kiếm
+                      </div>
+                    </>
+                  )}
+                  {mockSuggestions.slice(0, 5).map((suggestion, index) => (
+                    <div
+                      key={index}
+                      className="px-4 py-3 hover:bg-gray-50 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
+                      onClick={() => handleSuggestionClick(suggestion)}
                     >
-                      {name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          </div>
+                      <div className="flex items-center">
+                        <Search className="w-4 h-4 text-gray-400 mr-3" />
+                        <span>{suggestion}</span>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              ) : (
+                // Show filtered suggestions when typing
+                <>
+                  {filteredSuggestions.length > 0 ? (
+                    filteredSuggestions.map((suggestion, index) => (
+                      <div
+                        key={index}
+                        className="px-4 py-3 hover:bg-gray-50 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
+                        onClick={() => handleSuggestionClick(suggestion)}
+                      >
+                        <div className="flex items-center">
+                          <Search className="w-4 h-4 text-gray-400 mr-3" />
+                          <span>{suggestion}</span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="px-4 py-3 text-sm text-gray-500">Không tìm thấy kết quả phù hợp</div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
         </div>
-      </section>
+        <div className="space-x-2">
+          <Link
+            href="/login"
+            className={`border px-4 py-2 rounded-full transition-colors duration-300 text-sm ${
+              isScrolled
+                ? "border-orange-600 text-orange-600 hover:bg-orange-50"
+                : "border-white text-white hover:bg-white hover:text-gray-900"
+            }`}
+          >
+            Trở thành đối tác
+          </Link>
+          <Link
+            href="/login"
+            className={`px-4 py-2 rounded-full transition-colors duration-300 text-sm ${
+              isScrolled ? "bg-orange-600 text-white hover:bg-orange-500" : "bg-white text-orange-600"
+            }`}
+          >
+            Đăng nhập/Đăng ký
+          </Link>
+        </div>
+      </div>
     </nav>
   );
 };

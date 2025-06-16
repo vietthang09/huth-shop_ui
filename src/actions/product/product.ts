@@ -840,3 +840,92 @@ export const searchProductsAdvanced = async (filters: {
     return { success: false, error: "Failed to search products" };
   }
 };
+
+export const getSearchSuggestions = async (query: string) => {
+  try {
+    if (!query || query.trim().length < 2) {
+      return { success: true, data: { suggestions: [] } };
+    }
+
+    const searchTerm = query.trim();
+
+    // Get product title suggestions
+    const products = await db.product.findMany({
+      where: {
+        AND: [
+          {
+            OR: [
+              {
+                title: {
+                  contains: searchTerm,
+                },
+              },
+              {
+                sku: {
+                  contains: searchTerm,
+                },
+              },
+            ],
+          },
+          // Assuming there's an isActive field, otherwise remove this condition
+          // { isActive: true },
+        ],
+      },
+      include: {
+        category: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      take: 5,
+    });
+
+    // Get category suggestions
+    const categories = await db.category.findMany({
+      where: {
+        name: {
+          contains: searchTerm,
+        },
+      },
+      select: {
+        name: true,
+        slug: true,
+      },
+      take: 3,
+    });
+
+    // Format suggestions
+    const productSuggestions = products.map((product) => ({
+      text: product.title,
+      type: "product" as const,
+      category: product.category?.name,
+    }));
+
+    const categorySuggestions = categories.map((category) => ({
+      text: category.name,
+      type: "category" as const,
+      slug: category.slug,
+    }));
+
+    // Combine and remove duplicates
+    const allSuggestions = [...productSuggestions, ...categorySuggestions];
+    const uniqueSuggestions = allSuggestions.filter(
+      (suggestion, index, self) =>
+        index === self.findIndex((s) => s.text.toLowerCase() === suggestion.text.toLowerCase())
+    );
+
+    return {
+      success: true,
+      data: {
+        suggestions: uniqueSuggestions.slice(0, 8), // Limit to 8 suggestions
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching search suggestions:", error);
+    return {
+      success: false,
+      error: "Failed to fetch suggestions",
+    };
+  }
+};
