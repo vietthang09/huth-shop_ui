@@ -90,7 +90,7 @@ const Footer = () => {
       </div>
       <section className="w-full xl:h-20 bg-gray-100 text-sm">
         <div className="h-full flex-col gap-4 xl:flex-row xl:gap-0 justify-between items-center storeContainer">
-          <span className="text-gray-500 mt-6 xl:mt-0">© {CURRENT_YEAR} Cửa hàng BITEX. Bảo lưu mọi quyền.</span>
+          <span className="text-gray-500 mt-6 xl:mt-0">© {CURRENT_YEAR} Cửa hàng HT Premium. Bảo lưu mọi quyền.</span>
           <div className="flex gap-4 mb-6 xl:mb-0">
             <Link
               href={"https://www.linkedIn.com"}

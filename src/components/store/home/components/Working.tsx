@@ -1,7 +1,7 @@
 "use client";
 import { useRef, useState } from "react";
 import ProductCard from "../../common/productCard";
-import { mockProducts } from "../data";
+import { mockProducts, workingProducts } from "../data";
 
 export default function Working() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -30,7 +30,7 @@ export default function Working() {
   return (
     <div className="h-full">
       <h2 className="text-center text-2xl text-gray-800 font-medium">Làm việc</h2>
-      <div className="relative">
+      <div className="relative mt-4">
         {/* Left Navigation Button */}
         {canScrollLeft && (
           <button
@@ -62,7 +62,7 @@ export default function Working() {
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           onScroll={updateScrollButtons}
         >
-          {mockProducts.map((product, index) => (
+          {workingProducts.map((product, index) => (
             <div
               key={product.id}
               className="group opacity-0 animate-[fadeInUp_0.8s_ease-out_forwards] flex-shrink-0"
@@ -72,10 +72,11 @@ export default function Working() {
                 <ProductCard
                   className="w-72 h-full shadow-lg hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-500 ring-1 ring-gray-200/30 hover:ring-blue-300/50"
                   id={product.sku}
+                  sku={product.sku}
                   name={product.title}
-                  price={+product.properties[0].retailPrice}
-                  dealPrice={+(product.properties?.[0]?.salePrice ?? 0)}
-                  imgUrl={product.image || ""}
+                  price={+product.lowestPrice}
+                  dealPrice={product.lowestSalePrice}
+                  imgUrl={product.image}
                 />
               </div>
             </div>

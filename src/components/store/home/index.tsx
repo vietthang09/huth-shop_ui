@@ -36,16 +36,16 @@ export default function HomePage() {
   return (
     <div className="space-y-4">
       {/* Hero */}
-      <section className="bg-gradient-to-bl from-[#0f172a] via-[#1e1a78] to-[#0f172a] min-h-screen 2xl:min-h-[50vh] flex items-stretch px-4 2xl:px-0">
+      <section className="bg-gradient-to-bl from-[#0f172a] via-[#1e1a78] to-[#0f172a] lg:min-h-screen 2xl:min-h-[50vh] flex items-stretch px-4 2xl:px-0">
         <div className="pt-20 max-w-7xl w-full mx-auto self-end">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col lg:flex-row items-center justify-between">
             <div>
-              <h1 className="text-white text-7xl font-bold">
-                Nâng tầm <br /> trải nghiệm số
+              <h1 className="text-white text-2xl lg:text-7xl font-bold">
+                Nâng tầm <br className="hidden lg:block" /> trải nghiệm số
               </h1>
               <p className="text-white mt-2">Thế giới số trong tầm tay bạn.</p>
 
-              <div className="mt-20 flex gap-4 text-white">
+              <div className="mt-8 lg:mt-20 flex gap-4 text-white text-sm lg:text-base">
                 <p>
                   <Globe className="inline" />
                   <span className="ml-2 leading-10">Bảo hành trọn đời</span>
@@ -58,12 +58,12 @@ export default function HomePage() {
             </div>
 
             <img
-              className="h-full max-h-96 w-auto"
+              className="h-full max-h-40 lg:max-h-96 w-auto"
               src="https://assets.g2g.com/ui/img/banners/G2G-550x550-20250509.webp"
             />
           </div>
 
-          <div className="">
+          <div className="flex overflow-x-auto">
             {categories.map((category, index) => (
               <div
                 key={index}

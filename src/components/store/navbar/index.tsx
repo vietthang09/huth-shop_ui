@@ -1,14 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Clock } from "lucide-react";
+import { Search, Clock, Menu, X } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 
 const StoreNavBar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [isHomePage, setIsHomePage] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+
+  const pathname = usePathname();
   const searchRef = useRef<HTMLDivElement>(null);
 
   // Mock suggestion data
@@ -35,6 +41,11 @@ const StoreNavBar = () => {
     }
   }, []);
 
+  // Track if we are on the home page
+  useEffect(() => {
+    setIsHomePage(pathname === "/");
+  }, [pathname]);
+
   // Save recent searches to localStorage
   const saveRecentSearch = (search: string) => {
     if (!search.trim()) return;
@@ -52,6 +63,7 @@ const StoreNavBar = () => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setIsFocused(false);
+        setIsSearchExpanded(false);
       }
     };
 
@@ -68,6 +80,7 @@ const StoreNavBar = () => {
     setSearchValue(suggestion);
     saveRecentSearch(suggestion);
     setIsFocused(false);
+    setIsSearchExpanded(false);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -75,30 +88,43 @@ const StoreNavBar = () => {
     if (searchValue.trim()) {
       saveRecentSearch(searchValue);
       setIsFocused(false);
+      setIsSearchExpanded(false);
     }
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const handleSearchClick = () => {
+    setIsSearchExpanded(true);
+    setIsFocused(true);
   };
 
   return (
     <nav
       className={`fixed top-0 z-50 w-full px-4 2xl:px-0 py-4 transition-colors duration-300 ${
-        isScrolled ? "bg-white shadow" : "bg-transparent"
+        isScrolled || !isHomePage ? "bg-white shadow" : "bg-transparent"
       }`}
     >
       <div className="max-w-7xl mx-auto w-full relative flex justify-between items-center">
+        {/* Logo */}
         <Link
           href="/"
-          className={`mr-0 xl:mr-20 lg:mr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded font-bold text-2xl transition-colors duration-300 ${
-            isScrolled ? "text-gray-900" : "text-white"
+          className={`mr-0 xl:mr-20 lg:mr-10 rounded font-semibold text-xl transition-colors duration-300 ${
+            isScrolled || !isHomePage ? "text-gray-900" : "text-white"
           }`}
           aria-label="Go to homepage"
         >
-          Bitex
+          HT Premium
         </Link>
-        <div className="relative" ref={searchRef}>
+
+        {/* Desktop Search Bar */}
+        <div className={`relative hidden md:block ${isSearchExpanded ? "flex-1" : ""}`} ref={searchRef}>
           <form onSubmit={handleSearchSubmit}>
             <div className="h-full flex bg-white pl-6 px-1 py-1 border border-gray-200 rounded-full">
               <input
-                placeholder="Tìm trong VT Plus"
+                placeholder="Tìm trong HT Premium..."
                 autoComplete="off"
                 className="min-w-96 text-sm outline-none"
                 value={searchValue}
@@ -111,7 +137,7 @@ const StoreNavBar = () => {
             </div>
           </form>
 
-          {/* Floating suggestions dropdown */}
+          {/* Desktop Suggestions Dropdown */}
           {isFocused && (
             <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto z-10">
               {searchValue.trim() === "" ? (
@@ -178,27 +204,164 @@ const StoreNavBar = () => {
             </div>
           )}
         </div>
-        <div className="space-x-2">
+
+        {/* Mobile Search Icon */}
+        <div className="md:hidden flex items-center space-x-2">
+          <button
+            onClick={handleSearchClick}
+            className={`p-2 rounded-full transition-colors duration-300 ${
+              isScrolled || !isHomePage
+                ? "text-gray-900 hover:bg-gray-100"
+                : "text-white hover:bg-white hover:bg-opacity-20"
+            }`}
+            aria-label="Open search"
+          >
+            <Search className="w-5 h-5" />
+          </button>
+          <button
+            onClick={toggleMobileMenu}
+            className={`p-2 rounded-full transition-colors duration-300 ${
+              isScrolled || !isHomePage
+                ? "text-gray-900 hover:bg-gray-100"
+                : "text-white hover:bg-white hover:bg-opacity-20"
+            }`}
+            aria-label="Toggle mobile menu"
+          >
+            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
+
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex space-x-2">
           <Link
             href="/login"
             className={`border px-4 py-2 rounded-full transition-colors duration-300 text-sm ${
-              isScrolled
+              isScrolled || !isHomePage
                 ? "border-orange-600 text-orange-600 hover:bg-orange-50"
                 : "border-white text-white hover:bg-white hover:text-gray-900"
             }`}
           >
             Trở thành đối tác
           </Link>
-          <Link
-            href="/login"
-            className={`px-4 py-2 rounded-full transition-colors duration-300 text-sm ${
-              isScrolled ? "bg-orange-600 text-white hover:bg-orange-500" : "bg-white text-orange-600"
-            }`}
-          >
-            Đăng nhập/Đăng ký
-          </Link>
         </div>
       </div>
+
+      {/* Mobile Search Bar (Full Width Overlay) */}
+      {isSearchExpanded && (
+        <div className="md:hidden fixed inset-0 bg-white z-50 pt-4">
+          <div className="px-4">
+            <div className="flex items-center space-x-2 mb-4">
+              <button
+                onClick={() => {
+                  setIsSearchExpanded(false);
+                  setIsFocused(false);
+                }}
+                className="p-2 text-gray-900 hover:bg-gray-100 rounded-full"
+                aria-label="Close search"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <div className="flex-1" ref={searchRef}>
+                <form onSubmit={handleSearchSubmit}>
+                  <div className="h-full flex bg-white pl-4 px-1 py-2 border border-gray-300 rounded-full">
+                    <input
+                      placeholder="Tìm trong HT Premium..."
+                      autoComplete="off"
+                      className="w-full text-sm outline-none"
+                      value={searchValue}
+                      onChange={(e) => setSearchValue(e.target.value)}
+                      onFocus={() => setIsFocused(true)}
+                      autoFocus
+                    />
+                    <button type="submit" className="bg-red-500 p-2 rounded-full" aria-label="Submit search">
+                      <Search className="text-white w-4 h-4" />
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            {/* Mobile Suggestions */}
+            {isFocused && (
+              <div className="bg-white border border-gray-200 rounded-lg shadow-lg max-h-96 overflow-y-auto">
+                {searchValue.trim() === "" ? (
+                  <>
+                    {recentSearches.length > 0 && (
+                      <>
+                        <div className="px-4 py-2 text-xs font-medium text-gray-500 border-b border-gray-100">
+                          Tìm kiếm gần đây
+                        </div>
+                        {recentSearches.map((search, index) => (
+                          <div
+                            key={index}
+                            className="px-4 py-3 hover:bg-gray-50 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
+                            onClick={() => handleSuggestionClick(search)}
+                          >
+                            <div className="flex items-center">
+                              <Clock className="w-4 h-4 text-gray-400 mr-3" />
+                              <span>{search}</span>
+                            </div>
+                          </div>
+                        ))}
+                        <div className="border-t-2 border-gray-200 my-2"></div>
+                        <div className="px-4 py-2 text-xs font-medium text-gray-500 border-b border-gray-100">
+                          Gợi ý tìm kiếm
+                        </div>
+                      </>
+                    )}
+                    {mockSuggestions.slice(0, 8).map((suggestion, index) => (
+                      <div
+                        key={index}
+                        className="px-4 py-3 hover:bg-gray-50 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
+                        onClick={() => handleSuggestionClick(suggestion)}
+                      >
+                        <div className="flex items-center">
+                          <Search className="w-4 h-4 text-gray-400 mr-3" />
+                          <span>{suggestion}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    {filteredSuggestions.length > 0 ? (
+                      filteredSuggestions.map((suggestion, index) => (
+                        <div
+                          key={index}
+                          className="px-4 py-3 hover:bg-gray-50 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
+                          onClick={() => handleSuggestionClick(suggestion)}
+                        >
+                          <div className="flex items-center">
+                            <Search className="w-4 h-4 text-gray-400 mr-3" />
+                            <span>{suggestion}</span>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-4 py-3 text-sm text-gray-500">Không tìm thấy kết quả phù hợp</div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden absolute top-full left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
+          <div className="px-4 py-4 space-y-3">
+            <Link
+              href="/login"
+              className="block w-full text-center border border-orange-600 text-orange-600 hover:bg-orange-50 px-4 py-3 rounded-full transition-colors duration-300 text-sm"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Trở thành đối tác
+            </Link>
+          </div>
+        </div>
+      )}
     </nav>
   );
 };

@@ -1,16 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
-import { getProductsByCategory } from "@/actions/product/categoryProducts";
-import { searchProducts, getAllProducts } from "@/actions/product/product";
+import { Bot, Cloud, Computer, Globe, Music, Pen, PenLine, Phone, Play } from "lucide-react";
+import { aiProducts, eduProducts, entertainmentProducts, workingProducts } from "@/components/store/home/data";
 import ProductCard from "@/components/store/common/productCard";
-import Filters from "@/components/store/listPage/filters";
-import { SK_Box } from "@/components/UI/skeleton";
-import { TFilters } from "@/types/product";
-import { TListSort, TPageStatus } from "@/types/list";
-import { ChevronLeft, ChevronRight, Filter, Search, SortDesc } from "lucide-react";
+import Link from "next/link";
 
 interface ProductType {
   id: number;
@@ -33,358 +29,97 @@ interface ProductType {
 
 const ListPage = () => {
   const [products, setProducts] = useState<ProductType[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<ProductType[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [pageStatus, setPageStatus] = useState<TPageStatus>("pageLoading");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
-  const [itemsPerPage, setItemsPerPage] = useState(12);
-  const [searchTerm, setSearchTerm] = useState("");
 
-  const searchParams = useSearchParams();
+  const productMapping = new Map<string, any[]>();
+  productMapping.set("giai-tri", entertainmentProducts);
+  productMapping.set("cong-viec", workingProducts);
+  productMapping.set("ai", aiProducts);
+  productMapping.set("hoc-tap", eduProducts);
+
+  const categoryMapping = new Map<string, string>();
+  categoryMapping.set("giai-tri", "Giải trí");
+
+  const categories = [
+    {
+      title: "Âm nhạc",
+      icon: <Music className="size-8" />,
+    },
+    {
+      title: "Phim ảnh",
+      icon: <Play className="size-8" />,
+    },
+    {
+      title: "Công việc",
+      icon: <Computer className="size-8" />,
+    },
+    {
+      title: "A.I",
+      icon: <Bot className="size-8" />,
+    },
+    {
+      title: "Đồ họa",
+      icon: <PenLine className="size-8" />,
+    },
+    {
+      title: "Lữu trữ",
+      icon: <Cloud className="size-8" />,
+    },
+  ];
+
   const pathname = usePathname();
-  const router = useRouter();
-
-  // Filters state
-  const [filters, setFilters] = useState<TFilters>({
-    category: "",
-  }); // Apply filters to products (client-side filtering for additional filters on server results)
-  const applyFilters = useCallback((productList: ProductType[]) => {
-    setPageStatus("filterLoading");
-
-    let filtered = [...productList];
-
-    // The main search filtering is already done on the server
-    // This is for any additional client-side filtering if needed
-
-    setFilteredProducts(filtered);
-    setPageStatus(filtered.length > 0 ? "filledProductList" : "filterHasNoProduct");
-  }, []);
-
-  // Extract category from URL parameters
-  useEffect(() => {
-    const params = pathname.split("/").filter((segment) => segment && segment !== "danh-muc");
-    if (params.length > 0) {
-      const categoryId = params[0];
-      if (categoryId) {
-        setFilters((prevFilters) => ({
-          ...prevFilters,
-          category: categoryId,
-        }));
-      }
-    }
-
-    // Get any existing search parameters
-    const search = searchParams.get("search");
-    if (search) {
-      setSearchTerm(search);
-      setFilters((prevFilters) => ({
-        ...prevFilters,
-        search,
-      }));
-    }
-  }, [pathname, searchParams]);
-
-  // Update URL parameters
-  const updateURLParams = useCallback(() => {
-    const params = new URLSearchParams();
-
-    // Add search parameter
-    if (searchTerm) {
-      params.set("search", searchTerm);
-    }
-
-    // Update URL without refreshing the page
-    const newURL = `${pathname}?${params.toString()}`;
-    router.push(newURL, { scroll: false });
-  }, [pathname, router, searchTerm, currentPage]);
-
-  // Effect to update URL when parameters change
-  useEffect(() => {
-    updateURLParams();
-  }, [searchTerm, currentPage, updateURLParams]);
-
-  // Get pagination items - for category view, the API already gives us the current page of products
-  const paginatedProducts = filters.category
-    ? filteredProducts // For category view with API pagination, use filtered products directly
-    : filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage); // For non-category view, do client-side pagination
-
-  // Calculate lowest price for each product
-  const getLowestPrice = (properties: ProductType["properties"]) => {
-    return properties.reduce((lowest, property) => {
-      const propertyPrice = property.retailPrice;
-      return lowest === 0 || propertyPrice < lowest ? propertyPrice : lowest;
-    }, 0);
-  };
-
-  // Calculate lowest sale price for each product
-  const getLowestSalePrice = (properties: ProductType["properties"]) => {
-    // Check if any property has a sale price
-    const hasSalePrice = properties.some((prop) => prop.salePrice !== null && prop.salePrice !== undefined);
-
-    if (!hasSalePrice) return null;
-
-    return properties.reduce((lowest, property) => {
-      if (property.salePrice === null || property.salePrice === undefined) return lowest;
-      return lowest === 0 || property.salePrice < lowest ? property.salePrice : lowest;
-    }, 0);
-  };
-  // Check if product is available based on inventory
-  const isProductAvailable = (product: ProductType) => {
-    return product.isAvailable !== undefined ? product.isAvailable : true;
-  };
-  const fetchProducts = useCallback(async () => {
-    setIsLoading(true);
-    setPageStatus("pageLoading");
-    console.log("Fetching products with filters:", filters);
-    try {
-      // Determine whether we need to search, fetch by category, or get all products
-      let response;
-      const searchQuery = searchParams.get("search");
-      if (searchQuery && searchQuery.trim()) {
-        console.log("Performing search for:", searchQuery);
-        // Use search function when we have a search query
-        response = await searchProducts(searchQuery.trim(), {
-          includeCategory: true,
-          includeProperties: true,
-          limit: 100, // Get more results for search, we'll handle pagination client-side
-        });
-        if (response.success && response.data) {
-          const productsData = response.data;
-
-          // Set up the products data
-          setProducts(productsData as unknown as ProductType[]);
-          setTotalItems(productsData.length);
-
-          // Extract min/max prices from search results
-          let minPrice = Number.MAX_VALUE;
-          let maxPrice = 0;
-
-          productsData.forEach((product) => {
-            const lowestPrice = getLowestPrice(product.properties);
-            minPrice = Math.min(minPrice, lowestPrice || 0);
-            maxPrice = Math.max(maxPrice, lowestPrice || 0);
-          });
-
-          // For search results, we'll have limited brand filtering since supplier isn't included
-          const brands: Array<{ id: number; name: string; isSelected: boolean }> = []; // Set price range filter and brands
-          setFilters((prev) => ({
-            ...prev,
-            priceMinMax: [minPrice === Number.MAX_VALUE ? 0 : minPrice, maxPrice],
-            priceMinMaxLimitation: [minPrice === Number.MAX_VALUE ? 0 : minPrice, maxPrice],
-            brands,
-            search: searchQuery,
-          }));
-
-          // Display search results directly (server-side filtering is already done)
-          setFilteredProducts(productsData as unknown as ProductType[]);
-          setPageStatus(productsData.length > 0 ? "filledProductList" : "filterHasNoProduct");
-        } else {
-          setError(response.error || "Failed to search products");
-          setPageStatus("filterHasNoProduct");
-        }
-      } else if (filters.category) {
-        console.log("Fetching products by category:", filters.category);
-        // Use the category-specific function when we have a category
-        response = await getProductsByCategory(filters.category, {
-          limit: itemsPerPage,
-          includeOutOfStock: true,
-        });
-
-        console.log("Category products response:", response);
-
-        if (response.success && response.data) {
-          // Set up the products data
-          const { products: productsData, pagination, category } = response.data;
-
-          // Use type assertion to ensure compatibility with ProductType
-          setProducts(productsData as unknown as ProductType[]);
-
-          // Update pagination information from API response
-          setCurrentPage(pagination.page);
-          setTotalItems(pagination.total);
-
-          // Extract min/max prices from formatted products
-          let minPrice = Number.MAX_VALUE;
-          let maxPrice = 0;
-
-          productsData.forEach((product) => {
-            // For category API responses, use lowestPrice directly
-            const lowestPrice =
-              product.lowestPrice !== undefined ? product.lowestPrice : getLowestPrice(product.properties);
-            minPrice = Math.min(minPrice, lowestPrice || 0);
-            maxPrice = Math.max(maxPrice, lowestPrice || 0);
-          });
-
-          // Set price range filter and brands
-          setFilters((prev) => ({
-            ...prev,
-            category: category.slug,
-          }));
-
-          // If we have search or other filters, apply them client-side
-          if (filters.search) {
-            // applyFilters(productsData as unknown as ProductType[]);
-          } else {
-            // Otherwise use the API-filtered results directly
-            setFilteredProducts(productsData as unknown as ProductType[]);
-            setPageStatus(productsData.length > 0 ? "filledProductList" : "categoryHasNoProduct");
-          }
-        } else {
-          setError(response.error || "Failed to fetch category products");
-          setPageStatus("categoryHasNoProduct");
-        }
-      } else {
-        console.log("Fetching all products");
-        // Get all products when no category or search
-        response = await getAllProducts();
-
-        if (response.success && response.data) {
-          const productsData = response.data;
-
-          setProducts(productsData as unknown as ProductType[]);
-          setTotalItems(productsData.length);
-
-          // Extract min/max prices
-          let minPrice = Number.MAX_VALUE;
-          let maxPrice = 0;
-
-          productsData.forEach((product) => {
-            const lowestPrice = getLowestPrice(product.properties);
-            minPrice = Math.min(minPrice, lowestPrice || 0);
-            maxPrice = Math.max(maxPrice, lowestPrice || 0);
-          }); // Extract available brands for filter (getAllProducts doesn't include supplier)
-          const brands: Array<{ id: number; name: string; isSelected: boolean }> = []; // Set price range filter and brands
-          setFilters((prev) => ({
-            ...prev,
-            priceMinMax: [minPrice === Number.MAX_VALUE ? 0 : minPrice, maxPrice],
-            priceMinMaxLimitation: [minPrice === Number.MAX_VALUE ? 0 : minPrice, maxPrice],
-            brands,
-          }));
-
-          // Display all products
-          setFilteredProducts(productsData as unknown as ProductType[]);
-          setPageStatus(productsData.length > 0 ? "filledProductList" : "categoryHasNoProduct");
-        } else {
-          setError(response.error || "Failed to fetch products");
-          setPageStatus("categoryHasNoProduct");
-        }
-      }
-    } catch (err) {
-      setError("An error occurred while fetching products");
-      console.error(err);
-      setPageStatus("categoryHasNoProduct");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [filters.category, searchParams, itemsPerPage, router]);
 
   useEffect(() => {
-    console.log("Fetching products with filters:", filters);
-    fetchProducts();
-  }, [searchParams]);
+    setProducts(productMapping.get(pathname.split("/")[2]) || []);
+  }, [pathname]);
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Search Results Header */}
-      {searchParams.get("search") && (
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Search Results for "{searchParams.get("search")}"</h1>
-          <p className="text-gray-600">
-            {isLoading ? "Searching..." : `Found ${totalItems} product${totalItems !== 1 ? "s" : ""}`}
-          </p>
+    <div className="max-w-7xl mx-auto">
+      {/* Breadcrumb */}
+      <nav className="w-full hidden lg:block" aria-label="Breadcrumb">
+        <div className="flex items-center text-gray-600 text-sm space-x-2">
+          <Link href="/" className="hover:text-blue-600 transition-colors">
+            Trang chủ
+          </Link>
+          <span className="text-gray-400">/</span>
+          <Link href={"/danh-muc/" + pathname.split("/")[2]} className="hover:text-blue-600 transition-colors">
+            {categoryMapping.get(pathname.split("/")[2]) || "Danh mục"}
+          </Link>
         </div>
-      )}
+      </nav>
 
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Product Grid */}
-        <div className="flex-1">
-          {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-              {Array.from({ length: 8 }).map((_, index) => (
-                <div key={index} className="h-[320px] rounded-xl bg-gray-100 animate-pulse">
-                  <SK_Box width="100%" height="320px" />
-                </div>
-              ))}
-            </div>
-          ) : filteredProducts.length === 0 ? (
-            <div className="text-center py-10">
-              {searchParams.get("search") ? (
-                <>
-                  <Search className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-medium text-gray-900 mb-2">No products found</h3>
-                  <p className="text-gray-500 mb-4">No products match your search for "{searchParams.get("search")}"</p>
-                  <button
-                    onClick={() => {
-                      router.push("/danh-muc");
-                    }}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-                  >
-                    Browse All Products
-                  </button>
-                </>
-              ) : (
-                <>
-                  <p className="text-gray-500 text-lg">No products found</p>
-                  <button
-                    onClick={() => {
-                      // Reset filters
-                      setFilters({
-                        search: "",
-                        category: filters.category,
-                      });
-                      setSearchTerm("");
-                    }}
-                    className="mt-4 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
-                  >
-                    Clear Filters
-                  </button>
-                </>
-              )}
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {paginatedProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    className="w-full"
-                    id={product.sku}
-                    name={product.title}
-                    price={getLowestPrice(product.properties)}
-                    dealPrice={getLowestSalePrice(product.properties) as number | undefined}
-                    imgUrl={product.image || "/images/products/default.jpg"}
-                    isAvailable={isProductAvailable(product)}
-                    cardColor={product.cardColor || "blue-500"}
-                  />
-                ))}
-              </div>
+      <div className="flex overflow-x-auto gap-4">
+        {categories.map((category, index) => (
+          <div
+            key={index}
+            className="group mt-6 w-32 inline-block text-white bg-sky-600 hover:text-gray-800 hover:bg-white text-gray-900 p-6 rounded-xl text-sm font-semibold cursor-pointer"
+          >
+            <div className="flex justify-center group-hover:text-blue-500">{category.icon}</div>
+            <p className="mt-2 text-center">{category.title}</p>
+          </div>
+        ))}
+      </div>
 
-              {/* Pagination for search results */}
-              {!searchParams.get("search") && totalItems > itemsPerPage && (
-                <div className="flex justify-center items-center mt-8 space-x-2">
-                  <button
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                    className="px-3 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-                  <span className="px-4 py-2 text-sm text-gray-700">
-                    Page {currentPage} of {Math.ceil(totalItems / itemsPerPage)}
-                  </span>
-                  <button
-                    onClick={() => setCurrentPage(Math.min(Math.ceil(totalItems / itemsPerPage), currentPage + 1))}
-                    disabled={currentPage >= Math.ceil(totalItems / itemsPerPage)}
-                    className="px-3 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-              )}
-            </>
-          )}
-        </div>
+      {/* Product list */}
+      <div className="mt-4 grid grid-cols-4 gap-4" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+        {products.map((product, index) => (
+          <div
+            key={product.id}
+            className="group opacity-0 animate-[fadeInUp_0.8s_ease-out_forwards] flex-shrink-0"
+            style={{ animationDelay: `${index * 100}ms` }}
+          >
+            <div className="transform transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-1">
+              <ProductCard
+                className="w-full h-full shadow-lg hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-500 ring-1 ring-gray-200/30 hover:ring-blue-300/50"
+                id={product.sku}
+                sku={product.sku}
+                name={product.title}
+                price={product.lowestPrice}
+                dealPrice={product.lowestSalePrice}
+                imgUrl={product.image}
+              />
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

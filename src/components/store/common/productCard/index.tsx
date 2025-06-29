@@ -8,6 +8,7 @@ import { fCurrency } from "@/shared/utils/format-number";
 
 type ProductCardProps = {
   id: string;
+  sku: string;
   name: string;
   imgUrl: string;
   price: number;
@@ -20,6 +21,7 @@ type ProductCardProps = {
 
 const ProductCard = ({
   id,
+  sku,
   name,
   imgUrl,
   price,
@@ -45,18 +47,18 @@ const ProductCard = ({
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-30 flex items-center justify-center rounded-2xl">
           <span className="text-white font-medium px-4 py-2 bg-red-600/90 rounded-lg">Hết hàng</span>
         </div>
-      )}{" "}
+      )}
       {/* {dealPrice && (
         <div className="absolute top-3 left-3 z-20 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-md">
           -{discountPercentage}%
         </div>
       )} */}
-      <Link href={`/san-pham/${id}`} className="relative z-10 p-4 block group">
+      <Link href={`/san-pham/${sku}`} className="relative z-10 p-4 block group">
         {/* Product Image and Info Row */}
         <div className="flex items-center gap-4 mb-4">
           {/* Product Image */}
-          <div className="flex-shrink-0 w-20 h-20 bg-slate-800/50 rounded-xl flex items-center justify-center border border-slate-600/50 group-hover:border-blue-500/50 transition-colors">
-            <Image src={imgUrl} alt={name} width={60} height={60} className="object-contain" />
+          <div className="flex-shrink-0 w-20 h-20 bg-slate-800/50 rounded-xl flex items-center justify-center border border-slate-600/50 group-hover:border-blue-500/50 transition-colors overflow-hidden">
+            <Image src={imgUrl} alt={name} width={60} height={60} unoptimized className="h-full w-full object-cover" />
           </div>
 
           {/* Product Info */}
@@ -104,7 +106,7 @@ const ProductCard = ({
               <Star key={index} className="w-3 h-3 text-yellow-400 fill-yellow-400" />
             ))}
           </div>
-          <span className="text-xs text-gray-400">Đã bán 5.1k</span>{" "}
+          <span className="text-xs text-gray-400">Đã bán 5.1k</span>
         </div>
       </Link>
     </div>

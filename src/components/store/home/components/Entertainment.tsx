@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import ProductCard from "../../common/productCard";
-import { mockProducts } from "../data";
+import { entertainmentProducts, mockProducts } from "../data";
 
 export default function Entertainment() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -64,7 +64,7 @@ export default function Entertainment() {
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           onScroll={updateScrollButtons}
         >
-          {mockProducts.map((product, index) => (
+          {entertainmentProducts.map((product, index) => (
             <div
               key={product.id}
               className="group opacity-0 animate-[fadeInUp_0.8s_ease-out_forwards] flex-shrink-0"
@@ -74,10 +74,11 @@ export default function Entertainment() {
                 <ProductCard
                   className="w-72 h-full shadow-lg hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-500 ring-1 ring-gray-200/30 hover:ring-blue-300/50"
                   id={product.sku}
+                  sku={product.sku}
                   name={product.title}
-                  price={+product.properties[0].retailPrice}
-                  dealPrice={+(product.properties?.[0]?.salePrice ?? 0)}
-                  imgUrl={product.image || ""}
+                  price={product.lowestPrice}
+                  dealPrice={product.lowestSalePrice}
+                  imgUrl={product.image}
                 />
               </div>
             </div>
