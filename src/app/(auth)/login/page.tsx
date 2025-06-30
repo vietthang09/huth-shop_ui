@@ -11,7 +11,7 @@ import { Eye, EyeOff, Lock, Mail, AlertCircle, CheckCircle2 } from "lucide-react
 
 import Button from "@/components/UI/button";
 import Input from "@/components/UI/input";
-import { SignInFormValues, validateCredentials } from "@/actions/auth/auth";
+import { validateCredentials } from "@/actions/auth/auth";
 
 // Enhanced validation schema with Vietnamese messages
 const loginSchema = z.object({
