@@ -36,7 +36,7 @@ export default function HomePage() {
   return (
     <div className="space-y-4">
       {/* Hero */}
-      <section className="bg-gradient-to-bl from-[#0f172a] via-[#1e1a78] to-[#0f172a] lg:min-h-screen 2xl:min-h-[50vh] flex items-stretch px-4 2xl:px-0">
+      <section className="bg-gradient-to-br from-[#1d4ed8] via-[#2563eb] to-[#1e3a8a] lg:min-h-screen 2xl:min-h-[50vh] flex items-stretch px-4 2xl:px-0">
         <div className="pt-20 max-w-7xl w-full mx-auto self-end">
           <div className="flex flex-col lg:flex-row items-center justify-between">
             <div>
@@ -84,7 +84,7 @@ export default function HomePage() {
       {/* End Recently Visit */}
 
       {/* Best Selling */}
-      <div className="bg-gray-500 py-10 px-4 2xl:px-0">
+      <div className="bg-gray-200 py-10 px-4 2xl:px-0">
         <BestSelling />
       </div>
       {/* End Best Selling */}
@@ -108,7 +108,7 @@ export default function HomePage() {
       {/* End Working */}
 
       {/* Partner */}
-      <div className="bg-gradient-to-bl from-[#0f172a] via-[#1e1a78] to-[#0f172a] py-10 px-4 2xl:px-0">
+      <div className="bg-gradient-to-br from-[#1d4ed8] via-[#2563eb] to-[#1e3a8a] py-10 px-4 2xl:px-0">
         <Partnership />
       </div>
       {/* End Partner */}

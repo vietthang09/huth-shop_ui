@@ -64,7 +64,7 @@ export default function RecentlyVisit() {
                 sku={product.sku}
                 name={product.title}
                 price={product.properties[0]?.retailPrice || 0}
-                dealPrice={product.properties[0]?.salePrice || 0}
+                dealPrice={product.properties[0]?.salePrice}
                 imgUrl={product.image || ""}
               />
             </div>

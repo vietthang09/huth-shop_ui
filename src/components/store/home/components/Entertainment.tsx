@@ -8,12 +8,24 @@ export default function Entertainment() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const [currentPage, setCurrentPage] = useState(0);
+
+  // Calculate how many items are visible and total pages
+  const itemsPerPage = 4; // Assuming 4 items visible at once
+  const totalPages = Math.ceil(entertainmentProducts.length / itemsPerPage);
 
   const updateScrollButtons = () => {
     if (scrollContainerRef.current) {
       const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
       setCanScrollLeft(scrollLeft > 0);
       setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
+
+      // Calculate current page based on scroll position
+      const itemWidth = 288; // 72 * 4 (w-72 = 18rem = 288px)
+      const gap = 16; // gap-4 = 1rem = 16px
+      const totalItemWidth = itemWidth + gap;
+      const page = Math.round(scrollLeft / (totalItemWidth * itemsPerPage));
+      setCurrentPage(Math.min(page, totalPages - 1));
     }
   };
 
@@ -29,9 +41,23 @@ export default function Entertainment() {
     }
   };
 
+  const goToPage = (pageIndex: number) => {
+    if (scrollContainerRef.current) {
+      const itemWidth = 288; // w-72 = 18rem = 288px
+      const gap = 16; // gap-4 = 1rem = 16px
+      const totalItemWidth = itemWidth + gap;
+      const scrollPosition = pageIndex * totalItemWidth * itemsPerPage;
+      scrollContainerRef.current.scrollTo({ left: scrollPosition, behavior: "smooth" });
+    }
+  };
+
   return (
     <div className="h-full">
-      <h2 className="text-center text-2xl text-gray-800 font-medium mb-6">Giải trí</h2>
+      <h2 className="text-center text-3xl lg:text-4xl font-bold text-blue-500 mb-2 tracking-tight">Giải trí</h2>
+      <p className="text-center text-gray-600 mb-8 text-sm lg:text-base">
+        Khám phá các sản phẩm giải trí hàng đầu, từ phim ảnh đến trò chơi điện tử, mang đến trải nghiệm giải trí tuyệt
+        vời nhất.
+      </p>
       <div className="relative">
         {/* Left Navigation Button */}
         {canScrollLeft && (
@@ -77,13 +103,29 @@ export default function Entertainment() {
                   sku={product.sku}
                   name={product.title}
                   price={product.lowestPrice}
-                  dealPrice={product.lowestSalePrice}
+                  dealPrice={product.lowestPrice}
                   imgUrl={product.image}
                 />
               </div>
             </div>
           ))}
         </div>
+
+        {/* Dot Indicators */}
+        {totalPages > 1 && (
+          <div className="mt-6 flex justify-center space-x-2">
+            {Array.from({ length: totalPages }).map((_, index) => (
+              <button
+                key={index}
+                onClick={() => goToPage(index)}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  index === currentPage ? "bg-blue-500 w-6" : "bg-gray-300 hover:bg-gray-400"
+                }`}
+                aria-label={`Go to page ${index + 1}`}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
