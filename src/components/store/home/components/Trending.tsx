@@ -1,5 +1,6 @@
 import { fCurrency } from "@/shared/utils/format-number";
 import { aiProducts, eduProducts, entertainmentProducts, workingProducts } from "../data";
+import Link from "next/link";
 
 interface TrendingCategory {
   title: string;
@@ -72,28 +73,30 @@ export default function Trending() {
               {category.items && category.items.length > 0 ? (
                 <div className="space-y-3">
                   {category.items.slice(0, 3).map((item, itemIndex) => (
-                    <div
-                      key={`${category.title}-${itemIndex}`}
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer group/item"
-                    >
-                      <div className="relative">
-                        <img
-                          src={item.image}
-                          alt={item.title}
-                          className="w-12 h-12 rounded-lg object-cover shadow-sm group-hover/item:shadow-md transition-shadow"
-                          loading="lazy"
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover/item:bg-black/5 rounded-lg transition-colors"></div>
+                    <Link href={`/san-pham/${item.sku}`} key={item.id}>
+                      <div
+                        key={`${category.title}-${itemIndex}`}
+                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer group/item"
+                      >
+                        <div className="relative">
+                          <img
+                            src={item.image}
+                            alt={item.title}
+                            className="w-20 h-20 rounded-lg object-cover shadow-sm group-hover/item:shadow-md transition-shadow"
+                            loading="lazy"
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover/item:bg-black/5 rounded-lg transition-colors"></div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-gray-800 truncate group-hover/item:text-gray-900">
+                            {item.title}
+                          </h4>
+                          <p className="text-sm font-semibold text-gray-700">
+                            {fCurrency(item.lowestPrice, { currency: "VND" })}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-gray-800 text-sm truncate group-hover/item:text-gray-900">
-                          {item.title}
-                        </h4>
-                        <p className="text-xs font-semibold text-gray-700">
-                          {fCurrency(item.lowestPrice, { currency: "VND" })}
-                        </p>
-                      </div>
-                    </div>
+                    </Link>
                   ))}
                   {category.items.length > 3 && (
                     <div className="text-center pt-2">

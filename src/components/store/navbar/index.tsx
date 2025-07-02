@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { Search, Clock, Menu, X } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { mockProducts } from "@/components/store/home/data";
 
 const StoreNavBar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -15,21 +16,66 @@ const StoreNavBar = () => {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 
   const pathname = usePathname();
+  const router = useRouter();
   const searchRef = useRef<HTMLDivElement>(null);
 
-  // Mock suggestion data
-  const mockSuggestions = [
-    "Tài khoản game online",
-    "Tài khoản Liên Minh Huyền Thoại",
-    "Tài khoản PUBG Mobile",
-    "Tài khoản Free Fire",
-    "Tài khoản Valorant",
-    "Tài khoản Steam",
-    "Tài khoản Epic Games",
-    "Tài khoản Riot Games",
-  ];
+  // Generate suggestions from product data
+  const generateSuggestions = () => {
+    const suggestions = new Set<string>();
 
-  const filteredSuggestions = mockSuggestions.filter((suggestion) =>
+    // Add product titles
+    mockProducts.forEach((product) => {
+      suggestions.add(product.title);
+    });
+
+    // Add specific keywords and common search terms
+    const commonSearchTerms = [
+      "Netflix",
+      "Spotify",
+      "ChatGPT",
+      "YouTube Premium",
+      "Apple Music",
+      "streaming",
+      "music",
+      "AI",
+      "productivity",
+      "premium",
+      "account",
+      "entertainment",
+      "design",
+      "productivity tools",
+    ];
+
+    commonSearchTerms.forEach((term) => suggestions.add(term));
+
+    // Add keywords from products
+    mockProducts.forEach((product) => {
+      if (product.keywords) {
+        product.keywords.split(",").forEach((keyword) => {
+          const cleanKeyword = keyword.trim();
+          if (cleanKeyword && cleanKeyword.length > 2) {
+            suggestions.add(cleanKeyword);
+          }
+        });
+      }
+    });
+
+    // Add category names
+    mockProducts.forEach((product) => {
+      if (product.category?.name) {
+        suggestions.add(product.category.name);
+      }
+    });
+
+    return Array.from(suggestions)
+      .filter((suggestion) => suggestion.length > 2) // Filter out very short suggestions
+      .sort((a, b) => a.localeCompare(b))
+      .slice(0, 25); // Limit to 25 suggestions
+  };
+
+  const allSuggestions = generateSuggestions();
+
+  const filteredSuggestions = allSuggestions.filter((suggestion) =>
     suggestion.toLowerCase().includes(searchValue.toLowerCase())
   );
 
@@ -55,6 +101,33 @@ const StoreNavBar = () => {
     localStorage.setItem("recentSearches", JSON.stringify(updatedRecent));
   };
 
+  // Convert search term to URL-friendly slug
+  const createSearchSlug = (searchTerm: string) => {
+    return searchTerm
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/đ/g, "d")
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .trim()
+      .replace(/^-|-$/g, "");
+  };
+
+  // Handle search navigation
+  const performSearch = (searchTerm: string) => {
+    if (!searchTerm.trim()) return;
+
+    saveRecentSearch(searchTerm);
+    setIsFocused(false);
+    setIsSearchExpanded(false);
+    setSearchValue("");
+
+    const slug = createSearchSlug(searchTerm);
+    router.push(`/danh-muc/${slug}?q=${encodeURIComponent(searchTerm)}`);
+  };
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 0);
@@ -78,17 +151,13 @@ const StoreNavBar = () => {
 
   const handleSuggestionClick = (suggestion: string) => {
     setSearchValue(suggestion);
-    saveRecentSearch(suggestion);
-    setIsFocused(false);
-    setIsSearchExpanded(false);
+    performSearch(suggestion);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchValue.trim()) {
-      saveRecentSearch(searchValue);
-      setIsFocused(false);
-      setIsSearchExpanded(false);
+      performSearch(searchValue);
     }
   };
 
@@ -167,7 +236,7 @@ const StoreNavBar = () => {
                       </div>
                     </>
                   )}
-                  {mockSuggestions.slice(0, 5).map((suggestion, index) => (
+                  {allSuggestions.slice(0, 5).map((suggestion, index) => (
                     <div
                       key={index}
                       className="px-4 py-3 hover:bg-gray-50 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
@@ -309,7 +378,7 @@ const StoreNavBar = () => {
                         </div>
                       </>
                     )}
-                    {mockSuggestions.slice(0, 8).map((suggestion, index) => (
+                    {allSuggestions.slice(0, 8).map((suggestion, index) => (
                       <div
                         key={index}
                         className="px-4 py-3 hover:bg-gray-50 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
