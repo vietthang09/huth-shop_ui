@@ -9,6 +9,7 @@ export type Product = {
   title: string;
   description: string | null;
   image: string | null;
+  cardColor: string;
   createdAt: Date;
   updatedAt: Date;
   supplierId: number | null;
@@ -26,6 +27,7 @@ export interface ProductVariant {
   sale_price: number | null;
   attributeSetHash: string;
   inventory: number;
+  attributeName?: string; // Optional variant name from attribute
 }
 
 // Type for the ProductBoard component
@@ -34,11 +36,13 @@ export type TProductBoard = {
   name: string;
   price: number;
   dealPrice?: number | null;
+  keywords?: string;
   shortDesc: string;
   isAvailable: boolean;
   defaultQuantity: number;
   specialFeatures?: string[];
   variants?: ProductVariant[];
+  cardColor?: string | null;
 };
 
 // Variant type for cart items
@@ -64,14 +68,6 @@ export type TCartListItemDB = {
 
 // Type for product filters
 export type TFilters = {
-  stockStatus: "all" | "inStock" | "outStock";
-  priceMinMax: [number, number];
-  priceMinMaxLimitation: [number, number];
-  brands: Array<{
-    id: number;
-    name: string;
-    isSelected: boolean;
-  }>;
   category?: string;
   search?: string;
 };

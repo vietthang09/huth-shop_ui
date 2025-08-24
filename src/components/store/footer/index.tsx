@@ -1,28 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { FacebookIcon, InstagramIcon, LinkedinIcon, XIcon } from "@/components/icons/svgIcons";
+import { InstagramIcon, LinkedinIcon, XIcon } from "@/components/icons/svgIcons";
 import Button from "@/components/UI/button";
 
-const CATEGORIES = [
-  "Computer & Laptop",
-  "Tablets & iPad",
-  "Printer & Cameras",
-  "Smart Phones",
-  "OLED Smart TVs",
-  "Keyboard & Mouse",
-  "Video Games",
-  "Sports & Outdoors",
-  "Smart Watches",
-];
-const CUSTOMER_SERVICES = [
-  "Privacy Policy",
-  "Refund Policy",
-  "Shipping & Return",
-  "Terms & Conditions",
-  "Advanced Search",
-  "Store Locations",
-];
+const CATEGORIES = ["Netflix", "Adobe", "Google", "Microsoft", "Spotify", "Canva", "AI"];
+const CUSTOMER_SERVICES = ["Chính sách bảo mật", "Chính sách hoàn tiền", "Điều khoản dịch vụ"];
 const LEGALS = ["Conditions of Use & Sale", "Privacy Notice", "Imprint", "Cookies Notice", "Interest-Based Ads Notice"];
 
 const CURRENT_YEAR = new Date().getFullYear();
@@ -31,34 +14,38 @@ const Footer = () => {
   return (
     <footer className="flex flex-col border-t bg-white z-50 border-t-gray-300 w-full">
       <div className="flex-col storeContainer">
-        <div className="flex w-full items-center h-32 border-b border-b-gray-300">
-          <Link href={"/"}>
-            <Image alt="Bitex Logo" src={"/images/logo.png"} width={125} height={40} />
-          </Link>
-          <div className="h-11 w-full relative ml-16">
-            <input
-              type="text"
-              className="w-full h-full rounded-lg text-gray-700 border border-gray-300 pl-12 focus:border-gray-600"
-              placeholder="Search"
-            />
-            <Image
-              src="/icons/searchIcon.svg"
-              width={16}
-              height={16}
-              alt="Search"
-              className="absolute top-3.5 left-5 hidden sm:block"
-            />
-          </div>
+        {/* Payment Methods */}
+        <div className="pt-4 flex items-center gap-4">
+          <Image
+            src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-MoMo-Circle-1024x1024.png"
+            alt="Visa"
+            width={50}
+            height={30}
+            className="w-auto h-8 object-contain"
+          />
+          <Image
+            src="https://th.bing.com/th/id/OIP.GwY-oj14bkDlrxOH8T9J6gAAAA?cb=thvnextc1&rs=1&pid=ImgDetMain"
+            alt="MasterCard"
+            width={120}
+            height={60}
+            className="w-auto h-16 object-contain"
+          />
+          <Image
+            src="https://brandlogos.net/wp-content/uploads/2021/10/mb-bank-logo.png"
+            alt="PayPal"
+            width={50}
+            height={30}
+            className="w-auto h-16 object-contain"
+          />
         </div>
+        {/* End Payment Methods */}
         <section className="flex flex-col lg:flex-row items-start justify-between">
           <div>
             <h3 className="text-lg text-gray-900 font-medium mt-9 mb-4">Liên hệ với chúng tôi</h3>
             <span className="text-gray-500 block text-sm leading-5">Có câu hỏi? Gọi cho chúng tôi 24/7</span>
-            <h2 className="text-blue-600 font-medium my-2">+49 30 575909881</h2>
-            <span className="text-gray-500 block text-sm leading-5">
-              685 Market Street, San Francisco, CA 94105, US
-            </span>
-            <span className="text-gray-500 block text-sm leading-5">nonamecompany@justportfolio.com</span>
+            <h2 className="text-blue-600 font-medium my-2">+84 377196605</h2>
+            <span className="text-gray-500 block text-sm leading-5">Hải Châu, Đà Nẵng, Việt Nam</span>
+            <span className="text-gray-500 block text-sm leading-5">vthcvn@gmail.com</span>
           </div>
           <div>
             <h3 className="text-lg text-gray-900 font-medium mt-9 mb-4">Danh mục</h3>
@@ -103,17 +90,7 @@ const Footer = () => {
       </div>
       <section className="w-full xl:h-20 bg-gray-100 text-sm">
         <div className="h-full flex-col gap-4 xl:flex-row xl:gap-0 justify-between items-center storeContainer">
-          <span className="text-gray-500 mt-6 xl:mt-0">© {CURRENT_YEAR} Cửa hàng BITEX. Bảo lưu mọi quyền.</span>
-          <ul className="gap-4 flex flex-col my-6 sm:my-0 sm:flex-row text-gray-800 font-medium">
-            {LEGALS.map((item) => (
-              <li
-                key={item}
-                className="text-sm leading-7 transition-all text-center duration-150 hover:text-gray-800 text-gray-700"
-              >
-                <Link href={""}>{item}</Link>
-              </li>
-            ))}
-          </ul>
+          <span className="text-gray-500 mt-6 xl:mt-0">© {CURRENT_YEAR} Cửa hàng HT Premium. Bảo lưu mọi quyền.</span>
           <div className="flex gap-4 mb-6 xl:mb-0">
             <Link
               href={"https://www.linkedIn.com"}
@@ -137,7 +114,7 @@ const Footer = () => {
               href={"https://www.facebook.com"}
               className="fill-gray-400 hover:fill-gray-800 transition-all duration-200"
             >
-              <FacebookIcon width={20} strokeWidth={0} className="fill-inherit" />
+              <InstagramIcon width={20} strokeWidth={0} className="fill-inherit" />
             </Link>
           </div>
         </div>

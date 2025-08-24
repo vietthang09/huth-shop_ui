@@ -46,7 +46,6 @@ export const getProductsByCategory = async (
       skip,
       take: limit,
       include: {
-        supplier: true,
         category: true,
         properties: {
           include: {
@@ -135,9 +134,9 @@ export const getProductsByCategory = async (
         description: product.description,
         image: product.image,
         sku: product.sku,
+        cardColor: product.cardColor,
         createdAt: product.createdAt,
         updatedAt: product.updatedAt,
-        supplier: product.supplier,
         category: product.category,
         properties: product.properties,
         lowestPrice,

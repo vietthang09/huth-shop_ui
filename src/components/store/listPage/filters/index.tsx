@@ -1,6 +1,5 @@
 "use client";
 
-import { CloseIcon } from "@/components/icons/svgIcons";
 import Button from "@/components/UI/button";
 import CheckBox from "@/components/UI/checkBox";
 import PriceSlider from "@/components/UI/priceSlider";
@@ -8,6 +7,7 @@ import { SK_Box } from "@/components/UI/skeleton";
 import { cn } from "@/shared/utils/styling";
 import { TPageStatus } from "@/types/list";
 import { TFilters } from "@/types/product";
+import { SidebarClose } from "lucide-react";
 
 type TProps = {
   showFilters: boolean;
@@ -59,7 +59,7 @@ const Filters = ({
             onClick={() => onToggleWindow(false)}
             className="block border-white rounded-sm cursor-pointer p-3 duration-300 border hover:bg-gray-100 transition-colors hover:border-gray-200"
           >
-            <CloseIcon width={12} />
+            <SidebarClose width={12} />
           </button>
         </div>
         <div className="w-full lg:mt-0 my-4 border-b border-gray-300">

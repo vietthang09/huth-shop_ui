@@ -15,8 +15,7 @@ export const TopSellingCards = () => {
       setIsLoading(true);
       try {
         // Get top selling products from the database
-        const topSellingProducts = await getTopSellingProducts({ period: "year" });
-        console.log("Top selling products:", topSellingProducts);
+        const topSellingProducts = await getTopSellingProducts({ limit: 10 });
         if (topSellingProducts && topSellingProducts.length > 0) {
           setProducts(topSellingProducts);
         }
@@ -46,16 +45,17 @@ export const TopSellingCards = () => {
           Xem tất cả
         </Link>
       </div>
-      <div className="flex lg:flex-wrap justify-between lg:justify-start gap-3.5 overflow-x-scroll pb-7 2xl:pb-0 2xl:overflow-x-hidden">
+      <div className="grid grid-cols-10 gap-4">
         {products.map((product) => (
           <ProductCard
-            id={product.slug}
-            key={product.slug}
+            id={product.slug || product.id.toString()}
+            key={product.slug || product.id.toString()}
+            className="col-span-10 lg:col-span-2"
             name={product.title}
             price={product.retailPrice}
             dealPrice={product.salePrice}
             imgUrl={product.image || ""}
-            staticWidth
+            cardColor={product.cardColor}
           />
         ))}
       </div>

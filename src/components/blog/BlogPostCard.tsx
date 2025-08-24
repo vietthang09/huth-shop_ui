@@ -35,7 +35,7 @@ const BlogPostCard = ({ post, variant = "default" }: BlogPostCardProps) => {
                 {post.topic.name}
               </Link>
             )}
-            <Link href={`/blog/${post.slug}`} className="block group">
+            <Link href={`/bai-viet/${post.slug}`} className="block group">
               <h2 className="text-2xl font-semibold mb-3 text-gray-900 group-hover:text-blue-600 transition-colors">
                 {post.title}
               </h2>

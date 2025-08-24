@@ -2,103 +2,67 @@ import { TCollectionCard } from "../types";
 
 export const CollectionsData: TCollectionCard[] = [
   {
-    name: "Tablet",
+    name: "Giải trí",
     collections: [
       {
-        label: "iPad",
-        url: "/list/tablets/apple",
+        label: "Netflix",
+        url: "/danh-muc/netflix",
       },
       {
-        label: "Microsoft Surface",
-        url: "/list/pc-laptops/laptops/microsot",
+        label: "Spotify",
+        url: "/danh-muc/spotify",
       },
       {
-        label: "Samsung Galaxy",
-        url: "/list/tablets/samsung",
-      },
-      {
-        label: "Amazon Fire",
-        url: "/list/tablets",
-      },
-      {
-        label: "E-Readers",
-        url: "/list/tablets",
+        label: "Youtube",
+        url: "/danh-muc/youtube",
       },
     ],
-    imgUrl: "/images/images/collectionTablet.jpg",
-    url: "/list/tablets",
+    imgUrl:
+      "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    url: "/danh-muc/netflix",
   },
   {
-    name: "Smartphones",
+    name: "Làm việc",
     collections: [
       {
-        label: "iPhone",
-        url: "/list/smartphones/apple-iphone",
+        label: "Office 365",
+        url: "/danh-muc/office-365",
       },
       {
-        label: "Samsung Galaxy",
-        url: "/list/smartphones/samsung-galaxy",
-      },
-      {
-        label: "Google",
-        url: "/list/smartphones/google-pixel",
+        label: "Zoom",
+        url: "/danh-muc/zoom",
       },
     ],
-    imgUrl: "/images/images/collectionSmartphone.jpg",
-    url: "/list/smartphones",
+    imgUrl:
+      "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    url: "/danh-muc/smartphones",
   },
   {
-    name: "Smartwatches",
+    name: "Năng xuất",
     collections: [
       {
-        label: "Apple Watch",
-        url: "/list/watches/apple",
+        label: "Chat GPT",
+        url: "/danh-muc/chat-gpt",
       },
       {
-        label: "Samsung Galaxy",
-        url: "/list/watches/Samsung",
-      },
-      {
-        label: "Android Smartwatches",
-        url: "/list/watches",
-      },
-      {
-        label: "Fitness Smartwatches",
-        url: "/list/watches",
-      },
-      {
-        label: "Smartwatches Accessories",
-        url: "/list/watches",
+        label: "Copilot",
+        url: "/danh-muc/copilot",
       },
     ],
-    imgUrl: "/images/images/collectionWatch.jpg",
-    url: "/list/watches",
+    imgUrl:
+      "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    url: "/danh-muc/watches",
   },
   {
-    name: "Accessories",
+    name: "Hằng ngày",
     collections: [
       {
-        label: "Chargers",
-        url: "/",
-      },
-      {
-        label: "Power Banks",
-        url: "/",
-      },
-      {
-        label: "Cables",
-        url: "/",
-      },
-      {
-        label: "PC Fans",
-        url: "/",
-      },
-      {
-        label: "Mobile Covers",
-        url: "/",
+        label: "Spotify",
+        url: "/danh-muc/spotify",
       },
     ],
-    imgUrl: "/images/images/collectionAccessories.jpg",
+    imgUrl:
+      "https://images.unsplash.com/photo-1483412033650-1015ddeb83d1?q=80&w=1746&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     url: "/",
   },
 ];

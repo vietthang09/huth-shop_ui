@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-import { CloseIcon, ShoppingIconEmpty } from "@/components/icons/svgIcons";
+import { ShoppingIconEmpty } from "@/components/icons/svgIcons";
 import Button from "@/components/UI/button";
 import { cn } from "@/shared/utils/styling";
 import { RootState } from "@/store/shoppingCart";
@@ -14,6 +14,8 @@ import { TCartItemData } from "@/types/shoppingCart.d";
 import { getCartProducts } from "@/actions/product/cart";
 
 import CartItem from "./_components/cartItem";
+import { CircleX, ShoppingBag } from "lucide-react";
+import { fCurrency } from "@/shared/utils/format-number";
 
 type TProps = {
   isVisible: boolean;
@@ -58,7 +60,7 @@ const ShoppingCart = ({ isVisible, quantity, handleOnClose }: TProps) => {
             imgUrl: item.images && item.images.length > 0 ? item.images[0] : "/images/products/default.jpg",
             price: variant?.retail_price || item.price || 0,
             quantity: cartItem.quantity,
-            productName: item.name || "Unknown Product",
+            productName: item.name || "Sản phẩm không xác định",
             dealPrice: variant?.sale_price || item.salePrice || undefined,
             variantId: cartItem.variantId,
             // Include variant attributes information
@@ -94,11 +96,11 @@ const ShoppingCart = ({ isVisible, quantity, handleOnClose }: TProps) => {
           }
           setCartItems(finalResult);
         } else {
-          console.log("Cart API error:", response.error);
+          console.log("Lỗi API giỏ hàng:", response.error);
           setCartItems([]);
         }
       } catch (error) {
-        console.error("Error fetching cart products:", error);
+        console.error("Lỗi khi tải sản phẩm giỏ hàng:", error);
         setCartItems([]);
       }
     };
@@ -128,102 +130,110 @@ const ShoppingCart = ({ isVisible, quantity, handleOnClose }: TProps) => {
         isVisible ? "visible opacity-100" : "invisible opacity-0"
       )}
     >
-      <div className="absolute inset-0 sm:bg-black/60 bg-black/40 cursor-pointer" onClick={handleOnClose} />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm cursor-pointer" onClick={handleOnClose} />
       <div
         className={cn(
-          "absolute top-0 bottom-0 right-0 sm:w-[400px] w-5/6 bg-white flex flex-col pb-[140px] transition-transform duration-500 easeOutCustom",
+          "absolute top-0 bottom-0 right-0 sm:w-[420px] w-full sm:max-w-[90vw] bg-white flex flex-col shadow-2xl transition-transform duration-500 ease-out",
           isVisible ? "translate-x-0" : "translate-x-full"
         )}
       >
-        {" "}
-        <div className="flex items-center justify-between py-3 border-b border-gray-300 mx-6">
-          <h2 className="text-gray-800 text-xl font-medium">Shopping Cart ({quantity})</h2>
-          <Button onClick={handleOnClose} className="p-2 size-11 border-white hover:border-gray-300">
-            <CloseIcon width={18} />
+        {/* Header */}
+        <div className="flex items-center justify-between py-4 px-6 border-b border-gray-200 bg-white sticky top-0 z-10">
+          <div className="flex items-center gap-3">
+            <ShoppingBag className="w-5 h-5 text-gray-600" />
+            <h2 className="text-gray-900 text-xl font-semibold">
+              Giỏ hàng
+              {quantity !== undefined && quantity > 0 && (
+                <span className="ml-2 inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                  {quantity}
+                </span>
+              )}
+            </h2>
+          </div>
+          <Button
+            onClick={handleOnClose}
+            variant="secondary"
+            size="sm"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <CircleX className="w-5 h-5 text-gray-500" />
           </Button>
         </div>
+
         {/* Cart Summary Section */}
         {cartItems && cartItems.length > 0 && (
-          <div className="py-3 px-6 bg-gray-50 border-b border-gray-200">
-            <div className="text-sm text-gray-500">
-              <span className="font-medium">{cartItems.length}</span> {cartItems.length === 1 ? "item" : "items"} in
-              your cart
-            </div>
-            <div className="flex justify-between items-center mt-1">
-              <span className="text-xs text-gray-400">
-                Total quantity: {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+          <div className="py-3 px-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-blue-700 font-medium">
+                {cartItems.reduce((sum, item) => sum + item.quantity, 0)} sản phẩm trong giỏ
               </span>
-              <Link href="/checkout" className="text-xs text-bitex-blue-500 hover:underline" onClick={handleOnClose}>
-                View detailed summary
-              </Link>
+              <span className="text-sm text-blue-600">Tổng: {fCurrency(calculateTotal(), { currency: "VND" })}</span>
             </div>
           </div>
-        )}{" "}
-        <div className="flex-1 overflow-y-auto">
+        )}
+
+        {/* Cart Items */}
+        <div className="flex-1 overflow-y-auto bg-gray-50">
           {cartItems && Array.isArray(cartItems) && cartItems.length > 0 ? (
-            cartItems.map((item) => (
-              <CartItem data={item} onLinkClicked={handleOnClose} key={`${item.productId}-${item.variantId || ""}`} />
-            ))
+            <div className="divide-y divide-gray-200">
+              {cartItems.map((item) => (
+                <div key={`${item.productId}-${item.variantId || ""}`} className="bg-white">
+                  <CartItem data={item} onLinkClicked={handleOnClose} />
+                </div>
+              ))}
+            </div>
           ) : (
-            <div className="flex flex-col items-center">
-              <div className="mt-20 mb-16 p-6 bg-gray-100 rounded-full">
-                <ShoppingIconEmpty width={36} className="fill-gray-500" />
+            <div className="flex flex-col items-center justify-center h-full py-12">
+              <div className="mb-6 p-8 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl shadow-inner">
+                <ShoppingIconEmpty width={48} className="fill-gray-400" />
               </div>
-              <span className="text-center text-gray-500">Shopping Cart is Empty.</span>
-              <p className="text-sm text-gray-400 mt-2 text-center max-w-xs px-4">
-                Add products to your cart and they will appear here
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">Giỏ hàng trống</h3>
+              <p className="text-sm text-gray-500 text-center max-w-xs px-4 leading-relaxed">
+                Khám phá các sản phẩm tuyệt vời của chúng tôi và thêm vào giỏ hàng ngay!
               </p>
             </div>
           )}
-        </div>{" "}
-        <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-300 flex flex-col items-center justify-center gap-4 py-4 px-6">
+        </div>
+
+        {/* Footer / Checkout Section */}
+        <div className="bg-white border-t border-gray-200 shadow-lg">
           {cartItems && Array.isArray(cartItems) && cartItems.length > 0 ? (
-            <>
-              <div className="w-full space-y-2 mb-2">
-                <div className="flex justify-between items-center text-sm text-gray-600">
-                  <span>Subtotal ({cartItems.reduce((sum, item) => sum + item.quantity, 0)} items):</span>
-                  <span className="font-medium">
-                    {calculateTotal().toLocaleString("en-us", {
-                      minimumFractionDigits: 2,
-                    })}{" "}
-                    €
+            <div className="p-6 space-y-4">
+              {/* Price Breakdown */}
+              <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600">
+                    Tạm tính ({cartItems.reduce((sum, item) => sum + item.quantity, 0)} sản phẩm)
                   </span>
+                  <span className="font-medium text-gray-900">{fCurrency(calculateTotal(), { currency: "VND" })}</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-700 font-medium">Total:</span>
-                  <span className="text-lg font-semibold text-gray-800">
-                    {calculateTotal().toLocaleString("en-us", {
-                      minimumFractionDigits: 2,
-                    })}{" "}
-                    €
-                  </span>
+                <div className="border-t border-gray-200 pt-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-semibold text-gray-900">Tổng cộng</span>
+                    <span className="text-xl font-bold text-blue-600">
+                      {fCurrency(calculateTotal(), { currency: "VND" })}
+                    </span>
+                  </div>
                 </div>
               </div>
+
+              {/* Checkout Button */}
               <Button
                 onClick={handleCheckout}
-                className="w-full text-sm font-semibold text-white bg-bitex-red-500 hover:bg-bitex-red-600 border-bitex-red-600 py-3"
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02]"
               >
-                CHECKOUT NOW
+                THANH TOÁN NGAY
               </Button>
-              <div className="w-full flex items-center justify-between">
-                <Button
-                  onClick={handleOnClose}
-                  className="text-gray-500 text-sm border-gray-300 bg-gray-100 hover:border-gray-400 hover:bg-gray-200 active:border-gray-500 active:bg-gray-300 py-2"
-                >
-                  Continue Shopping
-                </Button>
-                <Link href="/checkout" className="text-sm text-bitex-blue-500 hover:underline" onClick={handleOnClose}>
-                  View Cart Details
-                </Link>
-              </div>
-            </>
+            </div>
           ) : (
-            <Button
-              onClick={handleOnClose}
-              className="text-gray-500 text-sm w-4/5 border-gray-300 bg-gray-100 hover:border-gray-400 hover:bg-gray-200 active:border-gray-500 active:bg-gray-300 py-2.5"
-            >
-              Continue Shopping
-            </Button>
+            <div className="p-6">
+              <Button
+                onClick={handleOnClose}
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-lg border border-gray-300 transition-colors duration-200"
+              >
+                Tiếp tục mua sắm
+              </Button>
+            </div>
           )}
         </div>
       </div>

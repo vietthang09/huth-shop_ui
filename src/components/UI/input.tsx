@@ -1,10 +1,11 @@
 import { cn } from "@/shared/utils/styling";
+import { forwardRef } from "react";
 
 type TProps = React.InputHTMLAttributes<HTMLInputElement> & {
   inputSize?: "sm" | "md" | "base" | "lg";
 };
 
-export const Input = (props: TProps) => {
+export const Input = forwardRef<HTMLInputElement, TProps>((props, ref) => {
   const { inputSize = "md", className, ...rest } = props;
 
   const sizeClasses = {
@@ -16,14 +17,17 @@ export const Input = (props: TProps) => {
 
   return (
     <input
+      ref={ref}
       {...rest}
       className={cn(
-        "w-full bg-white border border-gray-300 text-gray-700 transition-colors duration-300 focus:border-bitex-blue-500 hover:border-gray-400",
+        "w-full bg-white border text-gray-900 placeholder-gray-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0 hover:border-gray-400 disabled:bg-gray-50 disabled:text-gray-500",
         sizeClasses[inputSize],
         className
       )}
     />
   );
-};
+});
+
+Input.displayName = "Input";
 
 export default Input;

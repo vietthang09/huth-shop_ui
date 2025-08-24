@@ -33,6 +33,7 @@ const NavBarProfile = () => {
     <div className="relative flex items-center select-none">
       <Button
         onClick={toggleMenu}
+        variant="secondary"
         className={cn(
           "border-white h-9 hover:border-gray-300 transition-all text-gray-500 text-sm duration-300",
           isActive && "border-gray-300 bg-gray-50"
@@ -40,7 +41,11 @@ const NavBarProfile = () => {
       >
         <ProfileIcon width={16} className="fill-white transition-all duration-300 stroke-gray-500 stroke-2" />
         <span className="select-none hidden lg:block ml-2">
-          {loading ? "Loading..." : isAuthenticated ? session.user?.name?.split(" ")[0] || "Account" : "Account"}
+          {loading
+            ? "Loading..."
+            : isAuthenticated
+            ? session.user?.fullname?.split(" ")[session.user?.fullname?.split(" ").length - 1] || "Tài khoản"
+            : "Tài khoản"}
         </span>
       </Button>
 
@@ -54,7 +59,7 @@ const NavBarProfile = () => {
         {isAuthenticated ? (
           <>
             <div className="w-full p-2 mb-2 border-b border-gray-100">
-              <p className="text-sm font-medium text-gray-900">{session.user?.name}</p>
+              <p className="text-sm font-medium text-gray-900">{session.user?.fullname}</p>
               <p className="text-xs text-gray-500">{session.user?.email}</p>
             </div>
 
@@ -63,7 +68,7 @@ const NavBarProfile = () => {
               className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
               onClick={() => setIsActive(false)}
             >
-              Profile
+              Trang cá nhân
             </Link>
 
             <Link
@@ -71,17 +76,17 @@ const NavBarProfile = () => {
               className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
               onClick={() => setIsActive(false)}
             >
-              Orders
+              Đơn hàng
             </Link>
 
             {/* Show Admin Dashboard link for admins */}
             {session.user?.role === "admin" && (
               <Link
                 href="/admin"
-                className="w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
                 onClick={() => setIsActive(false)}
               >
-                Admin Dashboard
+                Quản lý
               </Link>
             )}
 
@@ -89,7 +94,7 @@ const NavBarProfile = () => {
               onClick={handleSignOut}
               className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors mt-2"
             >
-              Sign Out
+              Đăng xuất
             </button>
           </>
         ) : (
@@ -99,15 +104,15 @@ const NavBarProfile = () => {
               className="w-full text-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
               onClick={() => setIsActive(false)}
             >
-              Sign In
+              Đăng nhập
             </Link>
 
             <Link
               href="/signup"
-              className="w-full text-center px-3 py-2 mt-1 text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 rounded-md transition-colors"
+              className="w-full text-center px-3 py-2 mt-1 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
               onClick={() => setIsActive(false)}
             >
-              Sign Up
+              Đăng ký
             </Link>
           </>
         )}

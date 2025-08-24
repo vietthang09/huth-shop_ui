@@ -1,8 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import { deleteProduct, getAllProducts, getOneProduct } from "@/actions/product/product";
-import ProductModal from "@/components/modals/ProductModal";
+import ProductModal from "@/components/admin/product/ProductModal";
 import { Search } from "lucide-react";
+import { fCurrency } from "@/shared/utils/format-number";
 
 interface ProductType {
   id: number;
@@ -304,12 +305,6 @@ const AdminProducts = () => {
                 </th>
                 <th
                   className="px-6 py-3 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={() => requestSort("supplier.name")}
-                >
-                  Supplier{getSortIndicator("supplier.name")}
-                </th>
-                <th
-                  className="px-6 py-3 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                   onClick={() => requestSort("category.name")}
                 >
                   Category{getSortIndicator("category.name")}
@@ -361,13 +356,12 @@ const AdminProducts = () => {
                       {product.title}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {product.supplier?.name || "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {product.category?.name || "-"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-mono">
-                      {product.properties.length > 0 ? `$${Number(product.properties[0].retailPrice).toFixed(2)}` : "-"}
+                      {product.properties.length > 0
+                        ? fCurrency(product.properties[0].retailPrice, { currency: "VND" })
+                        : "-"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex justify-center">
