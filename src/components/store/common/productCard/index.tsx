@@ -72,7 +72,6 @@ const ProductCard = ({
                 alt={name}
                 width={80}
                 height={80}
-                unoptimized
                 className="h-full w-full object-cover rounded-2xl transition-transform duration-300 group-hover:scale-110"
               />
             </div>

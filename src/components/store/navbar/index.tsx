@@ -172,20 +172,18 @@ const StoreNavBar = () => {
 
   return (
     <nav
-      className={`fixed top-0 z-50 w-full px-4 2xl:px-0 py-4 transition-colors duration-300 ${
-        isScrolled || !isHomePage ? "bg-white shadow" : "bg-transparent"
-      }`}
+      className={`fixed top-0 z-50 w-full px-4 2xl:px-0 py-4 transition-colors duration-300 ${isScrolled || !isHomePage ? "bg-white shadow" : "bg-transparent"
+        }`}
     >
       <div className="max-w-7xl mx-auto w-full relative flex justify-between items-center">
         {/* Logo */}
         <Link
           href="/"
-          className={`mr-0 xl:mr-20 lg:mr-10 rounded font-semibold text-xl transition-colors duration-300 ${
-            isScrolled || !isHomePage ? "text-gray-900" : "text-white"
-          }`}
+          className={`mr-0 xl:mr-20 lg:mr-10 rounded font-semibold text-xl transition-colors duration-300 ${isScrolled || !isHomePage ? "text-gray-900" : "text-white"
+            }`}
           aria-label="Go to homepage"
         >
-          HT Premium
+          HuthShop
         </Link>
 
         {/* Desktop Search Bar */}
@@ -193,7 +191,7 @@ const StoreNavBar = () => {
           <form onSubmit={handleSearchSubmit}>
             <div className="h-full flex bg-white pl-6 px-1 py-1 border border-gray-200 rounded-full">
               <input
-                placeholder="Tìm trong HT Premium..."
+                placeholder="Tìm trong HuthShop..."
                 autoComplete="off"
                 className="min-w-96 text-sm outline-none"
                 value={searchValue}
@@ -278,22 +276,20 @@ const StoreNavBar = () => {
         <div className="md:hidden flex items-center space-x-2">
           <button
             onClick={handleSearchClick}
-            className={`p-2 rounded-full transition-colors duration-300 ${
-              isScrolled || !isHomePage
+            className={`p-2 rounded-full transition-colors duration-300 ${isScrolled || !isHomePage
                 ? "text-gray-900 hover:bg-gray-100"
                 : "text-white hover:bg-white hover:bg-opacity-20"
-            }`}
+              }`}
             aria-label="Open search"
           >
             <Search className="w-5 h-5" />
           </button>
           <button
             onClick={toggleMobileMenu}
-            className={`p-2 rounded-full transition-colors duration-300 ${
-              isScrolled || !isHomePage
+            className={`p-2 rounded-full transition-colors duration-300 ${isScrolled || !isHomePage
                 ? "text-gray-900 hover:bg-gray-100"
                 : "text-white hover:bg-white hover:bg-opacity-20"
-            }`}
+              }`}
             aria-label="Toggle mobile menu"
           >
             {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -304,11 +300,10 @@ const StoreNavBar = () => {
         <div className="hidden md:flex space-x-2">
           <Link
             href="/login"
-            className={`border px-4 py-2 rounded-full transition-colors duration-300 text-sm ${
-              isScrolled || !isHomePage
+            className={`border px-4 py-2 rounded-full transition-colors duration-300 text-sm ${isScrolled || !isHomePage
                 ? "border-orange-600 text-orange-600 hover:bg-orange-50"
                 : "border-white text-white hover:bg-white hover:text-gray-900"
-            }`}
+              }`}
           >
             Trở thành đối tác
           </Link>
@@ -334,7 +329,7 @@ const StoreNavBar = () => {
                 <form onSubmit={handleSearchSubmit}>
                   <div className="h-full flex bg-white pl-4 px-1 py-2 border border-gray-300 rounded-full">
                     <input
-                      placeholder="Tìm trong HT Premium..."
+                      placeholder="Tìm trong HuthShop..."
                       autoComplete="off"
                       className="w-full text-sm outline-none"
                       value={searchValue}
