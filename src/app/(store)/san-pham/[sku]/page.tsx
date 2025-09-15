@@ -11,6 +11,7 @@ import { ChevronRight, ShoppingCart, MessageCircle, Shield, Clock, Mail, Star } 
 import { fCurrency } from "@/shared/utils/format-number";
 import ProductCard from "@/components/store/common/productCard";
 import { useRecentlyVisited } from "@/hooks/useRecentlyVisited";
+import { useCartStore } from "@/store/cartStore";
 
 // Enhanced types
 interface ProductProperty {
@@ -40,7 +41,6 @@ const ProductPage = () => {
   const router = useRouter();
   const { sku } = useParams<{ sku: string }>();
   const { addProduct } = useRecentlyVisited();
-
   // State management
   const [productInfo, setProductInfo] = useState<Product | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -270,11 +270,10 @@ const ProductOptions = ({
         <div
           key={property.id}
           onClick={() => onVariantSelect(property.id)}
-          className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
-            selectedVariant === property.id
-              ? "border-blue-500 bg-blue-50 shadow-sm"
-              : "border-gray-200 bg-white hover:border-gray-300"
-          }`}
+          className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${selectedVariant === property.id
+            ? "border-blue-500 bg-blue-50 shadow-sm"
+            : "border-gray-200 bg-white hover:border-gray-300"
+            }`}
         >
           <div className="flex items-center justify-between">
             <div className="flex-1">
@@ -292,9 +291,8 @@ const ProductOptions = ({
               </div>
             </div>
             <ChevronRight
-              className={`w-5 h-5 transition-all duration-200 ${
-                selectedVariant === property.id ? "text-blue-600 rotate-90" : "text-gray-400"
-              }`}
+              className={`w-5 h-5 transition-all duration-200 ${selectedVariant === property.id ? "text-blue-600 rotate-90" : "text-gray-400"
+                }`}
             />
           </div>
         </div>
@@ -318,8 +316,9 @@ const PurchaseSection = ({
   onQuantityChange: (isReducing: boolean) => void;
   getSelectedVariantPrice: () => number;
   totalPrice: number;
-}) => (
-  <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 sticky top-8">
+}) => {
+  const { addToCart } = useCartStore();
+  return <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 sticky top-8">
     <div className="text-center mb-6">
       <Image
         height={200}
@@ -368,9 +367,12 @@ const PurchaseSection = ({
         <ShoppingCart className="w-5 h-5" />
         Mua ngay
       </button>
+      <button onClick={() => {
+        addToCart({ id: '1', name: 'Example Item', price: 10.99 })
+      }}>Thêm vào giỏ hàng</button>
     </div>
   </div>
-);
+}
 
 // Component for seller info
 const SellerInfo = () => (

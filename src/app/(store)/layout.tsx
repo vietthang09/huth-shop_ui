@@ -10,7 +10,7 @@ const StoreLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <Provider store={shoppingCartStore}>
       <StoreNavBar />
-      <main className="bg-slate-50">{children}</main>
+      <main className="bg-slate-50 min-h-screen">{children}</main>
       <StoreFooter />
     </Provider>
   );

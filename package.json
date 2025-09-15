@@ -34,7 +34,8 @@
     "suneditor": "^2.47.5",
     "suneditor-react": "^3.6.1",
     "tailwind-merge": "^3.0.2",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
