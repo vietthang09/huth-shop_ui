@@ -1,4 +1,4 @@
-import Button from "@/components/UI/button";
+"use client";
 
 export default function Partnership() {
   return (
@@ -10,7 +10,7 @@ export default function Partnership() {
         </h2>
         <p>Trở thành đối tác của chúng tôi để nhận mức giá ưu đãi đặc biệt và hỗ trợ chuyên nghiệp hàng đầu!</p>
       </div>
-      <Button>Trở thành đối tác</Button>
+      <button>Trở thành đối tác</button>
     </div>
   );
 }

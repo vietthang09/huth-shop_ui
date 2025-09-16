@@ -1,9 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { InstagramIcon, LinkedinIcon, XIcon } from "@/components/icons/svgIcons";
-import Button from "@/components/UI/button";
-
 const CATEGORIES = ["Netflix", "Adobe", "Google", "Microsoft", "Spotify", "Canva", "AI"];
 const CUSTOMER_SERVICES = ["Chính sách bảo mật", "Chính sách hoàn tiền", "Điều khoản dịch vụ"];
 const LEGALS = ["Conditions of Use & Sale", "Privacy Notice", "Imprint", "Cookies Notice", "Interest-Based Ads Notice"];
@@ -81,9 +78,9 @@ const Footer = () => {
                 placeholder="email address"
                 className="w-[200px] text-sm h-8 rounded-md px-4 border border-gray-300 focus:border-gray-800"
               />
-              <Button className="h-8  px-4 ml-2 rounded-md border text-sm border-gray-300 bg-gray-100 text-gray-700  hover:bg-gray-200 active:bg-gray-300 active:text-gray-900">
+              <button className="h-8  px-4 ml-2 rounded-md border text-sm border-gray-300 bg-gray-100 text-gray-700  hover:bg-gray-200 active:bg-gray-300 active:text-gray-900">
                 Subscribe
-              </Button>
+              </button>
             </div>
           </div>
         </section>
@@ -96,25 +93,25 @@ const Footer = () => {
               href={"https://www.linkedIn.com"}
               className="fill-gray-400 hover:fill-gray-800 transition-all duration-200"
             >
-              <LinkedinIcon width={20} strokeWidth={0} className="fill-inherit" />
+              Linkedin
             </Link>
             <Link
               href={"https://www.twitter.com"}
               className="fill-gray-400 hover:fill-gray-800 transition-all duration-200"
             >
-              <XIcon width={20} className="fill-inherit" />
+              Twitter
             </Link>
             <Link
               href={"https://www.instagram.com"}
               className="fill-gray-400 hover:fill-gray-800 transition-all duration-200"
             >
-              <InstagramIcon width={20} strokeWidth={0} className="fill-inherit" />
+              Instagram
             </Link>
             <Link
               href={"https://www.facebook.com"}
               className="fill-gray-400 hover:fill-gray-800 transition-all duration-200"
             >
-              <InstagramIcon width={20} strokeWidth={0} className="fill-inherit" />
+              Facebook
             </Link>
           </div>
         </div>

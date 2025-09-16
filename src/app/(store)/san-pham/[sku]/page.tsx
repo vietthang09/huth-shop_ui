@@ -270,10 +270,11 @@ const ProductOptions = ({
         <div
           key={property.id}
           onClick={() => onVariantSelect(property.id)}
-          className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${selectedVariant === property.id
-            ? "border-blue-500 bg-blue-50 shadow-sm"
-            : "border-gray-200 bg-white hover:border-gray-300"
-            }`}
+          className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
+            selectedVariant === property.id
+              ? "border-blue-500 bg-blue-50 shadow-sm"
+              : "border-gray-200 bg-white hover:border-gray-300"
+          }`}
         >
           <div className="flex items-center justify-between">
             <div className="flex-1">
@@ -291,8 +292,9 @@ const ProductOptions = ({
               </div>
             </div>
             <ChevronRight
-              className={`w-5 h-5 transition-all duration-200 ${selectedVariant === property.id ? "text-blue-600 rotate-90" : "text-gray-400"
-                }`}
+              className={`w-5 h-5 transition-all duration-200 ${
+                selectedVariant === property.id ? "text-blue-600 rotate-90" : "text-gray-400"
+              }`}
             />
           </div>
         </div>
@@ -318,61 +320,67 @@ const PurchaseSection = ({
   totalPrice: number;
 }) => {
   const { addToCart } = useCartStore();
-  return <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 sticky top-8">
-    <div className="text-center mb-6">
-      <Image
-        height={200}
-        width={200}
-        className="w-full h-auto object-contain rounded-lg mx-auto"
-        unoptimized
-        src={product.image}
-        alt={product.title}
-      />
-    </div>
-
-    <div className="space-y-6">
-      {/* Quantity Selector */}
-      <div className="flex items-center justify-center gap-4">
-        <button
-          className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center font-semibold"
-          onClick={() => onQuantityChange(true)}
-          disabled={quantity <= 1}
-        >
-          −
-        </button>
-        <span className="text-xl font-semibold min-w-[2rem] text-center">{quantity}</span>
-        <button
-          className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center font-semibold"
-          onClick={() => onQuantityChange(false)}
-        >
-          +
-        </button>
+  return (
+    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 sticky top-8">
+      <div className="text-center mb-6">
+        <Image
+          height={200}
+          width={200}
+          className="w-full h-auto object-contain rounded-lg mx-auto"
+          unoptimized
+          src={product.image}
+          alt={product.title}
+        />
       </div>
 
-      {/* Total Price */}
-      <div className="text-center">
-        <p className="text-sm text-gray-600 mb-1">Tổng tiền:</p>
-        <p className="text-3xl font-bold text-red-600">
-          {selectedVariant ? fCurrency(totalPrice, { currency: "VND" }) : "Chọn tùy chọn"}
-        </p>
-      </div>
+      <div className="space-y-6">
+        {/* Quantity Selector */}
+        <div className="flex items-center justify-center gap-4">
+          <button
+            className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center font-semibold"
+            onClick={() => onQuantityChange(true)}
+            disabled={quantity <= 1}
+          >
+            −
+          </button>
+          <span className="text-xl font-semibold min-w-[2rem] text-center">{quantity}</span>
+          <button
+            className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center font-semibold"
+            onClick={() => onQuantityChange(false)}
+          >
+            +
+          </button>
+        </div>
 
-      {/* Purchase Button */}
-      <button
-        className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-4 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
-        onClick={() => {
-          window.open("https://www.facebook.com/profile.php?id=61577923558579", "_blank");
-        }}
-      >
-        <ShoppingCart className="w-5 h-5" />
-        Mua ngay
-      </button>
-      <button onClick={() => {
-        addToCart({ id: '1', name: 'Example Item', price: 10.99 })
-      }}>Thêm vào giỏ hàng</button>
+        {/* Total Price */}
+        <div className="text-center">
+          <p className="text-sm text-gray-600 mb-1">Tổng tiền:</p>
+          <p className="text-3xl font-bold text-red-600">
+            {selectedVariant ? fCurrency(totalPrice, { currency: "VND" }) : "Chọn tùy chọn"}
+          </p>
+        </div>
+
+        {/* Purchase Button */}
+        <button
+          className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-4 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 cursor-pointer"
+          onClick={() => {
+            window.open("https://www.facebook.com/profile.php?id=61577923558579", "_blank");
+          }}
+        >
+          Mua ngay
+        </button>
+        <button
+          className="flex items-center justify-center gap-2 border w-full p-4 rounded hover:bg-gray-100 transition-colors cursor-pointer"
+          onClick={() => {
+            addToCart({ id: product.id, name: product.title, price: getSelectedVariantPrice() });
+          }}
+        >
+          <ShoppingCart className="w-5 h-5" /> Thêm vào giỏ hàng
+        </button>
+      </div>
     </div>
-  </div>
-}
+  );
+};
 
 // Component for seller info
 const SellerInfo = () => (

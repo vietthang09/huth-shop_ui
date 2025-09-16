@@ -1,9 +1,8 @@
 // types.ts
 export interface Product {
-    id: string;
+    id: number;
     name: string;
     price: number;
-    // Add other product properties as needed
 }
 
 export interface CartItem extends Product {
@@ -13,7 +12,7 @@ export interface CartItem extends Product {
 export interface CartState {
     cartItems: CartItem[];
     addToCart: (product: Product) => void;
-    removeFromCart: (productId: string) => void;
-    updateQuantity: (productId: string, quantity: number) => void;
+    removeFromCart: (productId: number) => void;
+    updateQuantity: (productId: number, quantity: number) => void;
     clearCart: () => void;
 }
