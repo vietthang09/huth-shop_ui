@@ -57,17 +57,14 @@ export default function RecentlyVisit() {
             className="group opacity-0 animate-[fadeInUp_0.8s_ease-out_forwards]"
             style={{ animationDelay: `${index * 100}ms` }}
           >
-            <div className="transform transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-1">
-              <ProductCard
-                className="w-full h-full shadow-lg hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-500 ring-1 ring-gray-200/30 hover:ring-blue-300/50"
-                id={product.sku}
-                sku={product.sku}
-                name={product.title}
-                price={product.properties[0]?.retailPrice || 0}
-                dealPrice={product.properties[0]?.salePrice}
-                imgUrl={product.image || ""}
-              />
-            </div>
+            <ProductCard
+              id={product.sku}
+              sku={product.sku}
+              name={product.title}
+              price={product.properties[0]?.retailPrice || 0}
+              dealPrice={product.properties[0]?.salePrice}
+              imgUrl={product.image || ""}
+            />
           </div>
         ))}
       </div>

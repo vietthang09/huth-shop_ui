@@ -38,8 +38,8 @@ export const useCartStore = create<CartState>()(
             },
         }),
         {
-            name: 'cart-storage', // unique name for localStorage key
-            storage: createJSONStorage(() => localStorage), // use localStorage
+            name: 'cart-storage', 
+            storage: createJSONStorage(() => sessionStorage), 
         }
     )
 );

@@ -94,17 +94,15 @@ export default function Working() {
               className="group opacity-0 animate-[fadeInUp_0.8s_ease-out_forwards] flex-shrink-0"
               style={{ animationDelay: `${index * 100}ms` }}
             >
-              <div className="transform transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-1">
-                <ProductCard
-                  className="w-72 h-full shadow-lg hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-500 ring-1 ring-gray-200/30 hover:ring-blue-300/50"
-                  id={product.sku}
-                  sku={product.sku}
-                  name={product.title}
-                  price={+product.lowestPrice}
-                  dealPrice={product.lowestPrice}
-                  imgUrl={product.image}
-                />
-              </div>
+              <ProductCard
+                className="w-72"
+                id={product.sku}
+                sku={product.sku}
+                name={product.title}
+                price={+product.lowestPrice}
+                dealPrice={product.lowestPrice}
+                imgUrl={product.image}
+              />
             </div>
           ))}
         </div>

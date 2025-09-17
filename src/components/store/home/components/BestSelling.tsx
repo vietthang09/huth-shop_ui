@@ -15,17 +15,14 @@ export default function BestSelling() {
             className="group opacity-0 animate-[fadeInUp_0.8s_ease-out_forwards]"
             style={{ animationDelay: `${index * 100}ms` }}
           >
-            <div className="transform transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-1">
-              <ProductCard
-                id={product.id.toString()}
-                sku={product.sku}
-                className="w-full h-full shadow-lg hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-500 ring-1 ring-gray-200/30 hover:ring-purple-300/50"
-                name={product.title}
-                price={product.lowestPrice}
-                dealPrice={product.lowestSalePrice}
-                imgUrl={product.image}
-              />
-            </div>
+            <ProductCard
+              id={product.id.toString()}
+              sku={product.sku}
+              name={product.title}
+              price={product.lowestPrice}
+              dealPrice={0}
+              imgUrl={product.image}
+            />
           </div>
         ))}
       </div>

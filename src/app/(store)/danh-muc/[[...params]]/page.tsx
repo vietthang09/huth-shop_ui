@@ -256,7 +256,7 @@ const ListPage = () => {
                 className={`group flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
                   currentCategory === category.slug
                     ? "bg-blue-500 text-white shadow-lg shadow-blue-500/25"
-                    : "bg-white/80 backdrop-blur-sm text-gray-700 hover:bg-white hover:shadow-md border border-gray-200/80 hover:border-blue-300/50"
+                    : "bg-white/80 backdrop-blur-sm text-gray-700 hover:bg-white border border-gray-200/80 hover:border-blue-300/50"
                 }`}
               >
                 <div
@@ -296,21 +296,14 @@ const ListPage = () => {
             }`}
           >
             {filteredProducts.map((product, index) => (
-              <div
-                key={product.id}
-                className="group opacity-0 animate-[fadeInUp_0.8s_ease-out_forwards]"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <ProductCard
-                  className="h-full hover:scale-105 transition-transform duration-300"
-                  id={product.sku}
-                  sku={product.sku}
-                  name={product.title}
-                  price={product.lowestPrice || 0}
-                  dealPrice={product.lowestSalePrice || undefined}
-                  imgUrl={product.image || "/images/placeholder.svg"}
-                />
-              </div>
+              <ProductCard
+                id={product.sku}
+                sku={product.sku}
+                name={product.title}
+                price={product.lowestPrice || 0}
+                dealPrice={product.lowestSalePrice || undefined}
+                imgUrl={product.image || "/images/placeholder.svg"}
+              />
             ))}
           </div>
         ) : (

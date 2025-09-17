@@ -36,7 +36,6 @@ const ProductCard = ({
     <div
       className={cn(
         "group relative overflow-hidden rounded-3xl bg-white/95 backdrop-blur-sm border border-gray-200/80",
-        "transition-all duration-500 ease-out hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/20",
         "hover:border-blue-300/50 hover:bg-white",
         staticWidth && "w-80",
         className
@@ -66,13 +65,13 @@ const ProductCard = ({
         <div className="flex items-start gap-5 mb-6">
           {/* Product Image */}
           <div className="flex-shrink-0 relative">
-            <div className="w-24 h-24 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl flex items-center justify-center border border-gray-200/50 group-hover:border-blue-300/50 transition-all duration-300 overflow-hidden group-hover:shadow-lg">
+            <div className="w-24 h-24 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl flex items-center justify-center border border-gray-200/50 transition-all duration-300 overflow-hidden">
               <Image
                 src={imgUrl}
                 alt={name}
                 width={80}
                 height={80}
-                className="h-full w-full object-cover rounded-2xl transition-transform duration-300 group-hover:scale-110"
+                className="h-full w-full object-cover rounded-2xl"
               />
             </div>
           </div>
@@ -99,12 +98,12 @@ const ProductCard = ({
 
         {/* Action Buttons */}
         <div className="flex items-center gap-3 mb-5">
-          <button className="flex-1 flex justify-center items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl transition-all duration-300 text-sm font-semibold shadow-lg hover:shadow-xl hover:shadow-blue-500/25 transform hover:-translate-y-0.5">
+          <button className="flex-1 flex justify-center items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl transition-all duration-300 text-sm font-semibold shadow-lg cursor-pointer">
             <ShoppingCart className="w-4 h-4" />
             Mua ngay
           </button>
           <button
-            className="p-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-300 border border-gray-200 hover:border-red-200"
+            className="p-3 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-300 border border-gray-200 hover:border-red-200 cursor-pointer"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();

@@ -5,38 +5,45 @@ import BestSelling from "./components/BestSelling";
 import Entertainment from "./components/Entertainment";
 import Working from "./components/Working";
 import Partnership from "./components/Partnership";
+import Link from "next/link";
 
 export default function HomePage() {
   const categories = [
     {
       title: "Âm nhạc",
       icon: <Music className="size-8" />,
+      slug: "am-nhac",
     },
     {
       title: "Phim ảnh",
       icon: <Play className="size-8" />,
+      slug: "phim-anh",
     },
     {
       title: "Công việc",
       icon: <Computer className="size-8" />,
+      slug: "cong-viec",
     },
     {
       title: "A.I",
       icon: <Bot className="size-8" />,
+      slug: "ai",
     },
     {
       title: "Đồ họa",
       icon: <PenLine className="size-8" />,
+      slug: "do-hoa",
     },
     {
       title: "Lữu trữ",
       icon: <Cloud className="size-8" />,
+      slug: "luu-tru",
     },
   ];
   return (
     <div className="space-y-4">
       {/* Hero */}
-      <section className="bg-gradient-to-br from-[#1d4ed8] via-[#2563eb] to-[#1e3a8a] lg:min-h-screen 2xl:min-h-[50vh] flex items-stretch px-4 2xl:px-0">
+      <section className="bg-gradient-to-br from-[#1d4ed8] via-[#2563eb] to-[#1e3a8a] lg:min-h-[40vh] flex items-stretch px-4 2xl:px-0">
         <div className="pt-20 max-w-7xl w-full mx-auto self-end">
           <div className="flex flex-col lg:flex-row items-center justify-between">
             <div>
@@ -65,13 +72,14 @@ export default function HomePage() {
 
           <div className="flex overflow-x-auto">
             {categories.map((category, index) => (
-              <div
+              <Link
                 key={index}
+                href={`/danh-muc/${category.slug}`}
                 className="group mt-6 w-32 inline-block text-white hover:text-gray-800 hover:bg-white text-gray-900 p-6 rounded-t-xl text-sm font-semibold cursor-pointer"
               >
                 <div className="flex justify-center group-hover:text-blue-500">{category.icon}</div>
                 <p className="mt-2 text-center">{category.title}</p>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
