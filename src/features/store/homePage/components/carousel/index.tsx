@@ -145,7 +145,7 @@ export const Carousel = () => {
           "absolute left-4 top-1/2 -translate-y-1/2 z-10",
           "bg-white/20 hover:bg-white/30 backdrop-blur-sm",
           "p-2 rounded-full transition-all duration-300",
-          "text-white hover:scale-110",
+          "text-white hover:scale-110 cursor-pointer",
           "opacity-0 group-hover:opacity-100",
           isHovered ? "opacity-100" : "opacity-0"
         )}
@@ -159,7 +159,7 @@ export const Carousel = () => {
           "absolute right-4 top-1/2 -translate-y-1/2 z-10",
           "bg-white/20 hover:bg-white/30 backdrop-blur-sm",
           "p-2 rounded-full transition-all duration-300",
-          "text-white hover:scale-110",
+          "text-white hover:scale-110 cursor-pointer",
           "opacity-0 group-hover:opacity-100",
           isHovered ? "opacity-100" : "opacity-0"
         )}
@@ -175,7 +175,7 @@ export const Carousel = () => {
               key={index}
               onClick={() => goToSlide(index)}
               className={cn(
-                "w-3 h-3 rounded-full transition-all duration-300",
+                "w-3 h-3 rounded-full transition-all duration-300 cursor-pointer",
                 index === currentSlide ? "bg-white scale-125" : "bg-white/50 hover:bg-white/75"
               )}
               aria-label={`Go to slide ${index + 1}`}

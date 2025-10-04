@@ -4,11 +4,10 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { login } from "@/services/auth";
-import { useAuthStore } from "@/store/authStore";
-import { TApiError } from "@/store/types";
+import { signIn } from "next-auth/react";
+import { useAuth } from "@/hooks/useAuth";
 
 const loginSchema = z.object({
   email: z.string().min(1, "Email là bắt buộc").email("Email không hợp lệ"),
@@ -18,10 +17,14 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function Page() {
-  const { setUser, setAccessToken } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+
+  // Get redirect URL from query params
+  const redirectUrl = searchParams.get("redirect") || "/";
 
   const {
     register,
@@ -33,24 +36,60 @@ export default function Page() {
     mode: "onChange",
   });
 
+  // Show loading while checking authentication status
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <div className="flex items-center space-x-2">
+          <svg
+            className="animate-spin h-8 w-8 text-blue-600"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+          <span className="text-blue-600 font-medium">Đang kiểm tra đăng nhập...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect if already authenticated
+  if (isAuthenticated) {
+    router.push(redirectUrl);
+    return null;
+  }
+
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
 
     try {
-      const result = await login({ ...data });
-      if (result.status === 401) {
-        const data: TApiError = result.data as any;
-        toast.error(data.message);
-      } else {
+      const result = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        toast.error("Email hoặc mật khẩu không đúng");
+      } else if (result?.ok) {
         toast.success("Đăng nhập thành công!");
-        setUser(result.data.user);
-        setAccessToken(result.data.access_token);
         reset();
-        router.push("/portal");
+
+        // Redirect based on user role or redirect param
+        // The middleware will handle role-based redirects
+        router.push(redirectUrl);
         router.refresh();
       }
     } catch (error: any) {
-      toast.error(error.data.message);
+      console.error("Login error:", error);
+      toast.error("Đã có lỗi xảy ra. Vui lòng thử lại.");
     } finally {
       setIsLoading(false);
     }
@@ -67,7 +106,14 @@ export default function Page() {
               <img className="h-16 w-auto drop-shadow-sm" src="/images/logo.png" alt="Huth Shop" />
             </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-2">Chào mừng trở lại</h2>
-            <p className="text-gray-600">Đăng nhập để tiếp tục mua sắm</p>
+            <p className="text-gray-600">
+              {searchParams.get("redirect") ? "Vui lòng đăng nhập để tiếp tục" : "Đăng nhập để tiếp tục mua sắm"}
+            </p>
+            {searchParams.get("redirect") && (
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-700">Bạn cần đăng nhập để truy cập trang này</p>
+              </div>
+            )}
           </div>
 
           {/* Login Form */}

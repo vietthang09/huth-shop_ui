@@ -1,0 +1,259 @@
+import React from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  Button,
+  Input,
+} from "@/components/ui";
+import { useSupplierDialog } from "./SupplierDialogContext";
+import { create, update, remove, findOne } from "@/services/supplier";
+import { ConfirmDeleteDialog } from "./";
+import { toast } from "sonner";
+import { Trash2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+// Zod schema for supplier validation
+const supplierSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Tên nhà cung cấp là bắt buộc")
+    .min(2, "Tên nhà cung cấp phải có ít nhất 2 ký tự")
+    .max(100, "Tên nhà cung cấp không được vượt quá 100 ký tự")
+    .trim(),
+});
+
+type SupplierFormData = z.infer<typeof supplierSchema>;
+
+export const SupplierDialog: React.FC = () => {
+  const { isOpen, mode, selectedSupplier, closeDialog, isSubmitting, setIsSubmitting } = useSupplierDialog();
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [isDeleting, setIsDeleting] = React.useState(false);
+
+  // React Hook Form setup
+  const form = useForm<SupplierFormData>({
+    resolver: zodResolver(supplierSchema),
+    defaultValues: {
+      name: "",
+    },
+  });
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    setValue,
+    watch,
+  } = form;
+
+  // Format date helper
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("vi-VN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  // Reset form when dialog opens/closes or mode changes
+  React.useEffect(() => {
+    if (isOpen) {
+      if (mode === "add") {
+        reset({ name: "" });
+      } else if ((mode === "edit" || mode === "view") && selectedSupplier) {
+        reset({ name: selectedSupplier.name });
+      }
+    } else {
+      reset({ name: "" });
+    }
+  }, [isOpen, mode, selectedSupplier, reset]);
+
+  // Handle form submission
+  const onSubmit = async (data: SupplierFormData) => {
+    if (mode === "view") return;
+
+    setIsSubmitting(true);
+
+    try {
+      if (mode === "add") {
+        const response = await create({ name: data.name.trim() });
+        if (response.status === 200 || response.status === 201) {
+          toast.success("Thêm nhà cung cấp thành công");
+          closeDialog();
+          // Trigger refresh of the parent component
+          window.location.reload();
+        }
+      } else if (mode === "edit" && selectedSupplier) {
+        const response = await update(selectedSupplier.id, { name: data.name.trim() });
+        if (response.status === 200 || response.status === 201) {
+          toast.success("Cập nhật nhà cung cấp thành công");
+          closeDialog();
+          // Trigger refresh of the parent component
+          window.location.reload();
+        }
+      }
+    } catch (error: any) {
+      console.error("Error saving supplier:", error);
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error(mode === "add" ? "Có lỗi xảy ra khi thêm nhà cung cấp" : "Có lỗi xảy ra khi cập nhật nhà cung cấp");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handle delete supplier
+  const handleDelete = async () => {
+    if (!selectedSupplier) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await remove(selectedSupplier.id);
+      if (response.status === 200 || response.status === 204) {
+        toast.success(`Đã xóa nhà cung cấp "${selectedSupplier.name}" thành công`);
+        setDeleteDialogOpen(false);
+        closeDialog();
+        // Trigger refresh of the parent component
+        window.location.reload();
+      }
+    } catch (error: any) {
+      console.error("Error deleting supplier:", error);
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Có lỗi xảy ra khi xóa nhà cung cấp");
+      }
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Get dialog title based on mode
+  const getDialogTitle = () => {
+    switch (mode) {
+      case "add":
+        return "Thêm nhà cung cấp mới";
+      case "edit":
+        return "Chỉnh sửa nhà cung cấp";
+      case "view":
+        return "Chi tiết nhà cung cấp";
+      default:
+        return "Nhà cung cấp";
+    }
+  };
+
+  // Get dialog description based on mode
+  const getDialogDescription = () => {
+    switch (mode) {
+      case "add":
+        return "Điền thông tin để thêm nhà cung cấp mới vào hệ thống.";
+      case "edit":
+        return "Cập nhật thông tin nhà cung cấp.";
+      case "view":
+        return `Thông tin chi tiết của nhà cung cấp ${selectedSupplier?.name || ""}.`;
+      default:
+        return "";
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={closeDialog}>
+      <DialogContent size="lg">
+        <DialogHeader>
+          <DialogTitle>{getDialogTitle()}</DialogTitle>
+          <DialogDescription>{getDialogDescription()}</DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Basic Information */}
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                Tên nhà cung cấp <span className="text-red-500">*</span>
+              </label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="Nhập tên nhà cung cấp..."
+                disabled={mode === "view"}
+                className={errors.name ? "border-red-300 focus:border-red-500 focus:ring-red-500" : ""}
+                {...register("name")}
+              />
+              {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>}
+            </div>
+
+            {/* Show additional info in view/edit mode */}
+            {mode !== "add" && selectedSupplier && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">ID</label>
+                  <p className="text-sm text-gray-900 font-mono">#{selectedSupplier.id}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">Ngày tạo</label>
+                  <p className="text-sm text-gray-900">{formatDate(selectedSupplier.createdAt)}</p>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-500 mb-1">Cập nhật lần cuối</label>
+                  <p className="text-sm text-gray-900">{formatDate(selectedSupplier.updatedAt)}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <div className="flex justify-between w-full">
+              {/* Delete button on the left (only in view mode) */}
+              {mode === "view" && selectedSupplier && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => setDeleteDialogOpen(true)}
+                  disabled={isSubmitting}
+                  className="mr-auto"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Xóa nhà cung cấp
+                </Button>
+              )}
+
+              {/* Action buttons on the right */}
+              <div className="flex gap-2 ml-auto">
+                <Button type="button" variant="outline" onClick={closeDialog} disabled={isSubmitting}>
+                  {mode === "view" ? "Đóng" : "Hủy"}
+                </Button>
+                {mode !== "view" && (
+                  <Button type="submit" variant="primary" disabled={isSubmitting} loading={isSubmitting}>
+                    {mode === "add" ? "Thêm nhà cung cấp" : "Cập nhật"}
+                  </Button>
+                )}
+              </div>
+            </div>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+
+      {/* Confirm Delete Dialog */}
+      <ConfirmDeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDelete}
+        title="Xóa nhà cung cấp"
+        description={`Bạn có chắc chắn muốn xóa nhà cung cấp "${selectedSupplier?.name}"? Hành động này không thể hoàn tác.`}
+        confirmText="Xóa nhà cung cấp"
+        isLoading={isDeleting}
+      />
+    </Dialog>
+  );
+};

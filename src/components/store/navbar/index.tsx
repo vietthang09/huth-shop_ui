@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { mockProducts } from "@/components/store/home/data";
 import { useCartStore } from "@/store/cartStore";
+import { AuthButton } from "@/components/auth/AuthButton";
 
 const StoreNavBar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -202,7 +203,7 @@ const StoreNavBar = () => {
                 onChange={(e) => setSearchValue(e.target.value)}
                 onFocus={() => setIsFocused(true)}
               />
-              <button type="submit" className="bg-red-500 p-2 rounded-full" aria-label="Submit search">
+              <button type="submit" className="bg-red-500 p-2 rounded-full cursor-pointer" aria-label="Submit search">
                 <Search className="text-white w-4 h-4" />
               </button>
             </div>
@@ -312,6 +313,7 @@ const StoreNavBar = () => {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-2">
+          <AuthButton />
           <Link href="/gio-hang" className="relative">
             <ShoppingBag className={`size-5 ${isScrolled || !isHomePage ? "text-orange-600" : "text-white"}`} />
             {cartItems.length > 0 && (
@@ -350,7 +352,11 @@ const StoreNavBar = () => {
                       onFocus={() => setIsFocused(true)}
                       autoFocus
                     />
-                    <button type="submit" className="bg-red-500 p-2 rounded-full" aria-label="Submit search">
+                    <button
+                      type="submit"
+                      className="bg-red-500 p-2 rounded-full cursor-pointer"
+                      aria-label="Submit search"
+                    >
                       <Search className="text-white w-4 h-4" />
                     </button>
                   </div>

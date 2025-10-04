@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from "axios";
+import { getToken } from "@/lib/auth-utils";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://b9adf720e82c.ngrok-free.app";
 
@@ -16,14 +17,18 @@ const axiosInstance: AxiosInstance = axios.create({
 import type { InternalAxiosRequestConfig } from "axios";
 
 axiosInstance.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
+  async (config: InternalAxiosRequestConfig) => {
     if (config.headers) {
       config.headers["ngrok-skip-browser-warning"] = "true";
 
-      // Add Authorization header if token exists
-      const token = tokenManager.getAccessToken();
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+      // Add Authorization header if NextAuth token exists
+      try {
+        const token = await getToken();
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+      } catch (error) {
+        console.error("Failed to get token in request interceptor:", error);
       }
     }
 
@@ -48,37 +53,18 @@ axiosInstance.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
-    // Handle 401 Unauthorized - Token expired
+    // Handle 401 Unauthorized - Session expired
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
+      console.log(error);
 
-      try {
-        // Try to refresh token
-        const refreshToken = localStorage.getItem("refreshToken") || sessionStorage.getItem("refreshToken");
-
-        if (refreshToken) {
-          const response = await axios.post(`${BASE_URL}/auth/refresh`, {
-            refreshToken,
-          });
-
-          const { accessToken } = response.data;
-          localStorage.setItem("accessToken", accessToken);
-
-          // Retry original request with new token
-          if (originalRequest.headers) {
-            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-          }
-          return axiosInstance(originalRequest);
-        }
-      } catch (refreshError) {
-        // Refresh failed, redirect to login
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("refreshToken");
-          sessionStorage.removeItem("accessToken");
-          sessionStorage.removeItem("refreshToken");
-          window.location.href = "/auth/login";
-        }
+      // For 401 errors with NextAuth, sign out the user
+      if (typeof window !== "undefined") {
+        const { signOut } = await import("next-auth/react");
+        await signOut({
+          callbackUrl: "/dang-nhap",
+          redirect: true,
+        });
       }
     }
 
@@ -208,36 +194,6 @@ export const api = {
         link.remove();
         window.URL.revokeObjectURL(url);
       });
-  },
-};
-
-// Utility functions for token management
-export const tokenManager = {
-  setTokens: (accessToken: string, refreshToken?: string, remember: boolean = false) => {
-    const storage = remember ? localStorage : sessionStorage;
-    storage.setItem("accessToken", accessToken);
-    if (refreshToken) {
-      storage.setItem("refreshToken", refreshToken);
-    }
-  },
-
-  getAccessToken: (): string | null => {
-    return localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
-  },
-
-  getRefreshToken: (): string | null => {
-    return localStorage.getItem("refreshToken") || sessionStorage.getItem("refreshToken");
-  },
-
-  clearTokens: () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    sessionStorage.removeItem("accessToken");
-    sessionStorage.removeItem("refreshToken");
-  },
-
-  isAuthenticated: (): boolean => {
-    return !!tokenManager.getAccessToken();
   },
 };
 
