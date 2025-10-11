@@ -4,8 +4,12 @@ import { findAll, TProduct } from "@/services/product";
 import { useEffect, useState } from "react";
 import { TableToolbar, createCommonActions, Table, Button } from "@/components/ui";
 import type { TableToolbarFilter, TableColumn, TableSort } from "@/components/ui";
+import { ProductDialogProvider, useProductDialog, ProductDialog } from "@/components/admin/products";
+import { toast } from "sonner";
 
-export default function ProductsPage() {
+// Inner component that uses the dialog context
+function ProductsPageContent() {
+  const { openAddDialog, openEditDialog, openViewDialog } = useProductDialog();
   const [products, setProducts] = useState<TProduct[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<TProduct[]>([]);
   const [selectedRows, setSelectedRows] = useState<(string | number)[]>([]);
@@ -159,7 +163,7 @@ export default function ProductsPage() {
           <Button
             onClick={(e) => {
               e.stopPropagation();
-              console.log("View product:", row.id);
+              openViewDialog(row);
             }}
           >
             Chi tiết
@@ -168,7 +172,7 @@ export default function ProductsPage() {
             variant="outline"
             onClick={(e) => {
               e.stopPropagation();
-              console.log("Edit product:", row.id);
+              openEditDialog(row);
             }}
           >
             Sửa
@@ -181,8 +185,7 @@ export default function ProductsPage() {
   // Define table toolbar actions
   const actions = [
     createCommonActions.add(() => {
-      console.log("Add new product");
-      // Navigate to add product page or open modal
+      openAddDialog();
     }),
     createCommonActions.export(() => {
       console.log("Export products");
@@ -193,7 +196,8 @@ export default function ProductsPage() {
           {
             label: `Xóa (${selectedRows.length})`,
             onClick: () => {
-              console.log("Delete selected products:", selectedRows);
+              // TODO: Implement bulk delete functionality
+              toast.error("Chức năng xóa hàng loạt sẽ được phát triển trong tương lai");
             },
             variant: "destructive" as const,
             icon: (
@@ -203,6 +207,23 @@ export default function ProductsPage() {
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+            ),
+          },
+          {
+            label: `Xuất (${selectedRows.length})`,
+            onClick: () => {
+              console.log("Export selected products:", selectedRows);
+            },
+            variant: "outline" as const,
+            icon: (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                 />
               </svg>
             ),
@@ -249,8 +270,7 @@ export default function ProductsPage() {
         sort={sort}
         onSortChange={setSort}
         onRowClick={(product) => {
-          console.log("Clicked product:", product);
-          // Navigate to product detail or open modal
+          openViewDialog(product);
         }}
         getRowId={(product) => product.id}
         size="md"
@@ -263,8 +283,11 @@ export default function ProductsPage() {
       {/* Selection Summary */}
       {selectedRows.length > 0 && (
         <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <div className="text-sm text-blue-700">
-            Đã chọn <span className="font-semibold">{selectedRows.length}</span> sản phẩm
+          <div className="flex items-center gap-4">
+            <div className="text-sm text-blue-700">
+              Đã chọn <span className="font-semibold">{selectedRows.length}</span> sản phẩm
+            </div>
+            <div className="text-xs text-blue-600">Bạn có thể thực hiện các thao tác hàng loạt với các mục đã chọn</div>
           </div>
           <Button size="sm" variant="ghost" onClick={() => setSelectedRows([])}>
             Bỏ chọn tất cả
@@ -272,5 +295,15 @@ export default function ProductsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+// Main page component with dialog provider
+export default function ProductsPage() {
+  return (
+    <ProductDialogProvider>
+      <ProductsPageContent />
+      <ProductDialog />
+    </ProductDialogProvider>
   );
 }

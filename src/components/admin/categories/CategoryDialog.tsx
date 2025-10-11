@@ -204,136 +204,154 @@ export const CategoryDialog: React.FC = () => {
 
   return (
     <Dialog open={isOpen} onOpenChange={closeDialog}>
-      <DialogContent size="lg">
-        <DialogHeader>
+      <DialogContent
+        size="lg"
+        className="max-h-[90vh] overflow-hidden flex flex-col w-[95vw] sm:w-[90vw] md:w-[85vw] lg:w-[75vw] xl:max-w-2xl"
+      >
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>{getDialogTitle()}</DialogTitle>
           <DialogDescription>{getDialogDescription()}</DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Basic Information */}
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                Tên danh mục <span className="text-red-500">*</span>
-              </label>
-              <Input
-                id="title"
-                type="text"
-                placeholder="Nhập tên danh mục..."
-                disabled={mode === "view"}
-                className={errors.title ? "border-red-300 focus:border-red-500 focus:ring-red-500" : ""}
-                {...register("title")}
-              />
-              {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                Mô tả
-              </label>
-              <Textarea
-                id="description"
-                placeholder="Nhập mô tả danh mục..."
-                disabled={mode === "view"}
-                rows={3}
-                className={errors.description ? "border-red-300 focus:border-red-500 focus:ring-red-500" : ""}
-                {...register("description")}
-              />
-              {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>}
-            </div>
-
-            {/* Image Upload Section */}
-            <div>
-              <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-2">
-                Hình ảnh danh mục
-              </label>
-              <div className="space-y-3">
+        <div className="flex-1 overflow-y-auto px-1 -mx-1">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {/* Basic Information */}
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+                  Tên danh mục <span className="text-red-500">*</span>
+                </label>
                 <Input
-                  id="image"
-                  type="url"
-                  placeholder="Nhập URL hình ảnh..."
+                  id="title"
+                  type="text"
+                  placeholder="Nhập tên danh mục..."
                   disabled={mode === "view"}
-                  className={errors.image ? "border-red-300 focus:border-red-500 focus:ring-red-500" : ""}
-                  {...register("image")}
+                  className={errors.title ? "border-red-300 focus:border-red-500 focus:ring-red-500" : ""}
+                  {...register("title")}
                 />
-                {errors.image && <p className="mt-1 text-sm text-red-600">{errors.image.message}</p>}
+                {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>}
+              </div>
 
-                {/* Image Preview */}
-                {imagePreview && (
-                  <div className="relative w-32 h-32 border-2 border-gray-200 rounded-lg overflow-hidden">
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                      onError={() => setImagePreview("")}
-                    />
-                    {mode !== "view" && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setValue("image", "");
-                          setImagePreview("");
-                        }}
-                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    )}
+              <div>
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                  Mô tả
+                </label>
+                <Textarea
+                  id="description"
+                  placeholder="Nhập mô tả danh mục..."
+                  disabled={mode === "view"}
+                  rows={3}
+                  className={errors.description ? "border-red-300 focus:border-red-500 focus:ring-red-500" : ""}
+                  {...register("description")}
+                />
+                {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>}
+              </div>
+
+              {/* Image Upload Section */}
+              <div>
+                <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-2">
+                  Hình ảnh danh mục
+                </label>
+                <div className="space-y-3">
+                  <Input
+                    id="image"
+                    type="url"
+                    placeholder="Nhập URL hình ảnh..."
+                    disabled={mode === "view"}
+                    className={errors.image ? "border-red-300 focus:border-red-500 focus:ring-red-500" : ""}
+                    {...register("image")}
+                  />
+                  {errors.image && <p className="mt-1 text-sm text-red-600">{errors.image.message}</p>}
+
+                  {/* Image Preview */}
+                  {imagePreview && (
+                    <div className="relative w-32 h-32 border-2 border-gray-200 rounded-lg overflow-hidden">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                        onError={() => setImagePreview("")}
+                      />
+                      {mode !== "view" && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setValue("image", "");
+                            setImagePreview("");
+                          }}
+                          className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Show additional info in view/edit mode */}
+              {mode !== "add" && selectedCategory && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500 mb-1">ID</label>
+                    <p className="text-sm text-gray-900 font-mono">#{selectedCategory.id}</p>
                   </div>
-                )}
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500 mb-1">Ngày tạo</label>
+                    <p className="text-sm text-gray-900">{formatDate(selectedCategory.createdAt)}</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-500 mb-1">Cập nhật lần cuối</label>
+                    <p className="text-sm text-gray-900">{formatDate(selectedCategory.updatedAt)}</p>
+                  </div>
+                </div>
+              )}
             </div>
+          </form>
+        </div>
 
-            {/* Show additional info in view/edit mode */}
-            {mode !== "add" && selectedCategory && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">ID</label>
-                  <p className="text-sm text-gray-900 font-mono">#{selectedCategory.id}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Ngày tạo</label>
-                  <p className="text-sm text-gray-900">{formatDate(selectedCategory.createdAt)}</p>
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Cập nhật lần cuối</label>
-                  <p className="text-sm text-gray-900">{formatDate(selectedCategory.updatedAt)}</p>
-                </div>
-              </div>
+        <DialogFooter className="flex-shrink-0 mt-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between w-full gap-3 sm:gap-2">
+            {/* Delete button on the left (only in view mode) */}
+            {mode === "view" && selectedCategory && (
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => setDeleteDialogOpen(true)}
+                disabled={isSubmitting}
+                className="w-full sm:w-auto"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Xóa danh mục
+              </Button>
             )}
-          </div>
 
-          <DialogFooter>
-            <div className="flex justify-between w-full">
-              {/* Delete button on the left (only in view mode) */}
-              {mode === "view" && selectedCategory && (
+            {/* Action buttons on the right */}
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 sm:ml-auto">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={closeDialog}
+                disabled={isSubmitting}
+                className="w-full sm:w-auto"
+              >
+                {mode === "view" ? "Đóng" : "Hủy"}
+              </Button>
+              {mode !== "view" && (
                 <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={() => setDeleteDialogOpen(true)}
+                  type="submit"
+                  variant="primary"
                   disabled={isSubmitting}
-                  className="mr-auto"
+                  loading={isSubmitting}
+                  className="w-full sm:w-auto"
+                  onClick={handleSubmit(onSubmit)}
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Xóa danh mục
+                  {mode === "add" ? "Thêm danh mục" : "Cập nhật"}
                 </Button>
               )}
-
-              {/* Action buttons on the right */}
-              <div className="flex gap-2 ml-auto">
-                <Button type="button" variant="outline" onClick={closeDialog} disabled={isSubmitting}>
-                  {mode === "view" ? "Đóng" : "Hủy"}
-                </Button>
-                {mode !== "view" && (
-                  <Button type="submit" variant="primary" disabled={isSubmitting} loading={isSubmitting}>
-                    {mode === "add" ? "Thêm danh mục" : "Cập nhật"}
-                  </Button>
-                )}
-              </div>
             </div>
-          </DialogFooter>
-        </form>
+          </div>
+        </DialogFooter>
       </DialogContent>
 
       {/* Confirm Delete Dialog */}

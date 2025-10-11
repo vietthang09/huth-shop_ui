@@ -2,6 +2,8 @@ export { Button } from "./button";
 export { Input } from "./input";
 export { Textarea } from "./textarea";
 export { Select } from "./select";
+export { Autocomplete } from "./autocomplete";
+export type { AutocompleteOption, AutocompleteProps } from "./autocomplete";
 export { TableToolbar, createCommonActions } from "./table-toolbar";
 export type { TableToolbarAction, TableToolbarFilter, TableToolbarProps, FilterOption } from "./table-toolbar";
 export { Table, TableHeader, TableBody, TableRow, TableCell, TableSkeleton, TableEmpty } from "./table";
