@@ -136,7 +136,7 @@ function ProductsPageContent() {
     {
       key: "category",
       header: "Danh mục",
-      render: (value) => <div className="text-sm text-gray-600">{value?.name || "Chưa phân loại"}</div>,
+      render: (value) => <div className="text-sm text-gray-600">{value?.title || "Chưa phân loại"}</div>,
     },
     {
       key: "createdAt",
