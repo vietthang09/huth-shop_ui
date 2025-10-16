@@ -6,6 +6,7 @@ export async function create(data: { title: string; description: string; image: 
 
 export type TCategory = {
   id: number;
+  slug: string;
   title: string;
   description: string;
   image: string;
@@ -20,7 +21,7 @@ export async function findOne(id: number) {
   return axiosInstance.get(`/categories/${id}`);
 }
 
-export async function update(id: number, data: { title: string; description: string; image: string }) {
+export async function update(id: number, data: { title: string; slug: string; description: string; image: string }) {
   return axiosInstance.patch(`/categories/${id}`, data);
 }
 

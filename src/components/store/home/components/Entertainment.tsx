@@ -1,18 +1,30 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ProductCard from "../../common/productCard";
-import { entertainmentProducts, mockProducts } from "../data";
+import { findAllByCategory, TProduct } from "@/services/product";
 
 export default function Entertainment() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
+  const [products, setProducts] = useState<TProduct[]>([]);
 
   // Calculate how many items are visible and total pages
   const itemsPerPage = 4; // Assuming 4 items visible at once
-  const totalPages = Math.ceil(entertainmentProducts.length / itemsPerPage);
+  const totalPages = 1;
+
+  const fetchEntertainmentProducts = async () => {
+    const res = await findAllByCategory("giai-tri");
+    if (res.status === 200) {
+      setProducts(res.data.data);
+    }
+  };
+
+  useEffect(() => {
+    fetchEntertainmentProducts();
+  }, []);
 
   const updateScrollButtons = () => {
     if (scrollContainerRef.current) {
@@ -90,21 +102,13 @@ export default function Entertainment() {
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           onScroll={updateScrollButtons}
         >
-          {entertainmentProducts.map((product, index) => (
+          {products?.map((product, index) => (
             <div
               key={product.id}
               className="group opacity-0 animate-[fadeInUp_0.8s_ease-out_forwards] flex-shrink-0"
               style={{ animationDelay: `${index * 100}ms` }}
             >
-              <ProductCard
-                className="w-72"
-                id={product.sku}
-                sku={product.sku}
-                name={product.title}
-                price={product.lowestPrice}
-                dealPrice={product.lowestPrice}
-                imgUrl={product.image}
-              />
+              <ProductCard className="w-72" product={product} />
             </div>
           ))}
         </div>

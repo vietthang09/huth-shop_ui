@@ -1,7 +1,9 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from "axios";
 import { getToken } from "@/lib/auth-utils";
+import type { InternalAxiosRequestConfig } from "axios";
+import { API_URL } from "@/config";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://b9adf720e82c.ngrok-free.app";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || API_URL;
 
 // Create axios instance with default configuration
 const axiosInstance: AxiosInstance = axios.create({
@@ -13,8 +15,16 @@ const axiosInstance: AxiosInstance = axios.create({
   },
 });
 
+export const axiosPublicInstance: AxiosInstance = axios.create({
+  baseURL: BASE_URL,
+  timeout: 10000, // 10 seconds timeout
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
+});
+
 // Request interceptor to add authentication token and logging
-import type { InternalAxiosRequestConfig } from "axios";
 
 axiosInstance.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {

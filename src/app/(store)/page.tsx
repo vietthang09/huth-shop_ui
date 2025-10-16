@@ -93,15 +93,11 @@ export default function Home() {
       {/* End Recently Visit */}
 
       {/* Best Selling */}
-      <div className="bg-gray-200 py-10 px-4 2xl:px-0">
-        <BestSelling />
-      </div>
+      <div className="bg-gray-200 py-10 px-4 2xl:px-0">{/* <BestSelling /> */}</div>
       {/* End Best Selling */}
 
       {/* Trending */}
-      <div className="max-w-7xl mx-auto flex flex-col gap-4 px-4 2xl:px-0">
-        <Trending />
-      </div>
+      <div className="max-w-7xl mx-auto flex flex-col gap-4 px-4 2xl:px-0">{/* <Trending /> */}</div>
       {/* End Trending */}
 
       {/* Entertainment */}
@@ -111,9 +107,7 @@ export default function Home() {
       {/* End Entertainment */}
 
       {/* Working */}
-      <div className="max-w-7xl mx-auto flex flex-col gap-4 px-4 2xl:px-0">
-        <Working />
-      </div>
+      <div className="max-w-7xl mx-auto flex flex-col gap-4 px-4 2xl:px-0">{/* <Working /> */}</div>
       {/* End Working */}
 
       {/* Partner */}

@@ -27,6 +27,7 @@ const categorySchema = z.object({
     .min(2, "Tên danh mục phải có ít nhất 2 ký tự")
     .max(100, "Tên danh mục không được vượt quá 100 ký tự")
     .trim(),
+  slug: z.string().min(2, "Slug phải có ít nhất 2 ký tự").max(100, "Slug không được vượt quá 100 ký tự").trim(),
   description: z.string().max(500, "Mô tả không được vượt quá 500 ký tự").trim(),
   image: z.string().url("URL hình ảnh không hợp lệ").optional().or(z.literal("")),
 });
@@ -110,6 +111,7 @@ export const CategoryDialog: React.FC = () => {
     try {
       const payload = {
         title: data.title.trim(),
+        slug: data.slug.trim(),
         description: data.description.trim(),
         image: data.image?.trim() || "",
       };
@@ -230,6 +232,21 @@ export const CategoryDialog: React.FC = () => {
                   {...register("title")}
                 />
                 {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>}
+              </div>
+
+              <div>
+                <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-2">
+                  Slug <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  id="slug"
+                  type="text"
+                  placeholder="Nhập slug danh mục..."
+                  disabled={mode === "view"}
+                  className={errors.slug ? "border-red-300 focus:border-red-500 focus:ring-red-500" : ""}
+                  {...register("slug")}
+                />
+                {errors.slug && <p className="mt-1 text-sm text-red-600">{errors.slug.message}</p>}
               </div>
 
               <div>

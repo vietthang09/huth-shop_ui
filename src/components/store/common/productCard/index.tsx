@@ -5,33 +5,18 @@ import Link from "next/link";
 import { cn } from "@/shared/utils/styling";
 import { BadgePercent, Heart, ShoppingCart, Star } from "lucide-react";
 import { fCurrency } from "@/shared/utils/format-number";
+import { TProduct } from "@/services/product";
+import ProductPlaceholderImage from "../product-placeholder-image";
 
 type ProductCardProps = {
-  id: string;
-  sku: string;
-  name: string;
-  imgUrl: string;
-  price: number;
-  dealPrice?: number;
-  isAvailable?: boolean;
-  staticWidth?: boolean;
-  cardColor?: string;
+  product: TProduct;
   className?: string;
+  staticWidth?: boolean;
 };
 
-const ProductCard = ({
-  id,
-  sku,
-  name,
-  imgUrl,
-  price,
-  dealPrice,
-  isAvailable = true,
-  staticWidth = false,
-  className,
-}: ProductCardProps) => {
-  const discountPercentage = dealPrice ? Math.round(100 - (dealPrice / price) * 100) : 0;
-
+const ProductCard = ({ product, className, staticWidth = false }: ProductCardProps) => {
+  // const discountPercentage = dealPrice ? Math.round(100 - (dealPrice / price) * 100) : 0;
+  const lowestVariantPrice = Math.min(...product.variants.map((variant) => variant.retailPrice));
   return (
     <div
       className={cn(
@@ -52,34 +37,38 @@ const ProductCard = ({
       )} */}
 
       {/* Out of stock overlay */}
-      {!isAvailable && (
+      {/* {!isAvailable && (
         <div className="absolute inset-0 bg-black/40 backdrop-blur-sm z-30 flex items-center justify-center rounded-3xl">
           <div className="bg-white/95 text-gray-800 font-medium px-6 py-3 rounded-2xl shadow-lg border border-gray-200">
             Hết hàng
           </div>
         </div>
-      )}
+      )} */}
 
-      <Link href={`/san-pham/${sku}`} className="relative z-10 p-6 block">
+      <Link href={`/san-pham/${product.sku}`} className="relative z-10 p-6 block">
         {/* Product Image and Info */}
         <div className="flex items-start gap-5 mb-6">
           {/* Product Image */}
           <div className="flex-shrink-0 relative">
             <div className="w-24 h-24 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl flex items-center justify-center border border-gray-200/50 transition-all duration-300 overflow-hidden">
-              <Image
-                src={imgUrl}
-                alt={name}
-                width={80}
-                height={80}
-                className="h-full w-full object-cover rounded-2xl"
-              />
+              {product.images && product.images.length > 0 ? (
+                <Image
+                  src={""}
+                  alt={product.title}
+                  width={80}
+                  height={80}
+                  className="h-full w-full object-cover rounded-2xl"
+                />
+              ) : (
+                <ProductPlaceholderImage />
+              )}
             </div>
           </div>
 
           {/* Product Info */}
           <div className="flex-1 min-w-0">
             <h3 className="text-gray-800 font-semibold text-base leading-relaxed group-hover:text-blue-600 transition-colors duration-300 mb-3 line-clamp-2">
-              {name}
+              {product.title}
             </h3>
 
             {/* Price */}
@@ -91,7 +80,9 @@ const ProductCard = ({
                 </div>
               ) : (
               )} */}
-              <span className="text-blue-600 font-bold text-xl">{fCurrency(price, { currency: "VND" })}</span>
+              <span className="text-blue-600 font-bold text-xl">
+                {fCurrency(lowestVariantPrice, { currency: "VND" })}
+              </span>
             </div>
           </div>
         </div>

@@ -476,7 +476,7 @@ export const ProductDialog: React.FC = () => {
 
     try {
       const productData = {
-        sku: formData.sku.trim().toUpperCase(),
+        sku: formData.sku.trim().toLowerCase(),
         title: formData.title.trim(),
         description: formData.description.trim() || "",
         categoryId: parseInt(formData.categoryId),

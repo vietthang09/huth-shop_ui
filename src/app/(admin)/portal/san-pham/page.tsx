@@ -23,7 +23,7 @@ function ProductsPageContent() {
     try {
       const response = await findAll();
       if (response.status === 200) {
-        const data = response.data as TProduct[];
+        const data = response.data.data as TProduct[];
         setProducts(data);
         setFilteredProducts(data);
       }
