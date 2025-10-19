@@ -1,33 +1,47 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCartStore } from "@/store/cartStore";
 import { useRouter } from "next/navigation";
-
-const BANKS = [
-  { label: "MB Bank", value: "mbbank", qrCode: "https://i.ibb.co/60vtZDD8/image.png" },
-  { label: "Momo", value: "momo", qrCode: "https://i.ibb.co/60vtZDD8/image.png" },
-  { label: "Viettel Pay", value: "viettelpay", qrCode: "https://i.ibb.co/60vtZDD8/image.png" },
-];
+import { generateVietQR, TVietQR } from "@/services/external";
+import QRCode from "qrcode";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [selectedBank, setSelectedBank] = useState("");
-  const [touched, setTouched] = useState(false);
   const { cartItems } = useCartStore();
-  if (cartItems.length === 0) {
-    return <div className="text-center text-gray-500 mt-20">Giỏ hàng của bạn đang trống.</div>;
-  }
-  const cartTotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const [qrCode, setQrCode] = useState<string | null>(null);
 
-  const isEmailValid = email.match(/^\S+@\S+\.\S+$/);
+  const cartTotal = cartItems.reduce((sum, item) => {
+    const variant = item.variantId ? item.product.variants?.find((v) => v.id === item.variantId) : null;
+    const price = variant?.retailPrice || 0;
+    return sum + price * item.quantity;
+  }, 0);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setTouched(true);
-    if (!isEmailValid || !selectedBank) return;
     router.push("/thanh-toan/thanh-cong");
+  }
+
+  const fetchQRCode = async () => {
+    if (cartTotal <= 0) return; // Don't generate QR code if cart total is 0
+
+    const res = await generateVietQR(cartTotal, `Thanh toan don hang`);
+    if (res.status === 200) {
+      const data = res.data as TVietQR;
+      QRCode.toDataURL(data.qrCode, (err, url) => {
+        setQrCode(url);
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchQRCode();
+  }, [cartTotal]);
+  if (cartItems.length === 0) {
+    return <div className="text-center text-gray-500 mt-20">Giỏ hàng của bạn đang trống.</div>;
+  }
+  if (!qrCode) {
+    return <div className="text-center text-gray-500 mt-20">Đang tải mã QR...</div>;
   }
 
   return (
@@ -39,15 +53,22 @@ export default function CheckoutPage() {
         ) : (
           <>
             <ul className="divide-y divide-gray-100 mb-6">
-              {cartItems.map((item) => (
-                <li key={item.id} className="flex items-center justify-between py-3">
-                  <div>
-                    <div className="font-medium text-gray-900">{item.name}</div>
-                    <div className="text-xs text-gray-500">Số lượng: {item.quantity}</div>
-                  </div>
-                  <div className="font-semibold text-blue-700">{(item.price * item.quantity).toLocaleString()}₫</div>
-                </li>
-              ))}
+              {cartItems.map((item) => {
+                const variant = item.variantId ? item.product.variants?.find((v) => v.id === item.variantId) : null;
+                const price = variant?.retailPrice || 0;
+                const itemName = `${item.product.title} - ${variant?.title}`;
+                const itemKey = `${item.product.id}-${item.variantId || "default"}`;
+
+                return (
+                  <li key={itemKey} className="flex items-center justify-between py-3">
+                    <div>
+                      <div className="font-medium text-gray-900">{itemName}</div>
+                      <div className="text-xs text-gray-500">Số lượng: {item.quantity}</div>
+                    </div>
+                    <div className="font-semibold text-blue-700">{(price * item.quantity).toLocaleString()}₫</div>
+                  </li>
+                );
+              })}
             </ul>
             <div className="flex justify-between font-bold text-lg">
               <span>Tổng cộng</span>
@@ -58,73 +79,21 @@ export default function CheckoutPage() {
       </div>
       <div className="w-full p-4 border border-gray-200 rounded-2xl shadow-lg bg-white/90 backdrop-blur mb-10 md:mb-0 order-1 lg:order-2">
         <h2 className="text-lg font-extrabold mb-8 text-center tracking-tight">Thanh toán</h2>
-        <form className="space-y-7" onSubmit={handleSubmit} autoComplete="off">
+        <div className="space-y-7">
           <div>
-            <label htmlFor="email" className="block text-sm font-semibold mb-2 text-gray-700">
-              Bước 1: Điền email nhận hóa đơn
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onBlur={() => setTouched(true)}
-              className={`w-full border px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition ${
-                touched && !isEmailValid ? "border-red-500" : "border-gray-300"
-              }`}
-              placeholder="Nhập email của bạn"
-              required
-            />
-            {touched && !isEmailValid && <p className="text-xs text-red-500 mt-1">Vui lòng nhập email hợp lệ.</p>}
-          </div>
-          <div>
-            <label className="block text-sm font-semibold mb-2 text-gray-700">
-              Bước 2: Chọn ngân hàng và chuyển khoản
-            </label>
-            <div className="flex flex-col gap-3">
-              {BANKS.map((bank) => (
-                <label
-                  key={bank.value}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg border cursor-pointer transition\n                    ${
-                    selectedBank === bank.value ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-blue-300"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="bank"
-                    value={bank.value}
-                    checked={selectedBank === bank.value}
-                    onChange={() => setSelectedBank(bank.value)}
-                    className="accent-blue-600"
-                    required
-                  />
-                  <span className="font-medium text-gray-800">{bank.label}</span>
-                </label>
-              ))}
-            </div>
-            {touched && !selectedBank && <p className="text-xs text-red-500 mt-1">Vui lòng chọn ngân hàng.</p>}
-            {selectedBank && (
-              <div className="flex flex-col items-center mt-6">
-                <span className="text-sm text-gray-700 mb-2">Quét mã QR để thanh toán:</span>
-                <img
-                  src={BANKS.find((b) => b.value === selectedBank)?.qrCode}
-                  alt="QR code thanh toán"
-                  className="w-48 h-48 object-contain border rounded-lg shadow"
-                />
-              </div>
-            )}
+            <label className="block text-sm font-semibold mb-2 text-gray-700">Bước 1: Chuyển khoản</label>
+            <img className="mx-auto" src={qrCode} />
           </div>
           <label className="block text-sm font-semibold mb-2 text-gray-700">
-            Bước 3: Bấm nút "Xác nhận" bên dưới đề hoàn thành đơn hàng
+            Bước 2: Bấm nút "Xác nhận" bên dưới đề hoàn thành đơn hàng
           </label>
           <button
             type="submit"
             className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white py-2.5 rounded-lg font-bold text-lg shadow hover:from-blue-700 hover:to-blue-600 transition disabled:opacity-60"
-            disabled={!isEmailValid || !selectedBank}
           >
             Xác nhận
           </button>
-        </form>
+        </div>
       </div>
     </div>
   );

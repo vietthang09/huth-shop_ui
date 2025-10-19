@@ -1,23 +1,23 @@
+import { TProduct } from "../services/product";
+
 export type TApiError = {
   statusCode: number;
   error: string;
   message: string | string[];
 };
 
-export interface Product {
-  id: number;
-  name: string;
-  price: number;
-}
-
-export interface CartItem extends Product {
+export interface CartItem {
+  product: TProduct;
   quantity: number;
+  variantId?: number;
 }
 
 export interface CartState {
   cartItems: CartItem[];
-  addToCart: (product: Product) => void;
-  removeFromCart: (productId: number) => void;
-  updateQuantity: (productId: number, quantity: number) => void;
+  addToCart: (product: TProduct, variantId?: number) => void;
+  removeFromCart: (productId: number, variantId?: number) => void;
+  updateQuantity: (productId: number, quantity: number, variantId?: number) => void;
   clearCart: () => void;
+  getTotalItems: () => number;
+  getTotalPrice: () => number;
 }

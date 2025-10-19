@@ -8,13 +8,20 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { signIn } from "next-auth/react";
 import { useAuth } from "@/hooks/useAuth";
+import { register as registerUser } from "@/services/auth";
 
-const loginSchema = z.object({
+const registerSchema = z.object({
+  firstName: z.string().min(1, "Họ là bắt buộc").min(2, "Họ phải có ít nhất 2 ký tự"),
+  lastName: z.string().min(1, "Tên là bắt buộc").min(2, "Tên phải có ít nhất 2 ký tự"),
   email: z.string().min(1, "Email là bắt buộc").email("Email không hợp lệ"),
   password: z.string().min(1, "Mật khẩu là bắt buộc").min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+  confirmPassword: z.string().min(1, "Xác nhận mật khẩu là bắt buộc"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Mật khẩu xác nhận không khớp",
+  path: ["confirmPassword"],
 });
 
-type LoginFormData = z.infer<typeof loginSchema>;
+type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
@@ -31,8 +38,8 @@ export default function Page() {
     handleSubmit,
     formState: { errors, isValid },
     reset,
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
     mode: "onChange",
   });
 
@@ -54,7 +61,7 @@ export default function Page() {
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             ></path>
           </svg>
-          <span className="text-blue-600 font-medium">Đang kiểm tra đăng nhập...</span>
+          <span className="text-blue-600 font-medium">Đang kiểm tra...</span>
         </div>
       </div>
     );
@@ -66,10 +73,21 @@ export default function Page() {
     return null;
   }
 
-  const onSubmit = async (data: LoginFormData) => {
+  const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
 
     try {
+      // Register the user
+      const response = await registerUser({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        password: data.password,
+      });
+
+      toast.success("Đăng ký thành công! Đang đăng nhập...");
+
+      // Auto sign in after successful registration
       const result = await signIn("credentials", {
         email: data.email,
         password: data.password,
@@ -77,19 +95,21 @@ export default function Page() {
       });
 
       if (result?.error) {
-        toast.error("Email hoặc mật khẩu không đúng");
+        toast.error("Đăng ký thành công nhưng không thể đăng nhập tự động. Vui lòng đăng nhập thủ công.");
+        router.push("/dang-nhap");
       } else if (result?.ok) {
-        toast.success("Đăng nhập thành công!");
         reset();
-
-        // Redirect based on user role or redirect param
-        // The middleware will handle role-based redirects
         router.push(redirectUrl);
         router.refresh();
       }
     } catch (error: any) {
-      console.error("Login error:", error);
-      toast.error("Đã có lỗi xảy ra. Vui lòng thử lại.");
+      console.error("Registration error:", error);
+      
+      if (error.response?.status === 409) {
+        toast.error("Email đã được sử dụng. Vui lòng chọn email khác.");
+      } else {
+        toast.error("Đã có lỗi xảy ra. Vui lòng thử lại.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -105,20 +125,112 @@ export default function Page() {
             <div className="mx-auto h-16 w-auto flex justify-center mb-6">
               <img className="h-16 w-auto drop-shadow-sm" src="/images/logo.png" alt="Huth Shop" />
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Chào mừng trở lại</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">Tạo tài khoản mới</h2>
             <p className="text-gray-600">
-              {searchParams.get("redirect") ? "Vui lòng đăng nhập để tiếp tục" : "Đăng nhập để tiếp tục mua sắm"}
+              Đăng ký để bắt đầu mua sắm tại Huth Shop
             </p>
-            {searchParams.get("redirect") && (
-              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-700">Bạn cần đăng nhập để truy cập trang này</p>
-              </div>
-            )}
           </div>
 
           {/* Login Form */}
           <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-5">
+              {/* Name Fields */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* First Name Field */}
+                <div>
+                  <label htmlFor="firstName" className="block text-sm font-semibold text-gray-700 mb-2">
+                    Họ
+                  </label>
+                  <div className="relative">
+                    <input
+                      {...register("firstName")}
+                      type="text"
+                      placeholder="Nguyễn"
+                      className={`
+                        login-input w-full px-4 py-3 rounded-xl border-2 transition-all duration-200
+                        text-gray-900 placeholder-gray-400 
+                        focus:outline-none focus:ring-0
+                        ${
+                          errors.firstName
+                            ? "border-red-300 focus:border-red-500 bg-red-50"
+                            : "border-gray-200 focus:border-blue-500 bg-white hover:border-gray-300"
+                        }
+                      `}
+                    />
+                    {errors.firstName && (
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <svg className="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path
+                            fillRule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  {errors.firstName && (
+                    <p className="mt-2 text-sm text-red-600 flex items-center">
+                      <svg className="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      {errors.firstName.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Last Name Field */}
+                <div>
+                  <label htmlFor="lastName" className="block text-sm font-semibold text-gray-700 mb-2">
+                    Tên
+                  </label>
+                  <div className="relative">
+                    <input
+                      {...register("lastName")}
+                      type="text"
+                      placeholder="Văn A"
+                      className={`
+                        login-input w-full px-4 py-3 rounded-xl border-2 transition-all duration-200
+                        text-gray-900 placeholder-gray-400 
+                        focus:outline-none focus:ring-0
+                        ${
+                          errors.lastName
+                            ? "border-red-300 focus:border-red-500 bg-red-50"
+                            : "border-gray-200 focus:border-blue-500 bg-white hover:border-gray-300"
+                        }
+                      `}
+                    />
+                    {errors.lastName && (
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <svg className="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path
+                            fillRule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  {errors.lastName && (
+                    <p className="mt-2 text-sm text-red-600 flex items-center">
+                      <svg className="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      {errors.lastName.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+
               {/* Email Field */}
               <div>
                 <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
@@ -243,17 +355,54 @@ export default function Page() {
                   </p>
                 )}
               </div>
-            </div>
 
-            {/* Forgot Password Link */}
-            {/* <div className="flex items-center justify-end">
-              <a
-                href="/quen-mat-khau"
-                className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors duration-200"
-              >
-                Quên mật khẩu?
-              </a>
-            </div> */}
+              {/* Confirm Password Field */}
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Xác nhận mật khẩu
+                </label>
+                <div className="relative">
+                  <input
+                    {...register("confirmPassword")}
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    className={`
+                      login-input w-full px-4 py-3 pr-12 rounded-xl border-2 transition-all duration-200
+                      text-gray-900 placeholder-gray-400 
+                      focus:outline-none focus:ring-0
+                      ${
+                        errors.confirmPassword
+                          ? "border-red-300 focus:border-red-500 bg-red-50"
+                          : "border-gray-200 focus:border-blue-500 bg-white hover:border-gray-300"
+                      }
+                    `}
+                  />
+                  {errors.confirmPassword && (
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                {errors.confirmPassword && (
+                  <p className="mt-2 text-sm text-red-600 flex items-center">
+                    <svg className="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    {errors.confirmPassword.message}
+                  </p>
+                )}
+              </div>
+            </div>
 
             {/* Submit Button */}
             <button
@@ -291,10 +440,10 @@ export default function Page() {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  <span>Đang đăng nhập...</span>
+                  <span>Đang đăng ký...</span>
                 </>
               ) : (
-                <span>Đăng nhập</span>
+                <span>Đăng ký</span>
               )}
             </button>
 
@@ -308,14 +457,14 @@ export default function Page() {
               </div>
             </div>
 
-            {/* Sign up link */}
+            {/* Sign in link */}
             <p className="text-center text-sm text-gray-600">
-              Chưa có tài khoản?{" "}
+              Đã có tài khoản?{" "}
               <a
-                href="/dang-ky"
+                href="/dang-nhap"
                 className="font-semibold text-blue-600 hover:text-blue-700 transition-colors duration-200"
               >
-                Đăng ký ngay
+                Đăng nhập ngay
               </a>
             </p>
           </form>
@@ -323,7 +472,7 @@ export default function Page() {
 
         {/* Footer */}
         <p className="mt-8 text-center text-xs text-gray-500">
-          Bằng việc đăng nhập, bạn đồng ý với{" "}
+          Bằng việc đăng ký, bạn đồng ý với{" "}
           <a href="/dieu-khoan" className="text-blue-600 hover:text-blue-700">
             Điều khoản sử dụng
           </a>{" "}

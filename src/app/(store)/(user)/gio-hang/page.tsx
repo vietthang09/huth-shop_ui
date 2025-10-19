@@ -1,10 +1,11 @@
 "use client";
 
 import { ArrowRight, Trash } from "lucide-react";
-import { useCartStore } from "../../../store/cartStore";
+import { useCartStore } from "@/store/cartStore";
 import { fCurrency } from "@/shared/utils/format-number";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui";
 
 export default function Page() {
   const router = useRouter();
@@ -14,9 +15,9 @@ export default function Page() {
 
   useEffect(() => {
     setSelectedIds((prev) => {
-      const validIds = prev.filter((id) => cartItems.some((item) => item.id === id));
+      const validIds = prev.filter((id) => cartItems.some((item) => item.product.id === id));
       if (validIds.length === 0 && cartItems.length > 0) {
-        return [cartItems[0].id];
+        return [cartItems[0].product.id];
       }
       return validIds;
     });
@@ -27,7 +28,7 @@ export default function Page() {
     if (allSelected) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(cartItems.map((item) => item.id));
+      setSelectedIds(cartItems.map((item) => item.product.id));
     }
   };
 
@@ -39,8 +40,13 @@ export default function Page() {
     selectedIds.forEach((id) => removeFromCart(id));
   };
 
-  const selectedItems = cartItems.filter((item) => selectedIds.includes(item.id));
-  const subtotal = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const selectedItems = cartItems.filter((item) => selectedIds.includes(item.product.id));
+  const subtotal = selectedItems.reduce((sum, item) => {
+    // Get price from variant if available
+    const variant = item.variantId ? item.product.variants?.find((v) => v.id === item.variantId) : null;
+    const price = variant?.retailPrice || 0;
+    return sum + price * item.quantity;
+  }, 0);
   const totalAmount = subtotal;
 
   return (
@@ -69,47 +75,56 @@ export default function Page() {
         {cartItems.length === 0 ? (
           <div className="text-center text-gray-500">Giỏ hàng của bạn đang trống.</div>
         ) : (
-          cartItems.map((item) => (
-            <div key={item.id} className="bg-white rounded shadow p-6 flex items-center gap-4">
-              <input
-                type="checkbox"
-                checked={selectedIds.includes(item.id)}
-                onChange={() => handleSelectItem(item.id)}
-                className="w-5 h-5"
-                aria-label={`Select ${item.name}`}
-              />
-              <div className="flex-1">
-                <div className="font-semibold text-lg">{item.name}</div>
-                <div className="flex items-center gap-2 mt-4">
-                  <button
-                    className="w-8 h-8 rounded-full border border-gray-300 bg-gray-100 text-lg font-bold flex items-center justify-center transition hover:bg-gray-200 hover:border-gray-400 active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-black/30 disabled:opacity-50 disabled:cursor-not-allowed"
-                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                    disabled={item.quantity <= 1}
-                    aria-label="Giảm số lượng"
-                  >
-                    -
-                  </button>
-                  <span className="font-medium mx-2 select-none min-w-[2ch] text-center">{item.quantity}</span>
-                  <button
-                    className="w-8 h-8 rounded-full border border-gray-300 bg-gray-100 text-lg font-bold flex items-center justify-center transition hover:bg-gray-200 hover:border-gray-400 active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-black/30"
-                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                    aria-label="Tăng số lượng"
-                  >
-                    +
-                  </button>
+          cartItems.map((item) => {
+            const variant = item.variantId ? item.product.variants?.find((v) => v.id === item.variantId) : null;
+            const price = variant?.retailPrice || 0;
+            const itemKey = `${item.product.id}-${item.variantId || "default"}`;
+
+            return (
+              <div key={itemKey} className="bg-white rounded shadow p-6 flex items-center gap-4">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.includes(item.product.id)}
+                  onChange={() => handleSelectItem(item.product.id)}
+                  className="w-5 h-5"
+                  aria-label={`Select ${item.product.title}`}
+                />
+                <div className="flex-1">
+                  <div className="font-semibold text-lg">{item.product.title}</div>
+                  {variant && <div className="text-sm text-gray-600 mt-1">{variant.title}</div>}
+                  <div className="flex items-center gap-2 mt-4">
+                    <button
+                      className="w-8 h-8 rounded-full border border-gray-300 bg-gray-100 text-lg font-bold flex items-center justify-center transition hover:bg-gray-200 hover:border-gray-400 active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-black/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.variantId)}
+                      disabled={item.quantity <= 1}
+                      aria-label="Giảm số lượng"
+                    >
+                      -
+                    </button>
+                    <span className="font-medium mx-2 select-none min-w-[2ch] text-center">{item.quantity}</span>
+                    <button
+                      className="w-8 h-8 rounded-full border border-gray-300 bg-gray-100 text-lg font-bold flex items-center justify-center transition hover:bg-gray-200 hover:border-gray-400 active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-black/30"
+                      onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.variantId)}
+                      aria-label="Tăng số lượng"
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div className="text-right">
-                <div className="text-xs text-gray-400">Tổng</div>
-                <div className="font-semibold text-lg">
-                  {fCurrency(item.price * item.quantity, { currency: "VND" })}
+                <div className="text-right">
+                  <div className="text-xs text-gray-400">Tổng</div>
+                  <div className="font-semibold text-lg">{fCurrency(price * item.quantity, { currency: "VND" })}</div>
                 </div>
+                <button
+                  className="text-red-400 cursor-pointer"
+                  title="Delete"
+                  onClick={() => removeFromCart(item.product.id, item.variantId)}
+                >
+                  <Trash className="size-4" />
+                </button>
               </div>
-              <button className="text-red-400 cursor-pointer" title="Delete" onClick={() => removeFromCart(item.id)}>
-                <Trash className="size-4" />
-              </button>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
@@ -126,16 +141,9 @@ export default function Page() {
             <span>Tổng cộng</span>
             <span>{fCurrency(totalAmount, { currency: "VND" })}</span>
           </div>
-          <button
-            className="w-full bg-black text-white py-2 rounded-2xl flex items-center justify-center gap-2 text-base font-medium"
-            disabled={selectedItems.length === 0}
-            onClick={() => router.push("/thanh-toan")}
-          >
-            Thanh toán{" "}
-            <span className="text-xl">
-              <ArrowRight />
-            </span>
-          </button>
+          <Button disabled={selectedItems.length === 0} onClick={() => router.push("/thanh-toan")} className="w-full">
+            Thanh toán <ArrowRight className="ml-2 w-4" />
+          </Button>
         </div>
       </div>
     </div>

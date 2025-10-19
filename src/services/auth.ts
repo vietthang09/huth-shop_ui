@@ -16,3 +16,7 @@ type TLoginResponse = {
 export function login(data: { email: string; password: string }) {
   return axiosInstance.post<TLoginResponse>(`${API_URL}/auth/login`, data);
 }
+
+export function register(data: { email: string; password: string; firstName: string; lastName: string }) {
+  return axiosInstance.post<TLoginResponse>(`${API_URL}/auth/register`, data);
+}

@@ -12,6 +12,7 @@ import { useRecentlyVisited } from "@/hooks/useRecentlyVisited";
 import { useCartStore } from "@/store/cartStore";
 import { findOne, findOneBySku, TProduct } from "@/services/product";
 import ProductPlaceholderImage from "@/components/store/common/product-placeholder-image";
+import { useAuth } from "@/hooks/useAuth";
 
 const ProductPage = () => {
   const router = useRouter();
@@ -36,13 +37,12 @@ const ProductPage = () => {
       setError(null);
       try {
         const res = await findOneBySku(sku);
-        const productData = res.data;
-        console.log("Product Data:", productData);
-        if (productData) {
+        if (res.status === 200) {
+          const productData = res.data as TProduct;
           setProductInfo(productData);
-          // Auto-select the first variant if available
-          if (productData.properties && productData.properties.length > 0) {
-            setSelectedVariant(productData.properties[0].id);
+
+          if (productData.variants && productData.variants.length > 0) {
+            setSelectedVariant(productData.variants[0].id);
           }
 
           // Add to recently visited products
@@ -60,8 +60,6 @@ const ProductPage = () => {
           //   })),
           //   category: productData.category,
           // });
-        } else {
-          setProductInfo(null); // Product not found
         }
       } catch (err) {
         console.error("Error fetching product:", err);
@@ -295,6 +293,8 @@ const PurchaseSection = ({
   getSelectedVariantPrice: () => number;
   totalPrice: number;
 }) => {
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
   const { addToCart } = useCartStore();
   return (
     <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 sticky top-8">
@@ -342,19 +342,14 @@ const PurchaseSection = ({
           </p>
         </div>
 
-        {/* Purchase Button */}
-        <button
-          className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-4 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 cursor-pointer"
-          onClick={() => {
-            window.open("https://www.facebook.com/profile.php?id=61577923558579", "_blank");
-          }}
-        >
-          Mua ngay
-        </button>
         <button
           className="flex items-center justify-center gap-2 border w-full p-4 rounded hover:bg-gray-100 transition-colors cursor-pointer"
           onClick={() => {
-            addToCart({ id: product.id, name: product.title, price: getSelectedVariantPrice() });
+            if (!isAuthenticated) {
+              router.push("/dang-nhap");
+            } else {
+              addToCart(product, selectedVariant || undefined);
+            }
           }}
         >
           <ShoppingCart className="w-5 h-5" /> Thêm vào giỏ hàng
