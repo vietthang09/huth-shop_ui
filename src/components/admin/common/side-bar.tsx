@@ -47,27 +47,27 @@ const navigationSections: NavSection[] = [
     items: [
       { name: "Sản phẩm", href: "/portal/san-pham", icon: Package },
       { name: "Danh mục", href: "/portal/danh-muc", icon: Tag },
-      { name: "Đơn hàng", href: "/portal/orders", icon: ShoppingCart, badge: 5 },
+      { name: "Đơn hàng", href: "/portal/don-hang", icon: ShoppingCart, badge: 5 },
       { name: "Khách hàng", href: "/portal/customers", icon: Users },
       { name: "Nhà cung cấp", href: "/portal/nha-cung-cap", icon: Clipboard },
     ],
   },
-  {
-    title: "Nội dung",
-    items: [
-      { name: "Bài viết", href: "/portal/blog", icon: FileText },
-      { name: "Thư viện Media", href: "/portal/media", icon: ImageIcon },
-      { name: "Đánh giá", href: "/portal/reviews", icon: Star },
-    ],
-  },
-  {
-    title: "Hệ thống",
-    items: [
-      { name: "Người dùng", href: "/portal/users", icon: User },
-      { name: "Cài đặt", href: "/portal/settings", icon: Settings },
-      { name: "Logs", href: "/portal/logs", icon: FileSpreadsheet },
-    ],
-  },
+  // {
+  //   title: "Nội dung",
+  //   items: [
+  //     { name: "Bài viết", href: "/portal/blog", icon: FileText },
+  //     { name: "Thư viện Media", href: "/portal/media", icon: ImageIcon },
+  //     { name: "Đánh giá", href: "/portal/reviews", icon: Star },
+  //   ],
+  // },
+  // {
+  //   title: "Hệ thống",
+  //   items: [
+  //     { name: "Người dùng", href: "/portal/users", icon: User },
+  //     { name: "Cài đặt", href: "/portal/settings", icon: Settings },
+  //     { name: "Logs", href: "/portal/logs", icon: FileSpreadsheet },
+  //   ],
+  // },
 ];
 
 export default function SideBar() {

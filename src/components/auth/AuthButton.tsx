@@ -2,20 +2,17 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { signIn } from "next-auth/react";
+import Link from "next/link";
 
 export function AuthButton() {
-  const { user, isAuthenticated, signOut } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   if (isAuthenticated) {
     return (
       <div className="flex items-center space-x-4">
-        <span className="text-sm text-gray-700">Welcome, {user?.name || user?.email}</span>
-        <button
-          onClick={() => signOut()}
-          className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 cursor-pointer"
-        >
-          Đăng xuất
-        </button>
+        <Link href="/ca-nhan" className="textw-white">
+          Trang cá nhân
+        </Link>
       </div>
     );
   }

@@ -5,11 +5,15 @@ import { useCartStore } from "@/store/cartStore";
 import { useRouter } from "next/navigation";
 import { generateVietQR, TVietQR } from "@/services/external";
 import QRCode from "qrcode";
+import { Button } from "@/components/ui";
+import { createOrder } from "@/services/order";
+import { toast } from "sonner";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { cartItems } = useCartStore();
   const [qrCode, setQrCode] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const cartTotal = cartItems.reduce((sum, item) => {
     const variant = item.variantId ? item.product.variants?.find((v) => v.id === item.variantId) : null;
@@ -17,10 +21,29 @@ export default function CheckoutPage() {
     return sum + price * item.quantity;
   }, 0);
 
-  function handleSubmit(e: React.FormEvent) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    router.push("/thanh-toan/thanh-cong");
-  }
+    try {
+      setLoading(true);
+      const order = await createOrder(
+        cartItems.map((item) => ({
+          productId: item.product.id,
+          variantId: item.variantId || 0,
+          quantity: item.quantity,
+        }))
+      );
+      if (order.status === 201) {
+        useCartStore.getState().clearCart();
+        router.push("/thanh-toan/thanh-cong");
+      } else {
+        toast.error("Đã có lỗi xảy ra khi tạo đơn hàng. Vui lòng thử lại.");
+      }
+    } catch (error) {
+      toast.error("Đã có lỗi xảy ra khi tạo đơn hàng. Vui lòng thử lại.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchQRCode = async () => {
     if (cartTotal <= 0) return; // Don't generate QR code if cart total is 0
@@ -42,6 +65,10 @@ export default function CheckoutPage() {
   }
   if (!qrCode) {
     return <div className="text-center text-gray-500 mt-20">Đang tải mã QR...</div>;
+  }
+
+  if (loading) {
+    return <div className="text-center text-gray-500 mt-20">Đang xử lý đơn hàng...</div>;
   }
 
   return (
@@ -87,12 +114,9 @@ export default function CheckoutPage() {
           <label className="block text-sm font-semibold mb-2 text-gray-700">
             Bước 2: Bấm nút "Xác nhận" bên dưới đề hoàn thành đơn hàng
           </label>
-          <button
-            type="submit"
-            className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white py-2.5 rounded-lg font-bold text-lg shadow hover:from-blue-700 hover:to-blue-600 transition disabled:opacity-60"
-          >
+          <Button type="submit" className="w-full" onClick={handleSubmit}>
             Xác nhận
-          </button>
+          </Button>
         </div>
       </div>
     </div>
