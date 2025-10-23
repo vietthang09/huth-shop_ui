@@ -1,28 +1,10 @@
-// Define the product type based on the existing structure
-export interface RecentlyVisitedProduct {
-  id: number;
-  sku: string;
-  title: string;
-  image: string | null;
-  cardColor?: string;
-  properties: Array<{
-    id: number;
-    retailPrice: number;
-    salePrice?: number;
-    attributeName: string;
-  }>;
-  category: {
-    id: number;
-    name: string;
-    slug: string;
-  };
-}
+import { TProduct } from "@/services/product";
 
 const STORAGE_KEY = "recently-visited-products";
 const MAX_RECENT_PRODUCTS = 10;
 
 // Utility functions for localStorage operations
-export const getRecentlyVisitedProducts = (): RecentlyVisitedProduct[] => {
+export const getRecentlyVisitedProducts = (): TProduct[] => {
   if (typeof window === "undefined") return [];
 
   try {
@@ -34,7 +16,7 @@ export const getRecentlyVisitedProducts = (): RecentlyVisitedProduct[] => {
   }
 };
 
-export const addRecentlyVisitedProduct = (product: RecentlyVisitedProduct): void => {
+export const addRecentlyVisitedProduct = (product: TProduct): void => {
   if (typeof window === "undefined") return;
 
   try {

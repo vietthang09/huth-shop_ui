@@ -24,6 +24,7 @@ import {
   LogOut,
   LucideIcon,
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface NavItem {
   name: string;
@@ -47,8 +48,7 @@ const navigationSections: NavSection[] = [
     items: [
       { name: "Sản phẩm", href: "/portal/san-pham", icon: Package },
       { name: "Danh mục", href: "/portal/danh-muc", icon: Tag },
-      { name: "Đơn hàng", href: "/portal/don-hang", icon: ShoppingCart, badge: 5 },
-      { name: "Khách hàng", href: "/portal/customers", icon: Users },
+      { name: "Đơn hàng", href: "/portal/don-hang", icon: ShoppingCart },
       { name: "Nhà cung cấp", href: "/portal/nha-cung-cap", icon: Clipboard },
     ],
   },
@@ -71,6 +71,7 @@ const navigationSections: NavSection[] = [
 ];
 
 export default function SideBar() {
+  const { signOut } = useAuth();
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -79,6 +80,10 @@ export default function SideBar() {
       return pathname === href;
     }
     return pathname.startsWith(href);
+  };
+
+  const handleSignOut = () => {
+    signOut();
   };
 
   return (
@@ -196,14 +201,20 @@ export default function SideBar() {
             )}
 
             {!isCollapsed && (
-              <button className="flex-shrink-0 p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors">
+              <button
+                className="flex-shrink-0 p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
+                onClick={handleSignOut}
+              >
                 <LogOut className="w-4 h-4" />
               </button>
             )}
 
             {/* Tooltip for collapsed logout button */}
             {isCollapsed && (
-              <button className="group relative p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors">
+              <button
+                className="group relative p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
+                onClick={handleSignOut}
+              >
                 <LogOut className="w-4 h-4" />
                 <div className="absolute left-full bottom-0 ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50">
                   Logout

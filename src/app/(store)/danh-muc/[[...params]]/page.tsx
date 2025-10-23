@@ -25,8 +25,8 @@ import {
   workingProducts,
   mockProducts,
 } from "@/components/store/home/data";
-import ProductCard from "@/components/store/common/productCard";
 import Link from "next/link";
+import ProductCard from "@/components/store/common/ProductCard";
 
 interface ProductType {
   id: number;
@@ -296,14 +296,7 @@ const ListPage = () => {
             }`}
           >
             {filteredProducts.map((product, index) => (
-              <ProductCard
-                id={product.sku}
-                sku={product.sku}
-                name={product.title}
-                price={product.lowestPrice || 0}
-                dealPrice={product.lowestSalePrice || undefined}
-                imgUrl={product.image || "/images/placeholder.svg"}
-              />
+              <ProductCard product={product} />
             ))}
           </div>
         ) : (

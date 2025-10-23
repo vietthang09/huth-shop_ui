@@ -1,7 +1,7 @@
 "use client";
 
-import ProductCard from "../../common/productCard";
 import { useRecentlyVisited } from "@/hooks/useRecentlyVisited";
+import ProductCard from "../../common/ProductCard";
 
 export default function RecentlyVisit() {
   const { getRecentProducts, clearHistory, isClient } = useRecentlyVisited();
@@ -11,9 +11,9 @@ export default function RecentlyVisit() {
     return (
       <div className="h-full space-y-2">
         <div className="w-full relative">
-          <h2 className="text-center text-2xl text-gray-800 font-medium">Đã xem gần đây</h2>
+          <h2 className="text-center text-2xl font-bold">Đã xem gần đây.</h2>
         </div>
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-5 gap-4">
           {/* Loading skeleton */}
           {[1, 2, 3].map((index) => (
             <div key={index} className="animate-pulse">
@@ -50,22 +50,9 @@ export default function RecentlyVisit() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         {recentProducts.map((product, index) => (
-          <div
-            key={product.id}
-            className="group opacity-0 animate-[fadeInUp_0.8s_ease-out_forwards]"
-            style={{ animationDelay: `${index * 100}ms` }}
-          >
-            <ProductCard
-              id={product.sku}
-              sku={product.sku}
-              name={product.title}
-              price={product.properties[0]?.retailPrice || 0}
-              dealPrice={product.properties[0]?.salePrice}
-              imgUrl={product.image || ""}
-            />
-          </div>
+          <ProductCard key={product.id} product={product} />
         ))}
       </div>
     </div>

@@ -1,5 +1,4 @@
-import StoreNavBar from "@/components/store/navbar";
-
+import StoreNavBar from "@/components/store/common/store-nav-bar";
 import StoreFooter from "./../../components/store/footer/index";
 import { Metadata } from "next";
 
@@ -11,7 +10,7 @@ const StoreLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <StoreNavBar />
-      <main className="bg-slate-50 min-h-screen">{children}</main>
+      <main className="bg-white min-h-screen max-w-7xl mx-auto px-4">{children}</main>
       <StoreFooter />
     </>
   );

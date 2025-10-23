@@ -1,50 +1,17 @@
 "use client";
 
-import BestSelling from "@/components/store/home/components/BestSelling";
+import BuyingFlow from "@/components/store/home/components/BuyingFlow";
 import Entertainment from "@/components/store/home/components/Entertainment";
+import HighLight from "@/components/store/home/components/HighLight";
 import Partnership from "@/components/store/home/components/Partnership";
 import RecentlyVisit from "@/components/store/home/components/RecentlyVisit";
-import Trending from "@/components/store/home/components/Trending";
 import Working from "@/components/store/home/components/Working";
 import { Bot, Cloud, Computer, Globe, Link, Music, PenLine, Phone, Play } from "lucide-react";
 
 export default function Home() {
-  const categories = [
-    {
-      title: "Âm nhạc",
-      icon: <Music className="size-8" />,
-      slug: "am-nhac",
-    },
-    {
-      title: "Phim ảnh",
-      icon: <Play className="size-8" />,
-      slug: "phim-anh",
-    },
-    {
-      title: "Công việc",
-      icon: <Computer className="size-8" />,
-      slug: "cong-viec",
-    },
-    {
-      title: "A.I",
-      icon: <Bot className="size-8" />,
-      slug: "ai",
-    },
-    {
-      title: "Đồ họa",
-      icon: <PenLine className="size-8" />,
-      slug: "do-hoa",
-    },
-    {
-      title: "Lữu trữ",
-      icon: <Cloud className="size-8" />,
-      slug: "luu-tru",
-    },
-  ];
   return (
     <div className="space-y-4">
-      {/* Hero */}
-      <section className="bg-gradient-to-br from-[#1d4ed8] via-[#2563eb] to-[#1e3a8a] lg:min-h-[40vh] flex items-stretch px-4 2xl:px-0">
+      <section className="bg-gradient-to-br from-[#1d4ed8] via-[#2563eb] to-[#1e3a8a] lg:min-h-[40vh] flex items-stretch px-4 2xl:px-0 rounded-xl">
         <div className="pt-20 max-w-7xl w-full mx-auto self-end">
           <div className="flex flex-col lg:flex-row items-center justify-between">
             <div>
@@ -70,51 +37,34 @@ export default function Home() {
               src="https://assets.g2g.com/ui/img/banners/G2G-550x550-20250509.webp"
             />
           </div>
-
-          <div className="flex overflow-x-auto">
-            {categories.map((category, index) => (
-              <Link
-                key={index}
-                href={`/danh-muc/${category.slug}`}
-                className="group mt-6 w-32 inline-block text-white hover:text-gray-800 hover:bg-white text-gray-900 p-6 rounded-t-xl text-sm font-semibold cursor-pointer"
-              >
-                <div className="flex justify-center group-hover:text-blue-500">{category.icon}</div>
-                <p className="mt-2 text-center">{category.title}</p>
-              </Link>
-            ))}
-          </div>
         </div>
       </section>
-      {/* End Hero */}
-      {/* Recently Visit */}
-      <div className="max-w-7xl mx-auto flex flex-col gap-4 px-4 2xl:px-0">
+
+      <div className="max-w-5xl mx-auto">
         <RecentlyVisit />
       </div>
-      {/* End Recently Visit */}
 
-      {/* Best Selling */}
       <div className="bg-gray-200 py-10 px-4 2xl:px-0">{/* <BestSelling /> */}</div>
-      {/* End Best Selling */}
 
-      {/* Trending */}
+      <HighLight />
+
       <div className="max-w-7xl mx-auto flex flex-col gap-4 px-4 2xl:px-0">{/* <Trending /> */}</div>
-      {/* End Trending */}
 
-      {/* Entertainment */}
-      <div className="max-w-7xl mx-auto flex flex-col gap-4 px-4 2xl:px-0">
+      <div className="mt-20 max-w-5xl mx-auto">
         <Entertainment />
       </div>
-      {/* End Entertainment */}
 
-      {/* Working */}
-      <div className="max-w-7xl mx-auto flex flex-col gap-4 px-4 2xl:px-0">{/* <Working /> */}</div>
-      {/* End Working */}
+      <div className="mt-20 max-w-5xl mx-auto">
+        <Working />
+      </div>
 
-      {/* Partner */}
       <div className="bg-gradient-to-br from-[#1d4ed8] via-[#2563eb] to-[#1e3a8a] py-10 px-4 2xl:px-0">
         <Partnership />
       </div>
-      {/* End Partner */}
+
+      <div className="mt-20 max-w-5xl mx-auto">
+        <BuyingFlow />
+      </div>
     </div>
   );
 }

@@ -3,13 +3,15 @@
 import { useEffect, useState } from "react";
 import { TableToolbar, createCommonActions, Table, Button } from "@/components/ui";
 import type { TableToolbarFilter, TableColumn, TableSort } from "@/components/ui";
-import { SupplierDialogProvider, useSupplierDialog, SupplierDialog } from "@/components/admin/suppliers";
+
 import { toast } from "sonner";
 import { findAll, TOrder } from "@/services/order";
 import { fCurrency } from "@/shared/utils/format-number";
 import { TUser } from "@/services/user";
+import { OrderDialog, OrderDialogProvider, useOrderDialog } from "@/components/admin/orders";
 // Inner component that uses the dialog context
 function OrdersPageContent() {
+  const { openAddDialog, openEditDialog, openViewDialog } = useOrderDialog();
   const [orders, setOrders] = useState<(TOrder & { user: TUser })[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<(TOrder & { user: TUser })[]>([]);
   const [selectedRows, setSelectedRows] = useState<(string | number)[]>([]);
@@ -132,7 +134,7 @@ function OrdersPageContent() {
           <Button
             onClick={(e) => {
               e.stopPropagation();
-              // openViewDialog(row);
+              openViewDialog(row);
             }}
           >
             Chi tiết
@@ -247,12 +249,11 @@ function OrdersPageContent() {
   );
 }
 
-// Main page component with dialog provider
 export default function SuppliersPage() {
   return (
-    <OrdersPageContent />
-    // <SupplierDialogProvider>
-    //   <SupplierDialog />
-    // </SupplierDialogProvider>
+    <OrderDialogProvider>
+      <OrdersPageContent />
+      <OrderDialog />
+    </OrderDialogProvider>
   );
 }

@@ -17,6 +17,7 @@ import { Trash2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { fCurrency } from "@/shared/utils/format-number";
 
 // Zod schema for order validation
 const orderSchema = z.object({
@@ -143,13 +144,13 @@ export const OrderDialog: React.FC = () => {
   const getDialogTitle = () => {
     switch (mode) {
       case "add":
-        return "Thêm nhà cung cấp mới";
+        return "Tạo đơn hàng mới";
       case "edit":
-        return "Chỉnh sửa nhà cung cấp";
+        return "Chỉnh sửa đơn hàng";
       case "view":
-        return "Chi tiết nhà cung cấp";
+        return "Chi tiết đơn hàng";
       default:
-        return "Nhà cung cấp";
+        return "Đơn hàng";
     }
   };
 
@@ -157,11 +158,11 @@ export const OrderDialog: React.FC = () => {
   const getDialogDescription = () => {
     switch (mode) {
       case "add":
-        return "Điền thông tin để thêm nhà cung cấp mới vào hệ thống.";
+        return "Điền thông tin để tạo đơn hàng mới vào hệ thống.";
       case "edit":
-        return "Cập nhật thông tin nhà cung cấp.";
+        return "Cập nhật thông tin đơn hàng.";
       case "view":
-        return `Thông tin chi tiết của nhà cung cấp ${selectedOrder?.id || ""}.`;
+        return `Thông tin chi tiết của đơn hàng #${selectedOrder?.id || ""}.`;
       default:
         return "";
     }
@@ -170,7 +171,7 @@ export const OrderDialog: React.FC = () => {
   return (
     <Dialog open={isOpen} onOpenChange={closeDialog}>
       <DialogContent
-        size="lg"
+        size="2xl"
         className="max-h-[90vh] overflow-hidden flex flex-col w-[95vw] sm:w-[90vw] md:w-[75vw] lg:w-[65vw] xl:max-w-xl"
       >
         <DialogHeader className="flex-shrink-0">
@@ -182,27 +183,31 @@ export const OrderDialog: React.FC = () => {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Basic Information */}
             <div className="space-y-4">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                  Tên nhà cung cấp <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Nhập tên nhà cung cấp..."
-                  disabled={mode === "view"}
-                  className={errors.name ? "border-red-300 focus:border-red-500 focus:ring-red-500" : ""}
-                  {...register("name")}
-                />
-                {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>}
-              </div>
-
+              {selectedOrder?.orderItems.map((item) => (
+                <div key={item.id}>
+                  <p>
+                    {item.product.title} - {item.variant.title}
+                  </p>
+                  <p>Số lượng: {item.quantity}</p>
+                  <p>Giá: {fCurrency(item.total, { currency: "VND" })}</p>
+                </div>
+              ))}
               {/* Show additional info in view/edit mode */}
               {mode !== "add" && selectedOrder && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
                   <div>
                     <label className="block text-sm font-medium text-gray-500 mb-1">ID</label>
                     <p className="text-sm text-gray-900 font-mono">#{selectedOrder.id}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500 mb-1">Tên khách hàng</label>
+                    <p className="text-sm text-gray-900 font-mono">
+                      {selectedOrder.user.firstName || ""} {selectedOrder.user.lastName || ""}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500 mb-1">Email</label>
+                    <p className="text-sm text-gray-900 font-mono">{selectedOrder.user.email || "N/A"}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-500 mb-1">Ngày tạo</label>
@@ -230,7 +235,7 @@ export const OrderDialog: React.FC = () => {
                 className="w-full sm:w-auto"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                Xóa nhà cung cấp
+                Xóa đơn hàng
               </Button>
             )}
 

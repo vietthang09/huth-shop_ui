@@ -1,12 +1,18 @@
 import axiosInstance from "./axiosInstance";
+import { TSupplier } from "./supplier";
 
 export type TProductVariant = {
   id: number;
   productId: number;
   title: string;
+  description: string | null;
   netPrice: number;
   retailPrice: number;
+  salePrice: number | null;
+  createdAt: string;
+  updatedAt: string;
   supplierId: number;
+  supplier: TSupplier;
 };
 
 export async function create(data: {

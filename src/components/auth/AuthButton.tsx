@@ -2,27 +2,22 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { signIn } from "next-auth/react";
-import Link from "next/link";
+import { Button } from "../ui";
 
 export function AuthButton() {
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
-  if (isAuthenticated) {
+  if (isAuthenticated && user) {
     return (
-      <div className="flex items-center space-x-4">
-        <Link href="/ca-nhan" className="textw-white">
-          Trang cá nhân
-        </Link>
+      <div className="size-8 flex items-center justify-center text-center border border-[2px] text-gray-800 border-gray-400 rounded-full">
+        {user.name?.charAt(0)}
       </div>
     );
   }
 
   return (
-    <button
-      onClick={() => signIn(undefined, { callbackUrl: "/" })}
-      className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 cursor-pointer"
-    >
-      Đăng nhập
-    </button>
+    <Button onClick={() => signIn(undefined, { callbackUrl: "/" })} variant="outline">
+      Đăng nhập / Đăng ký
+    </Button>
   );
 }

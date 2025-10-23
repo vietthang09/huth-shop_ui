@@ -24,8 +24,14 @@ export const axiosPublicInstance: AxiosInstance = axios.create({
   },
 });
 
-// Request interceptor to add authentication token and logging
+axiosPublicInstance.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  if (config.headers) {
+    config.headers["ngrok-skip-browser-warning"] = "true";
+  }
+  return config;
+});
 
+// Request interceptor to add authentication token and logging
 axiosInstance.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     if (config.headers) {

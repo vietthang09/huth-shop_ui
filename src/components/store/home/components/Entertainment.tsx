@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import ProductCard from "../../common/productCard";
+import ProductCard from "../../common/ProductCard";
 import { findAllByCategory, TProduct } from "@/services/product";
 
 export default function Entertainment() {
@@ -65,7 +65,7 @@ export default function Entertainment() {
 
   return (
     <div className="h-full">
-      <h2 className="text-center text-3xl lg:text-4xl font-bold text-blue-500 mb-2 tracking-tight">Giải trí</h2>
+      <h2 className="text-center text-3xl lg:text-4xl font-bold mb-2 tracking-tight">Giải trí.</h2>
       <p className="text-center text-gray-600 mb-8 text-sm lg:text-base">
         Khám phá các sản phẩm giải trí hàng đầu, từ phim ảnh đến trò chơi điện tử, mang đến trải nghiệm giải trí tuyệt
         vời nhất.
@@ -108,7 +108,7 @@ export default function Entertainment() {
               className="group opacity-0 animate-[fadeInUp_0.8s_ease-out_forwards] flex-shrink-0"
               style={{ animationDelay: `${index * 100}ms` }}
             >
-              <ProductCard className="w-72" product={product} />
+              <ProductCard className="w-56" product={product} />
             </div>
           ))}
         </div>

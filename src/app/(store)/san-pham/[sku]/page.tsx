@@ -7,7 +7,6 @@ import parse from "html-react-parser";
 import Image from "next/image";
 import { ChevronRight, ShoppingCart, MessageCircle, Shield, Clock, Mail, Star } from "lucide-react";
 import { fCurrency } from "@/shared/utils/format-number";
-import ProductCard from "@/components/store/common/productCard";
 import { useRecentlyVisited } from "@/hooks/useRecentlyVisited";
 import { useCartStore } from "@/store/cartStore";
 import { findOne, findOneBySku, TProduct } from "@/services/product";
@@ -46,20 +45,7 @@ const ProductPage = () => {
           }
 
           // Add to recently visited products
-          // addProduct({
-          //   id: productData.id,
-          //   sku: productData.sku,
-          //   title: productData.title,
-          //   image: productData.image,
-          //   cardColor: productData.cardColor,
-          //   properties: productData.properties.map((prop: any) => ({
-          //     id: prop.id,
-          //     retailPrice: prop.retailPrice,
-          //     salePrice: prop.salePrice,
-          //     attributeName: prop.attributeName,
-          //   })),
-          //   category: productData.category,
-          // });
+          addProduct(productData);
         }
       } catch (err) {
         console.error("Error fetching product:", err);
