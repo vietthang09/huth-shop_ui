@@ -10,7 +10,7 @@ const StoreLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <StoreNavBar />
-      <main className="bg-white min-h-screen max-w-7xl mx-auto px-4">{children}</main>
+      <main className="bg-white min-h-screen max-w-7xl mx-auto">{children}</main>
       <StoreFooter />
     </>
   );

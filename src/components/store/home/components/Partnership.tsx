@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui";
+
 export default function Partnership() {
   return (
     <div className="h-full flex flex-col lg:flex-row items-center justify-center gap-10">
@@ -10,7 +12,7 @@ export default function Partnership() {
         </h2>
         <p>Trở thành đối tác của chúng tôi để nhận mức giá ưu đãi đặc biệt và hỗ trợ chuyên nghiệp hàng đầu!</p>
       </div>
-      <button>Trở thành đối tác</button>
+      <Button>Trở thành đối tác</Button>
     </div>
   );
 }

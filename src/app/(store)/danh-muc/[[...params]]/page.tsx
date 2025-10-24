@@ -27,30 +27,10 @@ import {
 } from "@/components/store/home/data";
 import Link from "next/link";
 import ProductCard from "@/components/store/common/ProductCard";
-
-interface ProductType {
-  id: number;
-  title: string;
-  sku: string;
-  description?: string;
-  keywords?: string;
-  image?: string | null;
-  cardColor?: string | null;
-  properties: Array<{
-    retailPrice: number | any; // Using any to handle Prisma Decimal type
-    salePrice?: number | null | any; // Using any to handle Prisma Decimal type
-  }>;
-  isAvailable?: boolean;
-  supplier?: { name: string } | null;
-  category?: { name: string; slug: string } | null;
-  categoryId?: number | null;
-  supplierId?: number | null;
-  lowestPrice?: number; // Added for category API response
-  lowestSalePrice?: number | null; // Added for category API response
-}
+import { TProduct } from "@/services/product";
 
 const ListPage = () => {
-  const [products, setProducts] = useState<ProductType[]>([]);
+  const [products, setProducts] = useState<TProduct[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("default");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -111,46 +91,8 @@ const ListPage = () => {
   const currentCategory = pathname.split("/")[2];
   const searchQuery = searchParams.get("q") || "";
 
-  // Filter and sort products
-  const filteredProducts = products
-    .filter((product) => {
-      const searchInText = (text: string, query: string) => {
-        return text.toLowerCase().includes(query.toLowerCase());
-      };
-
-      const matchesSearch = searchTerm
-        ? searchInText(product.title, searchTerm) ||
-          (product.keywords && searchInText(product.keywords, searchTerm)) ||
-          (product.description && searchInText(product.description, searchTerm)) ||
-          (product.category?.name && searchInText(product.category.name, searchTerm))
-        : true;
-
-      const matchesQuery = searchQuery
-        ? searchInText(product.title, searchQuery) ||
-          (product.keywords && searchInText(product.keywords, searchQuery)) ||
-          (product.description && searchInText(product.description, searchQuery)) ||
-          (product.category?.name && searchInText(product.category.name, searchQuery))
-        : true;
-
-      return matchesSearch && matchesQuery;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "price-low":
-          return (a.lowestPrice || 0) - (b.lowestPrice || 0);
-        case "price-high":
-          return (b.lowestPrice || 0) - (a.lowestPrice || 0);
-        case "name":
-          return a.title.localeCompare(b.title);
-        default:
-          return 0;
-      }
-    });
-
   useEffect(() => {
     if (searchQuery) {
-      // If there's a search query, load all products from mockProducts
-      setProducts(mockProducts);
       setSearchTerm(searchQuery);
     } else {
       // Otherwise, load products for the specific category
@@ -188,11 +130,11 @@ const ListPage = () => {
                   ? `Kết quả tìm kiếm: "${searchQuery}"`
                   : categoryMapping.get(currentCategory) || "Danh mục"}
               </h1>
-              <p className="text-gray-600 text-sm sm:text-base">
+              {/* <p className="text-gray-600 text-sm sm:text-base">
                 {searchQuery
                   ? `Tìm thấy ${filteredProducts.length} sản phẩm cho "${searchQuery}"`
                   : `Khám phá ${filteredProducts.length} sản phẩm chất lượng cao`}
-              </p>
+              </p> */}
             </div>
 
             {/* Search and Controls */}
@@ -283,19 +225,19 @@ const ListPage = () => {
         {searchTerm && (
           <div className="mb-6 p-4 bg-blue-50/50 rounded-xl border border-blue-200/50">
             <p className="text-blue-800">
-              Tìm thấy <span className="font-semibold">{filteredProducts.length}</span> kết quả cho "{searchTerm}"
+              {/* Tìm thấy <span className="font-semibold">{filteredProducts.length}</span> kết quả cho "{searchTerm}" */}
             </p>
           </div>
         )}
 
         {/* Product Grid */}
-        {filteredProducts.length > 0 ? (
+        {products.length > 0 ? (
           <div
             className={`grid gap-4 sm:gap-6 ${
               viewMode === "grid" ? "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" : "grid-cols-1"
             }`}
           >
-            {filteredProducts.map((product, index) => (
+            {products.map((product, index) => (
               <ProductCard product={product} />
             ))}
           </div>

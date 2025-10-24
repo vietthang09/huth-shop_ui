@@ -2,6 +2,11 @@
 
 @import "tailwindcss";
 
+@theme {
+  --color-black: #252525;
+  --color-primary: #c7000b;
+}
+
 * {
   font-family: "Nunito", sans-serif;
 }

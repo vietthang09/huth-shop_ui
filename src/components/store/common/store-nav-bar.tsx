@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Clock, Menu, X, ShoppingBag } from "lucide-react";
+import { Search, Clock, Menu, X, ShoppingBag, Phone, SmilePlus, HeartHandshake } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { mockProducts } from "@/components/store/home/data";
@@ -204,16 +204,27 @@ const StoreNavBar = () => {
   ];
 
   return (
-    <nav
-      className={cn("sticky top-0 z-50 w-full px-4 2xl:px-0 py-2 bg-white", (isScrolled || !isHomePage) && "shadow")}
-    >
-      <div className="max-w-7xl mx-auto w-full relative flex justify-between items-center gap-4">
+    <nav>
+      <div className="bg-black px-4 text-white py-2 text-sm flex justify-between items-center">
+        <Link href="/" className="hover:underline">
+          Trở thành đối tác
+        </Link>
+        <div className="space-x-4">
+          <Link href="/" className="hover:underline">
+            <SmilePlus className="inline-block size-4 mr-1" /> Chế độ bảo hành
+          </Link>
+          <Link href="/" className="hover:underline">
+            <HeartHandshake className="inline-block size-4 mr-1" /> Liên hệ hỗ trợ
+          </Link>
+        </div>
+      </div>
+      <div className="px-4 py-2 max-w-7xl mx-auto w-full relative flex justify-between items-center gap-4">
         <Link
           href="/"
           className="rounded font-semibold text-xl transition-colors duration-300"
           aria-label="Go to homepage"
         >
-          HuthShop
+          <img src="/images/logo-transparent.png" className="w-20" />
         </Link>
         <div className="flex w-full justify-between items-center">
           <ul className="flex text-nowrap gap-4">
@@ -236,7 +247,7 @@ const StoreNavBar = () => {
                   onChange={(e) => setSearchValue(e.target.value)}
                   onFocus={() => setIsFocused(true)}
                 />
-                <button type="submit" className="bg-sky-700 p-2 rounded-full cursor-pointer" aria-label="Submit search">
+                <button type="submit" className="bg-primary p-2 rounded-full cursor-pointer" aria-label="Submit search">
                   <Search className="text-white w-4 h-4" />
                 </button>
               </div>
