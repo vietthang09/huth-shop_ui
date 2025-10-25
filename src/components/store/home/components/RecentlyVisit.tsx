@@ -1,7 +1,7 @@
 "use client";
 
 import { useRecentlyVisited } from "@/hooks/useRecentlyVisited";
-import ProductCard from "../../common/productCard";
+import ProductCard from "../../common/ProductCard";
 
 export default function RecentlyVisit() {
   const { getRecentProducts, clearHistory, isClient } = useRecentlyVisited();

@@ -368,7 +368,7 @@ export const ProductDialog: React.FC = () => {
       return;
     }
 
-    const newVariant: TProductVariant = {
+    const newVariant: any = {
       id: editingVariant?.id || -Date.now(), // Use negative timestamp for new variants
       productId: selectedProduct?.id || 0, // Will be set after product creation
       title: variantFormData.title.trim(),

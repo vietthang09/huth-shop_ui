@@ -1,7 +1,7 @@
 "use client";
 
 import { findAllByCategory, TProduct } from "@/services/product";
-import ProductCard from "../../common/productCard";
+import ProductCard from "../../common/ProductCard";
 import { useEffect, useState } from "react";
 
 export default function BestSelling() {

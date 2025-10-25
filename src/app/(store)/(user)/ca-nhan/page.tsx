@@ -1,19 +1,19 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { getMyOrders, Order } from "@/services/order";
+import { getMyOrders, TOrder } from "@/services/order";
 import { Table } from "@/components/ui/table";
 import { fCurrency } from "@/shared/utils/format-number";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui";
 export default function Page() {
   const { signOut } = useAuth();
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<TOrder[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     getMyOrders()
-      .then((res: { data: Order[] }) => {
+      .then((res: { data: TOrder[] }) => {
         setOrders(res.data);
         setLoading(false);
       })
@@ -79,7 +79,7 @@ export default function Page() {
             header: "Sản phẩm",
             render: (_, row) => (
               <ul className="list-none m-0 p-0">
-                {row.orderItems.map((item: Order["orderItems"][0]) => (
+                {row.orderItems.map((item: TOrder["orderItems"][0]) => (
                   <li key={item.id} className="mb-1">
                     <span className="font-medium">#{item.productId}</span> (Biến thể #{item.variantId}) x{item.quantity}
                   </li>
