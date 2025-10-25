@@ -20,12 +20,6 @@ export const metadata: Metadata = {
     locale: "vi_VN",
     type: "website",
   },
-  twitter: {
-    card: "summary_large_image",
-    title: "Trang cá nhân | HuthShop",
-    description: "Quản lý thông tin cá nhân, đơn hàng, và các hoạt động mua sắm của bạn tại HuthShop.",
-    images: ["/images/avatars/default-avatar.png"],
-  },
 };
 
 const ProfileLayout = ({ children }: { children: React.ReactNode }) => {

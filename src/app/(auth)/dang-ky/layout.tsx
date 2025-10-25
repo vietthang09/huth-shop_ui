@@ -13,12 +13,6 @@ export const metadata: Metadata = {
     type: "website",
     locale: "vi_VN",
   },
-  twitter: {
-    card: "summary_large_image",
-    title: "Đăng Ký - Huth Shop",
-    description:
-      "Tạo tài khoản Huth Shop để mua sắm các sản phẩm công nghệ, phần mềm và phụ kiện chính hãng với giá tốt nhất.",
-  },
   robots: {
     index: false,
     follow: true,

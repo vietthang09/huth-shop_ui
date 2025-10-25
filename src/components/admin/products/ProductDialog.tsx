@@ -15,6 +15,7 @@ import {
 import type { AutocompleteOption } from "@/components/ui";
 import { useProductDialog } from "./ProductDialogContext";
 import { create, update, remove } from "@/services/product";
+import { uploadFile } from "@/services/cloud";
 import { findAll as findAllCategories, TCategory } from "@/services/category";
 import { findAll as findAllSuppliers, TSupplier } from "@/services/supplier";
 import * as productVariantService from "@/services/product-variants";
@@ -22,6 +23,7 @@ import { TProductVariant } from "@/services/product-variants";
 import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
 import { toast } from "sonner";
 import { Trash2, Upload, X, Plus, Edit3, DollarSign } from "lucide-react";
+import { fCurrency } from "@/shared/utils/format-number";
 
 type FormData = {
   sku: string;
@@ -475,11 +477,24 @@ export const ProductDialog: React.FC = () => {
     setIsSubmitting(true);
 
     try {
+      // Upload new image files and get URLs
+      let uploadedImageUrls: string[] = [];
+      if (imageFiles.length > 0) {
+        const uploadResults = await Promise.all(imageFiles.map((file) => uploadFile(file)));
+        uploadedImageUrls = uploadResults.map((res) => res.data?.url || "").filter(Boolean);
+      }
+
+      // Combine existing image URLs (from imagePreviewUrls that are not previews) and new uploaded URLs
+      // If imagePreviewUrls contains both previews and URLs, filter out previews (base64)
+      const existingUrls = imagePreviewUrls.filter((url) => url.startsWith("http"));
+      const allImageUrls = [...existingUrls, ...uploadedImageUrls];
+
       const productData = {
         sku: formData.sku.trim().toLowerCase(),
         title: formData.title.trim(),
         description: formData.description.trim() || "",
         categoryId: parseInt(formData.categoryId),
+        images: allImageUrls,
       };
 
       let productId: number;
@@ -523,11 +538,6 @@ export const ProductDialog: React.FC = () => {
           const hasVariantChanges = toDelete.length > 0 || toCreate.length > 0 || toUpdate.length > 0;
 
           if (hasVariantChanges) {
-            console.log("Variant changes detected:", {
-              toDelete: toDelete.length,
-              toCreate: toCreate.length,
-              toUpdate: toUpdate.length,
-            });
             const apiCalls: Promise<any>[] = [];
 
             // Delete removed variants
@@ -568,8 +578,6 @@ export const ProductDialog: React.FC = () => {
 
             // Execute all API calls
             await Promise.all(apiCalls);
-          } else {
-            console.log("No variant changes detected - skipping variant API calls");
           }
 
           toast.success("Cập nhật sản phẩm thành công");
@@ -806,13 +814,13 @@ export const ProductDialog: React.FC = () => {
                               <div>
                                 <p className="text-sm font-medium text-gray-600">Giá nhập</p>
                                 <p className="text-sm text-gray-900 font-mono">
-                                  {variant.netPrice.toLocaleString("vi-VN")} ₫
+                                  {fCurrency(variant.netPrice, { currency: "VND" })}
                                 </p>
                               </div>
                               <div>
                                 <p className="text-sm font-medium text-gray-600">Giá bán</p>
                                 <p className="text-sm text-gray-900 font-mono">
-                                  {variant.retailPrice.toLocaleString("vi-VN")} ₫
+                                  {fCurrency(variant.retailPrice, { currency: "VND" })}
                                 </p>
                               </div>
                               <div>

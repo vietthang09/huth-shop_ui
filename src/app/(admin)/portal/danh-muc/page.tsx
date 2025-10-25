@@ -7,7 +7,6 @@ import type { TableToolbarFilter, TableColumn, TableSort } from "@/components/ui
 import { CategoryDialogProvider, useCategoryDialog, CategoryDialog } from "@/components/admin/categories";
 import { toast } from "sonner";
 
-// Inner component that uses the dialog context
 function CategoriesPageContent() {
   const { openAddDialog, openEditDialog, openViewDialog } = useCategoryDialog();
 

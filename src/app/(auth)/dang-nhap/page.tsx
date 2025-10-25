@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { signIn } from "next-auth/react";
 import { useAuth } from "@/hooks/useAuth";
+import { Button, Input } from "@/components/ui";
 
 const loginSchema = z.object({
   email: z.string().min(1, "Email là bắt buộc").email("Email không hợp lệ"),
@@ -20,12 +21,7 @@ export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-
-  // Get redirect URL from query params
-  const redirectUrl = searchParams.get("redirect") || "/";
-
   const {
     register,
     handleSubmit,
@@ -60,12 +56,6 @@ export default function Page() {
     );
   }
 
-  // Redirect if already authenticated
-  if (isAuthenticated) {
-    router.push(redirectUrl);
-    return null;
-  }
-
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
 
@@ -81,10 +71,6 @@ export default function Page() {
       } else if (result?.ok) {
         toast.success("Đăng nhập thành công!");
         reset();
-
-        // Redirect based on user role or redirect param
-        // The middleware will handle role-based redirects
-        router.push(redirectUrl);
         router.refresh();
       }
     } catch (error: any) {
@@ -106,14 +92,7 @@ export default function Page() {
               <img className="h-16 w-auto drop-shadow-sm" src="/images/logo.png" alt="Huth Shop" />
             </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-2">Chào mừng trở lại</h2>
-            <p className="text-gray-600">
-              {searchParams.get("redirect") ? "Vui lòng đăng nhập để tiếp tục" : "Đăng nhập để tiếp tục mua sắm"}
-            </p>
-            {searchParams.get("redirect") && (
-              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-700">Bạn cần đăng nhập để truy cập trang này</p>
-              </div>
-            )}
+            <p className="text-gray-600">Đăng nhập để tiếp tục mua sắm</p>
           </div>
 
           {/* Login Form */}
@@ -125,7 +104,7 @@ export default function Page() {
                   Địa chỉ email
                 </label>
                 <div className="relative">
-                  <input
+                  <Input
                     {...register("email")}
                     type="email"
                     placeholder="name@example.com"
@@ -172,7 +151,7 @@ export default function Page() {
                   Mật khẩu
                 </label>
                 <div className="relative">
-                  <input
+                  <Input
                     {...register("password")}
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
@@ -256,19 +235,7 @@ export default function Page() {
             </div> */}
 
             {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isLoading || !isValid}
-              className={`
-                w-full py-3 px-4 rounded-xl font-semibold text-white transition-all duration-200
-                flex items-center justify-center space-x-2
-                ${
-                  isLoading || !isValid
-                    ? "bg-gray-300 cursor-not-allowed"
-                    : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-blue-200 transform hover:scale-[1.02] active:scale-[0.98]"
-                }
-              `}
-            >
+            <Button type="submit" disabled={isLoading || !isValid} className="w-full">
               {isLoading ? (
                 <>
                   <svg
@@ -296,18 +263,7 @@ export default function Page() {
               ) : (
                 <span>Đăng nhập</span>
               )}
-            </button>
-
-            {/* Divider */}
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">hoặc</span>
-              </div>
-            </div>
-
+            </Button>
             {/* Sign up link */}
             <p className="text-center text-sm text-gray-600">
               Chưa có tài khoản?{" "}

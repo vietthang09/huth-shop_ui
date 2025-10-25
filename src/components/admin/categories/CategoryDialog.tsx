@@ -12,6 +12,7 @@ import {
 } from "@/components/ui";
 import { useCategoryDialog } from "./CategoryDialogContext";
 import { create, update, remove, findOne } from "@/services/category";
+import { uploadFile } from "@/services/cloud";
 import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
 import { toast } from "sonner";
 import { Trash2, Upload, X } from "lucide-react";
@@ -29,7 +30,9 @@ const categorySchema = z.object({
     .trim(),
   slug: z.string().min(2, "Slug phải có ít nhất 2 ký tự").max(100, "Slug không được vượt quá 100 ký tự").trim(),
   description: z.string().max(500, "Mô tả không được vượt quá 500 ký tự").trim(),
-  image: z.string().url("URL hình ảnh không hợp lệ").optional().or(z.literal("")),
+  image: z
+    .union([z.string().url("URL hình ảnh không hợp lệ"), z.string(), z.instanceof(File), z.literal("")])
+    .optional(),
 });
 
 type CategoryFormData = z.infer<typeof categorySchema>;
@@ -40,7 +43,7 @@ export const CategoryDialog: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [imagePreview, setImagePreview] = React.useState<string>("");
-
+  const [selectedImageFile, setSelectedImageFile] = React.useState<File | null>(null);
   // React Hook Form setup
   const form = useForm<CategoryFormData>({
     resolver: zodResolver(categorySchema),
@@ -75,8 +78,18 @@ export const CategoryDialog: React.FC = () => {
 
   // Update image preview when image URL changes
   React.useEffect(() => {
-    if (watchedImage && watchedImage.trim()) {
-      setImagePreview(watchedImage);
+    if (watchedImage) {
+      if (typeof watchedImage === "string" && watchedImage.trim()) {
+        setImagePreview(watchedImage);
+      } else if (watchedImage instanceof File) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          setImagePreview(ev.target?.result as string);
+        };
+        reader.readAsDataURL(watchedImage);
+      } else {
+        setImagePreview("");
+      }
     } else {
       setImagePreview("");
     }
@@ -109,11 +122,17 @@ export const CategoryDialog: React.FC = () => {
     setIsSubmitting(true);
 
     try {
+      let imageUrl = "";
+      if (selectedImageFile) {
+        const uploadRes = await uploadFile(selectedImageFile);
+        imageUrl = uploadRes.data?.url || "";
+      }
+
       const payload = {
         title: data.title.trim(),
         slug: data.slug.trim(),
         description: data.description.trim(),
-        image: data.image?.trim() || "",
+        image: imageUrl,
       };
 
       if (mode === "add") {
@@ -121,7 +140,6 @@ export const CategoryDialog: React.FC = () => {
         if (response.status === 200 || response.status === 201) {
           toast.success("Thêm danh mục thành công");
           closeDialog();
-          // Trigger refresh of the parent component
           window.location.reload();
         }
       } else if (mode === "edit" && selectedCategory) {
@@ -129,7 +147,6 @@ export const CategoryDialog: React.FC = () => {
         if (response.status === 200 || response.status === 201) {
           toast.success("Cập nhật danh mục thành công");
           closeDialog();
-          // Trigger refresh of the parent component
           window.location.reload();
         }
       }
@@ -169,11 +186,6 @@ export const CategoryDialog: React.FC = () => {
     } finally {
       setIsDeleting(false);
     }
-  };
-
-  // Handle image URL change
-  const handleImageChange = (url: string) => {
-    setValue("image", url);
   };
 
   // Get dialog title based on mode
@@ -264,46 +276,95 @@ export const CategoryDialog: React.FC = () => {
                 {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>}
               </div>
 
-              {/* Image Upload Section */}
               <div>
                 <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-2">
                   Hình ảnh danh mục
                 </label>
-                <div className="space-y-3">
-                  <Input
-                    id="image"
-                    type="url"
-                    placeholder="Nhập URL hình ảnh..."
+                <div
+                  className={`relative flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-4 transition-colors duration-200 ${
+                    mode === "view"
+                      ? "bg-gray-100 cursor-not-allowed"
+                      : "hover:border-blue-400 bg-gray-50 cursor-pointer"
+                  }`}
+                  onDragOver={
+                    mode !== "view"
+                      ? (e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }
+                      : undefined
+                  }
+                  onDrop={
+                    mode !== "view"
+                      ? (e) => {
+                          e.preventDefault();
+                          const file = e.dataTransfer.files?.[0];
+                          if (file && file.type.startsWith("image/")) {
+                            setSelectedImageFile(file);
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                              setImagePreview(ev.target?.result as string);
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }
+                      : undefined
+                  }
+                  style={{ minHeight: "120px" }}
+                >
+                  <input
+                    id="image-upload"
+                    type="file"
+                    accept="image/*"
                     disabled={mode === "view"}
-                    className={errors.image ? "border-red-300 focus:border-red-500 focus:ring-red-500" : ""}
-                    {...register("image")}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    style={{ zIndex: 2 }}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setSelectedImageFile(file);
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          setImagePreview(ev.target?.result as string);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
                   />
-                  {errors.image && <p className="mt-1 text-sm text-red-600">{errors.image.message}</p>}
-
-                  {/* Image Preview */}
-                  {imagePreview && (
-                    <div className="relative w-32 h-32 border-2 border-gray-200 rounded-lg overflow-hidden">
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                        onError={() => setImagePreview("")}
-                      />
-                      {mode !== "view" && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setValue("image", "");
-                            setImagePreview("");
-                          }}
-                          className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      )}
-                    </div>
-                  )}
+                  <div className="flex flex-col items-center justify-center z-1 pointer-events-none">
+                    {!imagePreview ? (
+                      <>
+                        <Upload className="h-8 w-8 text-blue-400 mb-2" />
+                        <span className="text-gray-500 text-sm text-center">
+                          Kéo thả hoặc nhấn để chọn hình ảnh (jpg, png, avif...)
+                        </span>
+                      </>
+                    ) : (
+                      <div className="relative w-32 h-32 border-2 border-gray-200 rounded-lg overflow-hidden">
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                          onError={() => setImagePreview("")}
+                        />
+                        {mode !== "view" && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setValue("image", "");
+                              setImagePreview("");
+                              setSelectedImageFile(null);
+                            }}
+                            className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
+                {errors.image && <p className="mt-1 text-sm text-red-600">{errors.image.message}</p>}
               </div>
 
               {/* Show additional info in view/edit mode */}

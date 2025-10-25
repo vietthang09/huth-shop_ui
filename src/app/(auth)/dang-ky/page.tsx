@@ -10,16 +10,18 @@ import { signIn } from "next-auth/react";
 import { useAuth } from "@/hooks/useAuth";
 import { register as registerUser } from "@/services/auth";
 
-const registerSchema = z.object({
-  firstName: z.string().min(1, "Họ là bắt buộc").min(2, "Họ phải có ít nhất 2 ký tự"),
-  lastName: z.string().min(1, "Tên là bắt buộc").min(2, "Tên phải có ít nhất 2 ký tự"),
-  email: z.string().min(1, "Email là bắt buộc").email("Email không hợp lệ"),
-  password: z.string().min(1, "Mật khẩu là bắt buộc").min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
-  confirmPassword: z.string().min(1, "Xác nhận mật khẩu là bắt buộc"),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Mật khẩu xác nhận không khớp",
-  path: ["confirmPassword"],
-});
+const registerSchema = z
+  .object({
+    firstName: z.string().min(1, "Họ là bắt buộc").min(2, "Họ phải có ít nhất 2 ký tự"),
+    lastName: z.string().min(1, "Tên là bắt buộc").min(2, "Tên phải có ít nhất 2 ký tự"),
+    email: z.string().min(1, "Email là bắt buộc").email("Email không hợp lệ"),
+    password: z.string().min(1, "Mật khẩu là bắt buộc").min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+    confirmPassword: z.string().min(1, "Xác nhận mật khẩu là bắt buộc"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Mật khẩu xác nhận không khớp",
+    path: ["confirmPassword"],
+  });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
@@ -27,11 +29,7 @@ export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-
-  // Get redirect URL from query params
-  const redirectUrl = searchParams.get("redirect") || "/";
 
   const {
     register,
@@ -67,12 +65,6 @@ export default function Page() {
     );
   }
 
-  // Redirect if already authenticated
-  if (isAuthenticated) {
-    router.push(redirectUrl);
-    return null;
-  }
-
   const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
 
@@ -99,12 +91,11 @@ export default function Page() {
         router.push("/dang-nhap");
       } else if (result?.ok) {
         reset();
-        router.push(redirectUrl);
         router.refresh();
       }
     } catch (error: any) {
       console.error("Registration error:", error);
-      
+
       if (error.response?.status === 409) {
         toast.error("Email đã được sử dụng. Vui lòng chọn email khác.");
       } else {
@@ -126,9 +117,7 @@ export default function Page() {
               <img className="h-16 w-auto drop-shadow-sm" src="/images/logo.png" alt="Huth Shop" />
             </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-2">Tạo tài khoản mới</h2>
-            <p className="text-gray-600">
-              Đăng ký để bắt đầu mua sắm tại Huth Shop
-            </p>
+            <p className="text-gray-600">Đăng ký để bắt đầu mua sắm tại Huth Shop</p>
           </div>
 
           {/* Login Form */}

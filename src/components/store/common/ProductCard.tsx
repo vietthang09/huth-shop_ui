@@ -20,14 +20,14 @@ const ProductCard = ({ product, className, staticWidth = false }: ProductCardPro
   return (
     <div className={cn("group relative", staticWidth && "w-80", className)}>
       <Link href={`/san-pham/${product.sku}`} className="relative z-10 block">
-        <div className="w-full h-44 mx-auto bg-gray-50 p-8 rounded-xl">
+        <div className="w-full h-44 mx-auto bg-gray-50 p-6 rounded-xl">
           {product.images && product.images.length > 0 ? (
-            <Image
-              src={""}
+            <img
+              src={product.images[0]}
               alt={product.title}
               width={24}
               height={24}
-              className="h-24 w-full object-cover rounded-2xl"
+              className="h-24 w-full object-contain rounded-2xl"
             />
           ) : (
             <ProductPlaceholderImage />
