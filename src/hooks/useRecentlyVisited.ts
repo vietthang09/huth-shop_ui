@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import {
-  RecentlyVisitedProduct,
   getRecentlyVisitedProducts,
   addRecentlyVisitedProduct,
   clearRecentlyVisitedProducts,
 } from "@/store/recentlyVisited";
+import { TProduct } from "@/services/product";
 
 export const useRecentlyVisited = () => {
-  const [recentProducts, setRecentProducts] = useState<RecentlyVisitedProduct[]>([]);
+  const [recentProducts, setRecentProducts] = useState<TProduct[]>([]);
   const [isClient, setIsClient] = useState(false);
 
   // Handle hydration
@@ -16,7 +16,7 @@ export const useRecentlyVisited = () => {
     setRecentProducts(getRecentlyVisitedProducts());
   }, []);
 
-  const addProduct = useCallback((product: RecentlyVisitedProduct) => {
+  const addProduct = useCallback((product: TProduct) => {
     addRecentlyVisitedProduct(product);
     setRecentProducts(getRecentlyVisitedProducts());
   }, []);

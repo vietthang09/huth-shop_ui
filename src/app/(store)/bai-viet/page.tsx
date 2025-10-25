@@ -70,16 +70,16 @@ const BlogListPage = () => {
       <div className="container mx-auto px-4 py-12 max-w-7xl">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Our Blog</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Blog của chúng tôi</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Latest news, guides, and insights about gaming, account trading, and market trends.
+            Tin tức, hướng dẫn và nhận định mới nhất về game, mua bán tài khoản và xu hướng thị trường.
           </p>
         </div>
 
         {/* Featured Post */}
         {featuredPosts.length > 0 && (
           <div className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Featured Article</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Bài viết nổi bật</h2>
             <BlogPostCard post={featuredPosts[0]} variant="featured" />
           </div>
         )}
@@ -106,12 +106,12 @@ const BlogListPage = () => {
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">
                   {selectedTopic
-                    ? `${mockTopics.find((t) => t.slug === selectedTopic)?.name} Articles`
-                    : "All Articles"}
+                    ? `Bài viết về ${mockTopics.find((t) => t.slug === selectedTopic)?.name}`
+                    : "Tất cả bài viết"}
                 </h2>
                 <p className="text-gray-600 mt-1">
-                  {searchQuery && `Search results for "${searchQuery}" - `}
-                  {paginatedData.totalPosts} article{paginatedData.totalPosts !== 1 ? "s" : ""} found
+                  {searchQuery && `Kết quả tìm kiếm cho \"${searchQuery}\" - `}
+                  Đã tìm thấy {paginatedData.totalPosts} bài viết
                 </p>
               </div>
 
@@ -125,7 +125,7 @@ const BlogListPage = () => {
                   }}
                   className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                 >
-                  Clear Filters
+                  Xóa bộ lọc
                 </button>
               )}
             </div>
@@ -163,13 +163,13 @@ const BlogListPage = () => {
                     />
                   </svg>
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No articles found</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Không tìm thấy bài viết nào</h3>
                 <p className="text-gray-600 mb-4">
                   {searchQuery
-                    ? `No articles match your search "${searchQuery}"`
+                    ? `Không có bài viết nào phù hợp với từ khóa \"${searchQuery}\"`
                     : selectedTopic
-                    ? `No articles found in the selected category`
-                    : "No articles available"}
+                    ? `Không có bài viết nào trong danh mục đã chọn`
+                    : "Chưa có bài viết nào"}
                 </p>
                 {(selectedTopic || searchQuery) && (
                   <button
@@ -180,7 +180,7 @@ const BlogListPage = () => {
                     }}
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
                   >
-                    View All Articles
+                    Xem tất cả bài viết
                   </button>
                 )}
               </div>

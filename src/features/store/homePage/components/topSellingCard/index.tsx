@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import ProductCard from "@/components/store/common/productCard";
+import ProductCard from "@/components/store/common/ProductCard";
 import { getTopSellingProducts, TopSellingProduct } from "@/actions/product/topSelling";
 
 export const TopSellingCards = () => {

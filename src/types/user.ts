@@ -3,7 +3,7 @@ import { InventoryImport } from "./inventory";
 import { Log } from "./log";
 import { Order } from "./order";
 
-export type User = {
+export type TUser = {
   id: number;
   fullname: string | null;
   email: string;

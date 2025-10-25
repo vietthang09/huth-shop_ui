@@ -1,4 +1,6 @@
-import Button from "@/components/UI/button";
+"use client";
+
+import { Button } from "@/components/ui";
 
 export default function Partnership() {
   return (

@@ -1,13 +1,15 @@
-import { NextAuthProvider } from "@/providers/session-provider";
 import { Toaster } from "sonner";
+import { AuthProvider } from "@/components/auth/AuthProvider";
 import "./globals.css";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <NextAuthProvider>{children}</NextAuthProvider>
-        <Toaster position="top-right" richColors />
+        <AuthProvider>
+          <main>{children}</main>
+          <Toaster position="top-right" richColors />
+        </AuthProvider>
       </body>
     </html>
   );

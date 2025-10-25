@@ -4,45 +4,20 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import parse from "html-react-parser";
-import { SK_Box } from "@/components/UI/skeleton";
-import { entertainmentProducts, mockProducts } from "@/components/store/home/data";
 import Image from "next/image";
 import { ChevronRight, ShoppingCart, MessageCircle, Shield, Clock, Mail, Star } from "lucide-react";
 import { fCurrency } from "@/shared/utils/format-number";
-import ProductCard from "@/components/store/common/productCard";
 import { useRecentlyVisited } from "@/hooks/useRecentlyVisited";
-
-// Enhanced types
-interface ProductProperty {
-  id: number;
-  retailPrice: number;
-  salePrice?: number | null;
-  attributeSet: {
-    value: string;
-  };
-}
-
-interface Product {
-  id: number;
-  sku: string;
-  title: string;
-  description: string;
-  image: string;
-  cardColor?: string;
-  properties: ProductProperty[];
-  category: {
-    name: string;
-    slug: string;
-  };
-}
+import { useCartStore } from "@/store/cartStore";
+import { findOne, findOneBySku, TProduct } from "@/services/product";
+import ProductPlaceholderImage from "@/components/store/common/product-placeholder-image";
+import { useAuth } from "@/hooks/useAuth";
 
 const ProductPage = () => {
   const router = useRouter();
   const { sku } = useParams<{ sku: string }>();
   const { addProduct } = useRecentlyVisited();
-
-  // State management
-  const [productInfo, setProductInfo] = useState<Product | null>(null);
+  const [productInfo, setProductInfo] = useState<TProduct | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
@@ -60,32 +35,17 @@ const ProductPage = () => {
       setLoading(true);
       setError(null);
       try {
-        const productData = mockProducts.find((product) => product.sku === sku);
-        console.log("Product Data:", productData);
-        if (productData) {
+        const res = await findOneBySku(sku);
+        if (res.status === 200) {
+          const productData = res.data as TProduct;
           setProductInfo(productData);
-          // Auto-select the first variant if available
-          if (productData.properties && productData.properties.length > 0) {
-            setSelectedVariant(productData.properties[0].id);
+
+          if (productData.variants && productData.variants.length > 0) {
+            setSelectedVariant(productData.variants[0].id);
           }
 
           // Add to recently visited products
-          addProduct({
-            id: productData.id,
-            sku: productData.sku,
-            title: productData.title,
-            image: productData.image,
-            cardColor: productData.cardColor,
-            properties: productData.properties.map((prop: any) => ({
-              id: prop.id,
-              retailPrice: prop.retailPrice,
-              salePrice: prop.salePrice,
-              attributeName: prop.attributeName,
-            })),
-            category: productData.category,
-          });
-        } else {
-          setProductInfo(null); // Product not found
+          addProduct(productData);
         }
       } catch (err) {
         console.error("Error fetching product:", err);
@@ -105,7 +65,7 @@ const ProductPage = () => {
   // Get selected variant's price
   const getSelectedVariantPrice = useCallback(() => {
     if (!productInfo || !selectedVariant) return 0;
-    const variant = productInfo.properties?.find((prop: any) => prop.id === selectedVariant);
+    const variant = productInfo.variants?.find((prop: any) => prop.id === selectedVariant);
     console.log("Selected variant:", selectedVariant, "Found variant:", variant);
     if (!variant) return 0;
     // Use sale price if available, otherwise use retail price
@@ -171,7 +131,7 @@ const ProductPage = () => {
               href={`/danh-muc/${productInfo.category.slug}`}
               className="hover:text-blue-600 transition-colors font-medium"
             >
-              {productInfo.category.name}
+              {productInfo.category.title}
             </Link>
             <ChevronRight className="w-4 h-4 text-gray-400" />
             <span className="text-gray-900 font-semibold truncate max-w-xs">{productInfo.title}</span>
@@ -211,7 +171,7 @@ const ProductPage = () => {
 };
 
 // Component for product details
-const ProductDetails = ({ product }: { product: Product }) => (
+const ProductDetails = ({ product }: { product: TProduct }) => (
   <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
     <h1 className="text-3xl font-bold text-gray-900 mb-6">{product.title}</h1>
 
@@ -251,7 +211,7 @@ const ProductOptions = ({
   selectedVariant,
   onVariantSelect,
 }: {
-  product: Product;
+  product: TProduct;
   selectedVariant: number | null;
   onVariantSelect: (id: number) => void;
 }) => (
@@ -260,13 +220,13 @@ const ProductOptions = ({
       Các tùy chọn
       {selectedVariant && (
         <span className="text-sm text-gray-600 ml-2 font-normal">
-          (Đã chọn: {product.properties?.find((p) => p.id === selectedVariant)?.attributeSet?.value})
+          (Đã chọn: {product.variants?.find((p) => p.id === selectedVariant)?.title})
         </span>
       )}
     </h2>
 
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {product.properties?.map((property) => (
+      {product.variants?.map((property) => (
         <div
           key={property.id}
           onClick={() => onVariantSelect(property.id)}
@@ -278,7 +238,7 @@ const ProductOptions = ({
         >
           <div className="flex items-center justify-between">
             <div className="flex-1">
-              <h3 className="font-medium text-gray-900 mb-2">{`${product.title} - ${property.attributeSet.value}`}</h3>
+              <h3 className="font-medium text-gray-900 mb-2">{`${product.title} - ${property.title}`}</h3>
               <div className="text-lg font-bold text-red-600">
                 {fCurrency(property.retailPrice, { currency: "VND" })}
               </div>
@@ -312,65 +272,78 @@ const PurchaseSection = ({
   getSelectedVariantPrice,
   totalPrice,
 }: {
-  product: Product;
+  product: TProduct;
   selectedVariant: number | null;
   quantity: number;
   onQuantityChange: (isReducing: boolean) => void;
   getSelectedVariantPrice: () => number;
   totalPrice: number;
-}) => (
-  <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 sticky top-8">
-    <div className="text-center mb-6">
-      <Image
-        height={200}
-        width={200}
-        className="w-full h-auto object-contain rounded-lg mx-auto"
-        unoptimized
-        src={product.image}
-        alt={product.title}
-      />
-    </div>
-
-    <div className="space-y-6">
-      {/* Quantity Selector */}
-      <div className="flex items-center justify-center gap-4">
-        <button
-          className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center font-semibold"
-          onClick={() => onQuantityChange(true)}
-          disabled={quantity <= 1}
-        >
-          −
-        </button>
-        <span className="text-xl font-semibold min-w-[2rem] text-center">{quantity}</span>
-        <button
-          className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center font-semibold"
-          onClick={() => onQuantityChange(false)}
-        >
-          +
-        </button>
+}) => {
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
+  const { addToCart } = useCartStore();
+  return (
+    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 sticky top-8">
+      <div className="text-center mb-6">
+        {product.images && product.images.length > 0 ? (
+          <Image
+            height={200}
+            width={200}
+            className="w-full h-auto object-contain rounded-lg mx-auto"
+            unoptimized
+            src={product.images[0]}
+            alt={product.title}
+          />
+        ) : (
+          <div className="h-48 flex items-center justify-center bg-gray-100 rounded-lg">
+            <ProductPlaceholderImage />
+          </div>
+        )}
       </div>
 
-      {/* Total Price */}
-      <div className="text-center">
-        <p className="text-sm text-gray-600 mb-1">Tổng tiền:</p>
-        <p className="text-3xl font-bold text-red-600">
-          {selectedVariant ? fCurrency(totalPrice, { currency: "VND" }) : "Chọn tùy chọn"}
-        </p>
-      </div>
+      <div className="space-y-6">
+        {/* Quantity Selector */}
+        <div className="flex items-center justify-center gap-4">
+          <button
+            className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center font-semibold"
+            onClick={() => onQuantityChange(true)}
+            disabled={quantity <= 1}
+          >
+            −
+          </button>
+          <span className="text-xl font-semibold min-w-[2rem] text-center">{quantity}</span>
+          <button
+            className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center font-semibold"
+            onClick={() => onQuantityChange(false)}
+          >
+            +
+          </button>
+        </div>
 
-      {/* Purchase Button */}
-      <button
-        className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-4 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
-        onClick={() => {
-          window.open("https://www.facebook.com/profile.php?id=61577923558579", "_blank");
-        }}
-      >
-        <ShoppingCart className="w-5 h-5" />
-        Mua ngay
-      </button>
+        {/* Total Price */}
+        <div className="text-center">
+          <p className="text-sm text-gray-600 mb-1">Tổng tiền:</p>
+          <p className="text-3xl font-bold text-red-600">
+            {selectedVariant ? fCurrency(totalPrice, { currency: "VND" }) : "Chọn tùy chọn"}
+          </p>
+        </div>
+
+        <button
+          className="flex items-center justify-center gap-2 border w-full p-4 rounded hover:bg-gray-100 transition-colors cursor-pointer"
+          onClick={() => {
+            if (!isAuthenticated) {
+              router.push("/dang-nhap");
+            } else {
+              addToCart(product, selectedVariant || undefined);
+            }
+          }}
+        >
+          <ShoppingCart className="w-5 h-5" /> Thêm vào giỏ hàng
+        </button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Component for seller info
 const SellerInfo = () => (
@@ -418,7 +391,7 @@ const RelatedProducts = () => (
   <div className="mt-12">
     <h2 className="text-2xl font-bold text-gray-900 mb-6">Sản phẩm liên quan</h2>
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      {entertainmentProducts.map((product, index) => (
+      {/* {entertainmentProducts.map((product, index) => (
         <div
           key={product.id}
           className="group opacity-0 animate-[fadeInUp_0.8s_ease-out_forwards]"
@@ -436,7 +409,7 @@ const RelatedProducts = () => (
             />
           </div>
         </div>
-      ))}
+      ))} */}
     </div>
   </div>
 );

@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "HT Premium - Products List",
+  title: "Bài viết mới nhất - HuthShop",
 };
 
 const ListLayout = ({ children }: { children: React.ReactNode }) => {

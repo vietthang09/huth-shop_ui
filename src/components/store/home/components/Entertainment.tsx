@@ -1,18 +1,30 @@
 "use client";
 
-import { useRef, useState } from "react";
-import ProductCard from "../../common/productCard";
-import { entertainmentProducts, mockProducts } from "../data";
+import { useEffect, useRef, useState } from "react";
+import ProductCard from "../../common/ProductCard";
+import { findAllByCategory, TProduct } from "@/services/product";
 
 export default function Entertainment() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
+  const [products, setProducts] = useState<TProduct[]>([]);
 
   // Calculate how many items are visible and total pages
   const itemsPerPage = 4; // Assuming 4 items visible at once
-  const totalPages = Math.ceil(entertainmentProducts.length / itemsPerPage);
+  const totalPages = 1;
+
+  const fetchEntertainmentProducts = async () => {
+    const res = await findAllByCategory("giai-tri");
+    if (res.status === 200) {
+      setProducts(res.data.data);
+    }
+  };
+
+  useEffect(() => {
+    fetchEntertainmentProducts();
+  }, []);
 
   const updateScrollButtons = () => {
     if (scrollContainerRef.current) {
@@ -53,7 +65,7 @@ export default function Entertainment() {
 
   return (
     <div className="h-full">
-      <h2 className="text-center text-3xl lg:text-4xl font-bold text-blue-500 mb-2 tracking-tight">Giải trí</h2>
+      <h2 className="text-center text-3xl lg:text-4xl font-bold mb-2 tracking-tight">Giải trí.</h2>
       <p className="text-center text-gray-600 mb-8 text-sm lg:text-base">
         Khám phá các sản phẩm giải trí hàng đầu, từ phim ảnh đến trò chơi điện tử, mang đến trải nghiệm giải trí tuyệt
         vời nhất.
@@ -90,23 +102,13 @@ export default function Entertainment() {
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           onScroll={updateScrollButtons}
         >
-          {entertainmentProducts.map((product, index) => (
+          {products?.map((product, index) => (
             <div
               key={product.id}
               className="group opacity-0 animate-[fadeInUp_0.8s_ease-out_forwards] flex-shrink-0"
               style={{ animationDelay: `${index * 100}ms` }}
             >
-              <div className="transform transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-1">
-                <ProductCard
-                  className="w-72 h-full shadow-lg hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-500 ring-1 ring-gray-200/30 hover:ring-blue-300/50"
-                  id={product.sku}
-                  sku={product.sku}
-                  name={product.title}
-                  price={product.lowestPrice}
-                  dealPrice={product.lowestPrice}
-                  imgUrl={product.image}
-                />
-              </div>
+              <ProductCard className="w-56" product={product} />
             </div>
           ))}
         </div>
