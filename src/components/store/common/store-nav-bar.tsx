@@ -204,86 +204,93 @@ const StoreNavBar = () => {
   ];
 
   return (
-    <nav>
-      <div className="bg-black px-4 text-white py-2 text-sm flex justify-between items-center">
-        <Link href="/" className="hover:underline">
-          Trở thành đối tác
-        </Link>
-        <div className="space-x-4">
-          <Link href="/" className="hover:underline">
-            <SmilePlus className="inline-block size-4 mr-1" /> Chế độ bảo hành
-          </Link>
-          <Link href="/" className="hover:underline">
-            <HeartHandshake className="inline-block size-4 mr-1" /> Liên hệ hỗ trợ
-          </Link>
-        </div>
-      </div>
-      <div className="px-4 py-2 max-w-7xl mx-auto w-full relative flex justify-between items-center gap-4">
-        <Link
-          href="/"
-          className="rounded font-semibold text-xl transition-colors duration-300"
-          aria-label="Go to homepage"
-        >
-          <img src="/images/logo-transparent.png" className="w-20" />
-        </Link>
-        <div className="flex w-full justify-between items-center">
-          <ul className="flex text-nowrap gap-4">
-            {categories.map((category) => (
-              <li key={category.slug}>
-                <Link href={`/danh-muc/${category.slug}`} className="block text-sm text-gray-900 hover:text-sky-700">
-                  {category.title}
-                </Link>
-              </li>
-            ))}
-          </ul>
-          <div className={`relative hidden md:block ${isSearchExpanded ? "flex-1" : ""}`} ref={searchRef}>
-            <form onSubmit={handleSearchSubmit}>
-              <div className="h-full flex bg-white pl-6 px-1 py-1 border border-gray-200 rounded-full">
-                <input
-                  placeholder="Tìm trong HuthShop..."
-                  autoComplete="off"
-                  className="min-w-96 text-sm outline-none"
-                  value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
-                  onFocus={() => setIsFocused(true)}
-                />
-                <button type="submit" className="bg-primary p-2 rounded-full cursor-pointer" aria-label="Submit search">
-                  <Search className="text-white w-4 h-4" />
-                </button>
-              </div>
-            </form>
+    <nav
+      className={`sticky bg-white top-0 z-50 px-4 max-w-7xl mx-auto w-full relative flex justify-between items-center gap-4 ${
+        isScrolled && "shadow-sm"
+      }`}
+    >
+      <Link
+        href="/"
+        className="rounded font-semibold text-xl transition-colors duration-300"
+        aria-label="Go to homepage"
+      >
+        <img src="/images/logo-transparent.png" className="w-20" />
+      </Link>
+      <div className="flex w-full justify-between items-center">
+        <ul className="flex text-nowrap gap-4">
+          {categories.map((category) => (
+            <li key={category.slug}>
+              <Link href={`/danh-muc/${category.slug}`} className="block text-sm text-gray-900 hover:text-sky-700">
+                {category.title}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <div className={`relative hidden md:block ${isSearchExpanded ? "flex-1" : ""}`} ref={searchRef}>
+          <form onSubmit={handleSearchSubmit}>
+            <div className="h-full flex bg-white pl-6 px-1 py-1 border border-gray-200 rounded-full">
+              <input
+                placeholder="Tìm trong HuthShop..."
+                autoComplete="off"
+                className="min-w-96 text-sm outline-none"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                onFocus={() => setIsFocused(true)}
+              />
+              <button type="submit" className="bg-primary p-2 rounded-full cursor-pointer" aria-label="Submit search">
+                <Search className="text-white w-4 h-4" />
+              </button>
+            </div>
+          </form>
 
-            {/* Desktop Suggestions Dropdown */}
-            {isFocused && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto z-10">
-                {searchValue.trim() === "" ? (
-                  // Show recent searches when input is empty
-                  <>
-                    {recentSearches.length > 0 && (
-                      <>
-                        <div className="px-4 py-2 text-xs font-medium text-gray-500 border-b border-gray-100">
-                          Tìm kiếm gần đây
-                        </div>
-                        {recentSearches.map((search, index) => (
-                          <div
-                            key={index}
-                            className="px-4 py-3 hover:bg-gray-50 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
-                            onClick={() => handleSuggestionClick(search)}
-                          >
-                            <div className="flex items-center">
-                              <Clock className="w-4 h-4 text-gray-400 mr-3" />
-                              <span>{search}</span>
-                            </div>
+          {/* Desktop Suggestions Dropdown */}
+          {isFocused && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto z-10">
+              {searchValue.trim() === "" ? (
+                // Show recent searches when input is empty
+                <>
+                  {recentSearches.length > 0 && (
+                    <>
+                      <div className="px-4 py-2 text-xs font-medium text-gray-500 border-b border-gray-100">
+                        Tìm kiếm gần đây
+                      </div>
+                      {recentSearches.map((search, index) => (
+                        <div
+                          key={index}
+                          className="px-4 py-3 hover:bg-gray-50 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
+                          onClick={() => handleSuggestionClick(search)}
+                        >
+                          <div className="flex items-center">
+                            <Clock className="w-4 h-4 text-gray-400 mr-3" />
+                            <span>{search}</span>
                           </div>
-                        ))}
-                        {/* Divider between sections */}
-                        <div className="border-t-2 border-gray-200 my-2"></div>
-                        <div className="px-4 py-2 text-xs font-medium text-gray-500 border-b border-gray-100">
-                          Gợi ý tìm kiếm
                         </div>
-                      </>
-                    )}
-                    {allSuggestions.slice(0, 5).map((suggestion, index) => (
+                      ))}
+                      {/* Divider between sections */}
+                      <div className="border-t-2 border-gray-200 my-2"></div>
+                      <div className="px-4 py-2 text-xs font-medium text-gray-500 border-b border-gray-100">
+                        Gợi ý tìm kiếm
+                      </div>
+                    </>
+                  )}
+                  {allSuggestions.slice(0, 5).map((suggestion, index) => (
+                    <div
+                      key={index}
+                      className="px-4 py-3 hover:bg-gray-50 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
+                      onClick={() => handleSuggestionClick(suggestion)}
+                    >
+                      <div className="flex items-center">
+                        <Search className="w-4 h-4 text-gray-400 mr-3" />
+                        <span>{suggestion}</span>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              ) : (
+                // Show filtered suggestions when typing
+                <>
+                  {filteredSuggestions.length > 0 ? (
+                    filteredSuggestions.map((suggestion, index) => (
                       <div
                         key={index}
                         className="px-4 py-3 hover:bg-gray-50 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
@@ -294,84 +301,66 @@ const StoreNavBar = () => {
                           <span>{suggestion}</span>
                         </div>
                       </div>
-                    ))}
-                  </>
-                ) : (
-                  // Show filtered suggestions when typing
-                  <>
-                    {filteredSuggestions.length > 0 ? (
-                      filteredSuggestions.map((suggestion, index) => (
-                        <div
-                          key={index}
-                          className="px-4 py-3 hover:bg-gray-50 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
-                          onClick={() => handleSuggestionClick(suggestion)}
-                        >
-                          <div className="flex items-center">
-                            <Search className="w-4 h-4 text-gray-400 mr-3" />
-                            <span>{suggestion}</span>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="px-4 py-3 text-sm text-gray-500">Không tìm thấy kết quả phù hợp</div>
-                    )}
-                  </>
-                )}
-              </div>
-            )}
-          </div>
+                    ))
+                  ) : (
+                    <div className="px-4 py-3 text-sm text-gray-500">Không tìm thấy kết quả phù hợp</div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
         </div>
+      </div>
 
-        {/* Mobile Search Icon */}
-        <div className="md:hidden flex items-center space-x-2">
-          <button
-            onClick={handleSearchClick}
-            className={`p-2 rounded-full transition-colors duration-300 ${
-              isScrolled || !isHomePage
-                ? "text-gray-900 hover:bg-gray-100"
-                : "text-white hover:bg-white hover:bg-opacity-20"
-            }`}
-            aria-label="Open search"
-          >
-            <Search className="w-5 h-5" />
-          </button>
-          <button
-            onClick={toggleMobileMenu}
-            className={`p-2 rounded-full transition-colors duration-300 ${
-              isScrolled || !isHomePage
-                ? "text-gray-900 hover:bg-gray-100"
-                : "text-white hover:bg-white hover:bg-opacity-20"
-            }`}
-            aria-label="Toggle mobile menu"
-          >
-            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-          <Link href="/gio-hang" className="relative">
-            <ShoppingBag className={`size-5 ${isScrolled || !isHomePage ? "text-orange-600" : "text-white"}`} />
-            {cartItems.length > 0 && (
-              <span className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 bg-red-500 text-white rounded-full px-1 text-xs">
-                {cartItems.length}
-              </span>
-            )}
-          </Link>
-        </div>
+      {/* Mobile Search Icon */}
+      <div className="md:hidden flex items-center space-x-2">
+        <button
+          onClick={handleSearchClick}
+          className={`p-2 rounded-full transition-colors duration-300 ${
+            isScrolled || !isHomePage
+              ? "text-gray-900 hover:bg-gray-100"
+              : "text-white hover:bg-white hover:bg-opacity-20"
+          }`}
+          aria-label="Open search"
+        >
+          <Search className="w-5 h-5" />
+        </button>
+        <button
+          onClick={toggleMobileMenu}
+          className={`p-2 rounded-full transition-colors duration-300 ${
+            isScrolled || !isHomePage
+              ? "text-gray-900 hover:bg-gray-100"
+              : "text-white hover:bg-white hover:bg-opacity-20"
+          }`}
+          aria-label="Toggle mobile menu"
+        >
+          {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
+        <Link href="/gio-hang" className="relative">
+          <ShoppingBag className={`size-5 ${isScrolled || !isHomePage ? "text-orange-600" : "text-white"}`} />
+          {cartItems.length > 0 && (
+            <span className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 bg-red-500 text-white rounded-full px-1 text-xs">
+              {cartItems.length}
+            </span>
+          )}
+        </Link>
+      </div>
 
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-2">
-          <Link
-            href="/gio-hang"
-            className="border flex items-center gap-2 p-2 rounded-lg border-gray-300 text-gray-900 hover:bg-gray-100"
-          >
-            <ShoppingBag className="size-5" />
-            <span className="text-nowrap text-sm">Giỏ hàng</span>
-            {cartItems.length > 0 && (
-              <div className="flex items-center justify-center size-4 border rounded-full text-center align-middle text-xs">
-                {cartItems.length}
-              </div>
-            )}
-          </Link>
-          <AuthButton />
-        </div>
+      {/* Desktop Navigation */}
+      <div className="hidden md:flex items-center space-x-2">
+        <Link
+          href="/gio-hang"
+          className="border flex items-center gap-2 p-2 rounded-lg border-gray-300 text-gray-900 hover:bg-gray-100"
+        >
+          <ShoppingBag className="size-5" />
+          <span className="text-nowrap text-sm">Giỏ hàng</span>
+          {cartItems.length > 0 && (
+            <div className="flex items-center justify-center size-4 border rounded-full text-center align-middle text-xs">
+              {cartItems.length}
+            </div>
+          )}
+        </Link>
+        <AuthButton />
       </div>
 
       {/* Mobile Search Bar (Full Width Overlay) */}
