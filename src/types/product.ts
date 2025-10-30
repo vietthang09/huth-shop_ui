@@ -3,6 +3,12 @@ import { Log } from "./log";
 import { Property } from "./property";
 import { Supplier } from "./supplier";
 
+export enum ProductVariantKind {
+  OWNERSHIP_UPGRADE = "ownership_upgrade",
+  PRE_MADE_ACCOUNT = "pre_made_account",
+  SHARING = "sharing",
+}
+
 export type Product = {
   id: number;
   sku: string;
@@ -28,6 +34,8 @@ export interface ProductVariant {
   attributeSetHash: string;
   inventory: number;
   attributeName?: string; // Optional variant name from attribute
+  // Optional kind for special variant types
+  kind?: ProductVariantKind;
 }
 
 // Type for the ProductBoard component
@@ -53,6 +61,7 @@ export interface CartItemVariant {
   attributeSetHash: string;
   inventory: number;
   attributeName: string;
+  kind?: ProductVariantKind;
 }
 
 // Type for cart products returned from database

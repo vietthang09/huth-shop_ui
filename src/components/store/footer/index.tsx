@@ -10,7 +10,7 @@ const CURRENT_YEAR = new Date().getFullYear();
 const Footer = () => {
   return (
     <footer className="flex flex-col border-t bg-white z-50 border-t-gray-300 w-full">
-      <div className="flex-col storeContainer">
+      <div className="flex-col max-w-7xl mx-auto w-full">
         {/* Payment Methods */}
         <div className="pt-4 flex items-center gap-4">
           <Image
@@ -86,7 +86,7 @@ const Footer = () => {
         </section>
       </div>
       <section className="w-full xl:h-20 bg-gray-100 text-sm">
-        <div className="h-full flex-col gap-4 xl:flex-row xl:gap-0 justify-between items-center storeContainer">
+        <div className="max-w-7xl w-full mx-auto h-full flex flex-col gap-4 xl:flex-row xl:gap-0 justify-between items-center">
           <span className="text-gray-500 mt-6 xl:mt-0">© {CURRENT_YEAR} Cửa hàng HuthShop. Bảo lưu mọi quyền.</span>
           <div className="flex gap-4 mb-6 xl:mb-0">
             <Link

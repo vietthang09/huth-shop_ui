@@ -28,14 +28,7 @@ export default function RecentlyVisit() {
   const recentProducts = getRecentProducts(4);
 
   if (recentProducts.length === 0) {
-    return (
-      <div className="h-full space-y-2">
-        <div className="w-full relative">
-          <h2 className="text-center text-2xl text-gray-800 font-medium">Đã xem gần đây</h2>
-        </div>
-        <div className="text-center text-gray-500 py-8">Bạn chưa xem sản phẩm nào gần đây</div>
-      </div>
-    );
+    return null;
   }
 
   return (

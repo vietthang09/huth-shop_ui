@@ -276,7 +276,6 @@ function ProductsPageContent() {
         size="md"
         variant="striped"
         stickyHeader
-        maxHeight="600px"
         emptyMessage="Không có sản phẩm nào được tìm thấy"
       />
 

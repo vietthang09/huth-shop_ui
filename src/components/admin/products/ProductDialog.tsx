@@ -20,6 +20,7 @@ import { findAll as findAllCategories, TCategory } from "@/services/category";
 import { findAll as findAllSuppliers, TSupplier } from "@/services/supplier";
 import * as productVariantService from "@/services/product-variants";
 import { TProductVariant } from "@/services/product-variants";
+import { ProductVariantKind } from "@/types/product";
 import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
 import { toast } from "sonner";
 import { Trash2, Upload, X, Plus, Edit3, DollarSign } from "lucide-react";
@@ -45,6 +46,7 @@ type VariantFormData = {
   netPrice: string;
   retailPrice: string;
   supplierId: string;
+  kind?: ProductVariantKind | string;
 };
 
 type VariantFormErrors = {
@@ -52,9 +54,10 @@ type VariantFormErrors = {
   netPrice?: string;
   retailPrice?: string;
   supplierId?: string;
+  kind?: string;
 };
 
-type VariantFormField = "title" | "netPrice" | "retailPrice" | "supplierId";
+type VariantFormField = "title" | "netPrice" | "retailPrice" | "supplierId" | "kind";
 
 export const ProductDialog: React.FC = () => {
   const { isOpen, mode, selectedProduct, closeDialog, isSubmitting, setIsSubmitting } = useProductDialog();
@@ -75,6 +78,7 @@ export const ProductDialog: React.FC = () => {
     netPrice: "",
     retailPrice: "",
     supplierId: "",
+    kind: "",
   });
   const [variantFormErrors, setVariantFormErrors] = React.useState<VariantFormErrors>({});
 
@@ -220,6 +224,7 @@ export const ProductDialog: React.FC = () => {
         netPrice: "",
         retailPrice: "",
         supplierId: "",
+        kind: "",
       });
       setVariantFormErrors({});
     } else {
@@ -357,6 +362,7 @@ export const ProductDialog: React.FC = () => {
       netPrice: variant.netPrice.toString(),
       retailPrice: variant.retailPrice.toString(),
       supplierId: variant.supplierId.toString(),
+      kind: variant.kind || "",
     });
     setVariantFormErrors({});
     setShowVariantForm(true);
@@ -375,6 +381,7 @@ export const ProductDialog: React.FC = () => {
       netPrice: Number(variantFormData.netPrice),
       retailPrice: Number(variantFormData.retailPrice),
       supplierId: Number(variantFormData.supplierId),
+      kind: (variantFormData.kind as ProductVariantKind) || undefined,
     };
 
     if (editingVariant) {
@@ -400,6 +407,7 @@ export const ProductDialog: React.FC = () => {
       netPrice: "",
       retailPrice: "",
       supplierId: "",
+      kind: "",
     });
     setVariantFormErrors({});
   };
@@ -515,6 +523,7 @@ export const ProductDialog: React.FC = () => {
                   netPrice: variant.netPrice,
                   retailPrice: variant.retailPrice,
                   supplierId: variant.supplierId,
+                  kind: variant.kind,
                 })
               )
             );
@@ -556,6 +565,7 @@ export const ProductDialog: React.FC = () => {
                     netPrice: variant.netPrice,
                     retailPrice: variant.retailPrice,
                     supplierId: variant.supplierId,
+                    kind: variant.kind,
                   })
                 );
               });
@@ -571,6 +581,7 @@ export const ProductDialog: React.FC = () => {
                     netPrice: variant.netPrice,
                     retailPrice: variant.retailPrice,
                     supplierId: variant.supplierId,
+                    kind: variant.kind,
                   })
                 );
               });
@@ -911,6 +922,23 @@ export const ProductDialog: React.FC = () => {
                       {variantFormErrors.supplierId && (
                         <p className="mt-1 text-sm text-red-600">{variantFormErrors.supplierId}</p>
                       )}
+                    </div>
+
+                    <div>
+                      <label htmlFor="variant-kind" className="block text-sm font-medium text-gray-700 mb-1">
+                        Loại variant (tuỳ chọn)
+                      </label>
+                      <Select
+                        id="variant-kind"
+                        value={variantFormData.kind || ""}
+                        onChange={(e) => handleVariantInputChange("kind", e.target.value)}
+                        className="w-full"
+                      >
+                        <option value="">-- Không chọn --</option>
+                        <option value="ownership_upgrade">Ownership upgrade</option>
+                        <option value="pre_made_account">Pre-made account</option>
+                        <option value="sharing">Sharing</option>
+                      </Select>
                     </div>
 
                     <div>

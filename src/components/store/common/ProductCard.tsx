@@ -1,13 +1,13 @@
 "use client";
-import Image from "next/image";
+
 import Link from "next/link";
 
 import { cn } from "@/shared/utils/styling";
-import { ChevronRight, Heart, ShoppingCart, Star } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { fCurrency } from "@/shared/utils/format-number";
 import { TProduct } from "@/services/product";
-import ProductPlaceholderImage from "./product-placeholder-image";
 import { Button } from "@/components/ui";
+import { mapVariantKindToLabel } from "@/common/utils";
 
 type ProductCardProps = {
   product: TProduct;
@@ -17,8 +17,12 @@ type ProductCardProps = {
 
 const ProductCard = ({ product, className, staticWidth = false }: ProductCardProps) => {
   const lowestVariantPrice = Math.min(...product.variants.map((variant) => variant.retailPrice));
+  const kind = product.variants[0].kind;
   return (
     <div className={cn("group relative", staticWidth && "w-80", className)}>
+      <span className="absolute top-1 left-0 z-30 shadow bg-red-500 text-white text-xs p-1 rounded">
+        {mapVariantKindToLabel(kind)}
+      </span>
       <Link href={`/san-pham/${product.sku}`} className="relative z-10 block">
         <div className="w-full h-44 mx-auto bg-gray-50 p-6 rounded-xl">
           <img

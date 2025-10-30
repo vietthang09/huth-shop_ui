@@ -1,5 +1,6 @@
 import axiosInstance from "./axiosInstance";
 import { TSupplier } from "./supplier";
+import { ProductVariantKind } from "@/types/product";
 
 export type TProductVariant = {
   id: number;
@@ -13,6 +14,7 @@ export type TProductVariant = {
   updatedAt: string;
   supplierId: number;
   supplier: TSupplier;
+  kind?: ProductVariantKind;
 };
 
 export async function create(data: {
@@ -21,6 +23,7 @@ export async function create(data: {
   netPrice: number;
   retailPrice: number;
   supplierId: number;
+  kind?: ProductVariantKind;
 }) {
   return axiosInstance.post("/product-variants", data);
 }

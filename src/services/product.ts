@@ -2,6 +2,7 @@ import axios from "axios";
 import axiosInstance, { axiosPublicInstance } from "./axiosInstance";
 import { TCategory } from "./category";
 import { TProductVariant } from "./product-variants";
+import { ProductVariantKind } from "@/types/product";
 
 export async function create(data: { sku: string; title: string; categoryId: number }) {
   return axiosInstance.post("/products", data);

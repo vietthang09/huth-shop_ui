@@ -3,17 +3,15 @@
 import BestSelling from "@/components/store/home/components/BestSelling";
 import BuyingFlow from "@/components/store/home/components/BuyingFlow";
 import Entertainment from "@/components/store/home/components/Entertainment";
-import HighLight from "@/components/store/home/components/HighLight";
 import Partnership from "@/components/store/home/components/Partnership";
 import RecentlyVisit from "@/components/store/home/components/RecentlyVisit";
 import Working from "@/components/store/home/components/Working";
-import { Bot, Cloud, Computer, Globe, Music, PenLine, Phone, Play } from "lucide-react";
 import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="space-y-4">
-      <section className="h-fit relative">
+    <div>
+      <section className="max-w-7xl mx-auto h-fit relative">
         <video
           autoPlay
           muted
@@ -63,29 +61,27 @@ export default function Home() {
         </div>
       </section>
 
-      <div className="max-w-5xl mx-auto">
-        <RecentlyVisit />
-      </div>
-
-      <div className="max-w-5xl mx-auto">
+      <div className="mt-20 w-full">
         <BestSelling />
       </div>
 
-      <HighLight />
-
-      <div className="mt-20 max-w-5xl mx-auto">
+      <div className="mt-20 max-w-7xl mx-auto">
         <Entertainment />
       </div>
 
-      <div className="mt-20 max-w-5xl mx-auto">
+      <div className="mt-20 max-w-7xl mx-auto">
         <Working />
       </div>
 
-      <div className="bg-gradient-to-br from-[#1d4ed8] via-[#2563eb] to-[#1e3a8a] py-10 px-4 2xl:px-0 rounded-xl">
+      <div className="mt-20 bg-gradient-to-br from-[#1d4ed8] via-[#2563eb] to-[#1e3a8a] py-10 px-4 2xl:px-0 rounded-xl">
         <Partnership />
       </div>
 
-      <div className="mt-20 max-w-5xl mx-auto">
+      <div className="mt-20 max-w-7xl mx-auto">
+        <RecentlyVisit />
+      </div>
+
+      <div className="mt-20 max-w-7xl mx-auto">
         <BuyingFlow />
       </div>
     </div>
