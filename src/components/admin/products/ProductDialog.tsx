@@ -45,6 +45,7 @@ type VariantFormData = {
   title: string;
   netPrice: string;
   retailPrice: string;
+  salePrice: string;
   supplierId: string;
   kind?: ProductVariantKind | string;
 };
@@ -53,11 +54,12 @@ type VariantFormErrors = {
   title?: string;
   netPrice?: string;
   retailPrice?: string;
+  salePrice?: string;
   supplierId?: string;
   kind?: string;
 };
 
-type VariantFormField = "title" | "netPrice" | "retailPrice" | "supplierId" | "kind";
+type VariantFormField = "title" | "netPrice" | "retailPrice" | "salePrice" | "supplierId" | "kind";
 
 export const ProductDialog: React.FC = () => {
   const { isOpen, mode, selectedProduct, closeDialog, isSubmitting, setIsSubmitting } = useProductDialog();
@@ -77,6 +79,7 @@ export const ProductDialog: React.FC = () => {
     title: "",
     netPrice: "",
     retailPrice: "",
+    salePrice: "",
     supplierId: "",
     kind: "",
   });
@@ -223,6 +226,7 @@ export const ProductDialog: React.FC = () => {
         title: "",
         netPrice: "",
         retailPrice: "",
+        salePrice: "",
         supplierId: "",
         kind: "",
       });
@@ -244,6 +248,7 @@ export const ProductDialog: React.FC = () => {
         title: "",
         netPrice: "",
         retailPrice: "",
+        salePrice: "",
         supplierId: "",
       });
       setVariantFormErrors({});
@@ -347,6 +352,7 @@ export const ProductDialog: React.FC = () => {
       title: "",
       netPrice: "",
       retailPrice: "",
+      salePrice: "",
       supplierId: "",
     });
     setVariantFormErrors({});
@@ -361,6 +367,7 @@ export const ProductDialog: React.FC = () => {
       title: variant.title,
       netPrice: variant.netPrice.toString(),
       retailPrice: variant.retailPrice.toString(),
+      salePrice: variant.salePrice?.toString() || "",
       supplierId: variant.supplierId.toString(),
       kind: variant.kind || "",
     });
@@ -380,6 +387,7 @@ export const ProductDialog: React.FC = () => {
       title: variantFormData.title.trim(),
       netPrice: Number(variantFormData.netPrice),
       retailPrice: Number(variantFormData.retailPrice),
+      salePrice: Number(variantFormData.salePrice),
       supplierId: Number(variantFormData.supplierId),
       kind: (variantFormData.kind as ProductVariantKind) || undefined,
     };
@@ -406,6 +414,7 @@ export const ProductDialog: React.FC = () => {
       title: "",
       netPrice: "",
       retailPrice: "",
+      salePrice: "",
       supplierId: "",
       kind: "",
     });
@@ -564,6 +573,7 @@ export const ProductDialog: React.FC = () => {
                     title: variant.title,
                     netPrice: variant.netPrice,
                     retailPrice: variant.retailPrice,
+                    ...(variant.salePrice && { salePrice: variant.salePrice }),
                     supplierId: variant.supplierId,
                     kind: variant.kind,
                   })
@@ -580,6 +590,7 @@ export const ProductDialog: React.FC = () => {
                     title: variant.title,
                     netPrice: variant.netPrice,
                     retailPrice: variant.retailPrice,
+                    ...(variant.salePrice && { salePrice: variant.salePrice }),
                     supplierId: variant.supplierId,
                     kind: variant.kind,
                   })
@@ -988,6 +999,29 @@ export const ProductDialog: React.FC = () => {
                       </div>
                       {variantFormErrors.retailPrice && (
                         <p className="mt-1 text-sm text-red-600">{variantFormErrors.retailPrice}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label htmlFor="variant-retail-price" className="block text-sm font-medium text-gray-700 mb-1">
+                        Giá khuyến mãi <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="variant-retail-price"
+                          type="number"
+                          placeholder="0"
+                          value={variantFormData.salePrice}
+                          onChange={(e) => handleVariantInputChange("salePrice", e.target.value)}
+                          className={`pl-10 ${
+                            variantFormErrors.salePrice ? "border-red-300 focus:border-red-500 focus:ring-red-500" : ""
+                          }`}
+                          min="0"
+                          step="1000"
+                        />
+                      </div>
+                      {variantFormErrors.salePrice && (
+                        <p className="mt-1 text-sm text-red-600">{variantFormErrors.salePrice}</p>
                       )}
                     </div>
                   </div>

@@ -44,7 +44,7 @@ export default function RecentlyVisit() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        {recentProducts.map((product, index) => (
+        {recentProducts.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>

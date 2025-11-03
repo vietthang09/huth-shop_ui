@@ -61,12 +61,12 @@ export default function Home() {
         </div>
       </section>
 
-      <div className="mt-20 w-full">
-        <BestSelling />
-      </div>
-
       <div className="mt-20 max-w-7xl mx-auto">
         <Entertainment />
+      </div>
+
+      <div className="mt-20 w-full">
+        <BestSelling />
       </div>
 
       <div className="mt-20 max-w-7xl mx-auto">

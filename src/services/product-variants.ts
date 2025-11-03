@@ -9,7 +9,7 @@ export type TProductVariant = {
   description: string | null;
   netPrice: number;
   retailPrice: number;
-  salePrice: number | null;
+  salePrice?: number;
   createdAt: string;
   updatedAt: string;
   supplierId: number;

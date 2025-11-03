@@ -17,7 +17,7 @@ export default function BestSelling() {
     fetchWorkingProducts();
   }, []);
   return (
-    <div className="bg-[#000d21]">
+    <div className="bg-[#000d21] pb-8">
       <img src="https://divineshop.vn/static/7f94849d8e8cb55e5d838a5bf3f187c6.png" />
       <div className="w-full max-w-7xl mx-auto z-10">
         <h2 className="text-center text-3xl lg:text-4xl font-bold mb-2 tracking-tight text-white">
