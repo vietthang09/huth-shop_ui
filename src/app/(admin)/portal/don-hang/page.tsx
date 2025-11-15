@@ -11,7 +11,7 @@ import { TUser } from "@/services/user";
 import { OrderDialog, OrderDialogProvider, useOrderDialog } from "@/components/admin/orders";
 // Inner component that uses the dialog context
 function OrdersPageContent() {
-  const { openAddDialog, openEditDialog, openViewDialog } = useOrderDialog();
+  const { openAddDialog, openEditDialog, openViewDialog, openProcessDialog } = useOrderDialog();
   const [orders, setOrders] = useState<(TOrder & { user: TUser })[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<(TOrder & { user: TUser })[]>([]);
   const [selectedRows, setSelectedRows] = useState<(string | number)[]>([]);
@@ -130,8 +130,9 @@ function OrdersPageContent() {
       header: "Thao tác",
       align: "center",
       render: (_, row) => (
-        <div className="flex items-center justify-center gap-1">
+        <div className="flex items-center justify-start gap-1">
           <Button
+            variant="outline"
             onClick={(e) => {
               e.stopPropagation();
               openViewDialog(row);
@@ -140,13 +141,12 @@ function OrdersPageContent() {
             Chi tiết
           </Button>
           <Button
-            variant="outline"
             onClick={(e) => {
               e.stopPropagation();
-              // openEditDialog(row);
+              openProcessDialog(row);
             }}
           >
-            Sửa
+            Xử lý
           </Button>
         </div>
       ),

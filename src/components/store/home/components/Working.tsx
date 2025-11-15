@@ -1,7 +1,10 @@
 "use client";
+
 import { useEffect, useState } from "react";
-import ProductCard from "../../common/ProductCard";
+
 import { findAllByCategory, TProduct } from "@/services/product";
+
+import ProductCard from "../../common/ProductCard";
 
 export default function Working() {
   const [products, setProducts] = useState<TProduct[]>([]);
@@ -24,7 +27,7 @@ export default function Working() {
         Khám phá các sản phẩm làm việc hàng đầu, từ phần mềm quản lý dự án đến công cụ giao tiếp, giúp nâng cao hiệu
         suất công việc của bạn.
       </p>
-      <div className="mt-6 grid grid-cols-5 gap-4">
+      <div className="mt-6 grid grid-cols-4 gap-4">
         {products?.map((product) => (
           <div key={product.id}>
             <ProductCard product={product} />
