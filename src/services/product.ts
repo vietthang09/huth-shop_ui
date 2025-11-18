@@ -2,6 +2,8 @@ import axios from "axios";
 import axiosInstance, { axiosPublicInstance } from "./axiosInstance";
 import { TCategory } from "./category";
 import { TProductVariant } from "./product-variants";
+import { ProductVariantKind } from "@/types/product";
+import { ProductSortBy, SortOrder } from "@/common/contants";
 
 export async function create(data: { sku: string; title: string; categoryId: number }) {
   return axiosInstance.post("/products", data);
@@ -13,14 +15,21 @@ export type TProduct = {
   title: string;
   description: string;
   categoryId: number;
-  images: any;
+  images: string[];
   createdAt: string;
   updatedAt: string;
   category: TCategory;
   variants: TProductVariant[];
 };
-export async function findAll() {
-  return axiosInstance.get("/products");
+export interface FindAllQuery {
+  page?: number;
+  limit?: number;
+  sortBy?: ProductSortBy;
+  order?: SortOrder;
+  search?: string;
+}
+export async function findAll(params?: FindAllQuery) {
+  return axiosInstance.get("/products", { params });
 }
 
 export async function findAllByCategory(categorySlug: string) {

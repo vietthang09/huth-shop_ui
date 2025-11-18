@@ -8,6 +8,7 @@ export { TableToolbar, createCommonActions } from "./table-toolbar";
 export type { TableToolbarAction, TableToolbarFilter, TableToolbarProps, FilterOption } from "./table-toolbar";
 export { Table, TableHeader, TableBody, TableRow, TableCell, TableSkeleton, TableEmpty } from "./table";
 export type { TableColumn, TableSort, TableProps, SortDirection } from "./table";
+export { Carousel } from "./carousel";
 export {
   Dialog,
   DialogTrigger,

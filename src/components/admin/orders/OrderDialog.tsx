@@ -8,6 +8,7 @@ import {
   DialogFooter,
   Button,
   Input,
+  Select,
 } from "@/components/ui";
 import { useOrderDialog } from "./OrderDialogContext";
 import { create, update, remove, findOne } from "@/services/supplier";
@@ -18,16 +19,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { fCurrency } from "@/shared/utils/format-number";
+import { OrderStatus } from "@/common/contants";
+import { ProductVariantKind } from "@/types/product";
 
 // Zod schema for order validation
-const orderSchema = z.object({
-  name: z
-    .string()
-    .min(1, "Tên đơn hàng là bắt buộc")
-    .min(2, "Tên đơn hàng phải có ít nhất 2 ký tự")
-    .max(100, "Tên đơn hàng không được vượt quá 100 ký tự")
-    .trim(),
-});
+const orderSchema = z.object({});
 
 type OrderFormData = z.infer<typeof orderSchema>;
 
@@ -40,9 +36,7 @@ export const OrderDialog: React.FC = () => {
   // React Hook Form setup
   const form = useForm<OrderFormData>({
     resolver: zodResolver(orderSchema),
-    defaultValues: {
-      name: "",
-    },
+    defaultValues: {},
   });
 
   const {
@@ -53,17 +47,6 @@ export const OrderDialog: React.FC = () => {
     setValue,
     watch,
   } = form;
-
-  // Format date helper
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("vi-VN", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
 
   // Reset form when dialog opens/closes or mode changes
   React.useEffect(() => {
@@ -86,21 +69,18 @@ export const OrderDialog: React.FC = () => {
 
     try {
       if (mode === "add") {
-        const response = await create({ name: data.name.trim() });
-        if (response.status === 200 || response.status === 201) {
-          toast.success("Thêm nhà cung cấp thành công");
-          closeDialog();
-          // Trigger refresh of the parent component
-          window.location.reload();
-        }
+        toast.success(`Đơn hàng mới đã được tạo thành công`);
+        closeDialog();
       } else if (mode === "edit" && selectedOrder) {
-        const response = await update(selectedOrder.id, { name: data.name.trim() });
-        if (response.status === 200 || response.status === 201) {
-          toast.success("Cập nhật đơn hàng thành công");
-          closeDialog();
-          // Trigger refresh of the parent component
-          window.location.reload();
-        }
+        toast.success(`Đơn hàng "${selectedOrder.id}" đã được cập nhật thành công`);
+        closeDialog();
+      } else if (mode === "process" && selectedOrder) {
+        // Update order
+
+        // Send confirmation email
+
+        toast.success(`Đơn hàng "${selectedOrder.id}" đã được xử lý thành công`);
+        closeDialog();
       }
     } catch (error: any) {
       console.error("Error saving supplier:", error);
@@ -149,6 +129,8 @@ export const OrderDialog: React.FC = () => {
         return "Chỉnh sửa đơn hàng";
       case "view":
         return "Chi tiết đơn hàng";
+      case "process":
+        return "Xử lý đơn hàng";
       default:
         return "Đơn hàng";
     }
@@ -181,44 +163,56 @@ export const OrderDialog: React.FC = () => {
 
         <div className="flex-1 overflow-y-auto px-1 -mx-1">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Basic Information */}
-            <div className="space-y-4">
-              {selectedOrder?.orderItems.map((item) => (
-                <div key={item.id}>
-                  <p>
-                    {item.product.title} - {item.variant.title}
-                  </p>
-                  <p>Số lượng: {item.quantity}</p>
-                  <p>Giá: {fCurrency(item.total, { currency: "VND" })}</p>
-                </div>
-              ))}
-              {/* Show additional info in view/edit mode */}
-              {mode !== "add" && selectedOrder && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">ID</label>
-                    <p className="text-sm text-gray-900 font-mono">#{selectedOrder.id}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  Email <span className="text-red-500">*</span>
+                </label>
+                <Input id="email" type="email" placeholder="email@example.com" value={selectedOrder?.user.email} />
+              </div>
+
+              <div>
+                <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+                  Trạng thái đơn hàng
+                </label>
+                <Select id="status" className="w-full">
+                  {Object.entries(OrderStatus).map(([key, value]) => (
+                    <option key={key} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            </div>
+            <div>
+              <h3>Đơn hàng gồm:</h3>
+              <div className="mt-2 space-y-2">
+                {selectedOrder?.orderItems.map((item) => (
+                  <div className="p-2 border border-gray-300 w-full rounded-md">
+                    <p>Tên sản phẩm: {item.product.title}</p>
+                    <p>Phân loại: {item.variant.title}</p>
+                    <p>Giá: {fCurrency(item.variant.retailPrice, { currency: "VND" })}</p>
+                    <p>Số lượng: {item.quantity}</p>
+
+                    {item.variant.kind === ProductVariantKind.PRE_MADE_ACCOUNT && (
+                      <div className="border border-gray-300 p-2 rounded space-y-4">
+                        <div>
+                          <label htmlFor="email-username" className="block text-sm font-medium text-gray-700 mb-2">
+                            Email/Tên tài khoản <span className="text-red-500">*</span>
+                          </label>
+                          <Input id="email-username" type="text" />
+                        </div>
+                        <div>
+                          <label htmlFor="account-password" className="block text-sm font-medium text-gray-700 mb-2">
+                            Mật khẩu <span className="text-red-500">*</span>
+                          </label>
+                          <Input id="account-password" type="text" />
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Tên khách hàng</label>
-                    <p className="text-sm text-gray-900 font-mono">
-                      {selectedOrder.user.firstName || ""} {selectedOrder.user.lastName || ""}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Email</label>
-                    <p className="text-sm text-gray-900 font-mono">{selectedOrder.user.email || "N/A"}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Ngày tạo</label>
-                    <p className="text-sm text-gray-900">{formatDate(selectedOrder.createdAt)}</p>
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Cập nhật lần cuối</label>
-                    <p className="text-sm text-gray-900">{formatDate(selectedOrder.updatedAt)}</p>
-                  </div>
-                </div>
-              )}
+                ))}
+              </div>
             </div>
           </form>
         </div>
@@ -259,7 +253,7 @@ export const OrderDialog: React.FC = () => {
                   className="w-full sm:w-auto"
                   onClick={handleSubmit(onSubmit)}
                 >
-                  {mode === "add" ? "Thêm nhà cung cấp" : "Cập nhật"}
+                  {mode === "process" ? "Gửi hàng" : "-"}
                 </Button>
               )}
             </div>
