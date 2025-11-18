@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import { TOrder } from "@/services/order";
 
-export type OrderDialogMode = "add" | "edit" | "view";
+export type OrderDialogMode = "add" | "edit" | "view" | "process";
 
 interface OrderDialogContextType {
   // Dialog states
@@ -13,6 +13,7 @@ interface OrderDialogContextType {
   openAddDialog: () => void;
   openEditDialog: (order: TOrder) => void;
   openViewDialog: (order: TOrder) => void;
+  openProcessDialog: (order: TOrder) => void;
   closeDialog: () => void;
 
   // Form state
@@ -92,6 +93,12 @@ export const OrderDialogProvider: React.FC<OrderDialogProviderProps> = ({
     setIsOpen(true);
   };
 
+  const openProcessDialog = (order: TOrder) => {
+    setMode("process");
+    setSelectedOrder(order);
+    setIsOpen(true);
+  };
+
   const closeDialog = () => {
     setIsOpen(false);
     setMode("add");
@@ -111,6 +118,7 @@ export const OrderDialogProvider: React.FC<OrderDialogProviderProps> = ({
     openAddDialog,
     openEditDialog,
     openViewDialog,
+    openProcessDialog,
     closeDialog,
     formData,
     setFormData,

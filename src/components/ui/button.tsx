@@ -1,5 +1,7 @@
-import * as React from "react";
+"use client";
+
 import { clsx } from "clsx";
+import * as React from "react";
 import { twMerge } from "tailwind-merge";
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -12,10 +14,10 @@ const buttonVariants = {
   base: "inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 relative overflow-hidden cursor-pointer",
   variants: {
     variant: {
-      default: "bg-slate-900 text-white hover:bg-slate-800 active:bg-slate-950 shadow-md hover:shadow-lg",
+      default: "bg-[#353968] text-white hover:bg-[#282b53] active:bg-slate-950 shadow-md hover:shadow-lg",
       primary:
         "bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 shadow-md hover:shadow-lg transform hover:scale-105",
-      destructive: "bg-red-500 text-white hover:bg-red-600 active:bg-red-700 shadow-md hover:shadow-lg",
+      destructive: "bg-[#f73030] text-white hover:bg-red-600 active:bg-red-700 shadow-md hover:shadow-lg",
       outline:
         "border border-gray-200 bg-white text-gray-900 hover:bg-gray-50 hover:border-gray-300 active:bg-gray-100",
       secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200 active:bg-gray-300",
@@ -39,8 +41,8 @@ function getButtonClasses(variant: string = "default", size: string = "default")
     clsx(
       buttonVariants.base,
       buttonVariants.variants.variant[variant as keyof typeof buttonVariants.variants.variant],
-      buttonVariants.variants.size[size as keyof typeof buttonVariants.variants.size]
-    )
+      buttonVariants.variants.size[size as keyof typeof buttonVariants.variants.size],
+    ),
   );
 }
 
@@ -71,7 +73,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {children}
       </button>
     );
-  }
+  },
 );
 
 Button.displayName = "Button";

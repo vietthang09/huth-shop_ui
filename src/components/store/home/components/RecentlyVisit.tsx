@@ -28,14 +28,7 @@ export default function RecentlyVisit() {
   const recentProducts = getRecentProducts(4);
 
   if (recentProducts.length === 0) {
-    return (
-      <div className="h-full space-y-2">
-        <div className="w-full relative">
-          <h2 className="text-center text-2xl text-gray-800 font-medium">Đã xem gần đây</h2>
-        </div>
-        <div className="text-center text-gray-500 py-8">Bạn chưa xem sản phẩm nào gần đây</div>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -51,7 +44,7 @@ export default function RecentlyVisit() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        {recentProducts.map((product, index) => (
+        {recentProducts.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>

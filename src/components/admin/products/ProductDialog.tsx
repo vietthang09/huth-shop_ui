@@ -20,6 +20,7 @@ import { findAll as findAllCategories, TCategory } from "@/services/category";
 import { findAll as findAllSuppliers, TSupplier } from "@/services/supplier";
 import * as productVariantService from "@/services/product-variants";
 import { TProductVariant } from "@/services/product-variants";
+import { ProductVariantKind } from "@/types/product";
 import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
 import { toast } from "sonner";
 import { Trash2, Upload, X, Plus, Edit3, DollarSign } from "lucide-react";
@@ -44,17 +45,21 @@ type VariantFormData = {
   title: string;
   netPrice: string;
   retailPrice: string;
+  salePrice: string;
   supplierId: string;
+  kind?: ProductVariantKind | string;
 };
 
 type VariantFormErrors = {
   title?: string;
   netPrice?: string;
   retailPrice?: string;
+  salePrice?: string;
   supplierId?: string;
+  kind?: string;
 };
 
-type VariantFormField = "title" | "netPrice" | "retailPrice" | "supplierId";
+type VariantFormField = "title" | "netPrice" | "retailPrice" | "salePrice" | "supplierId" | "kind";
 
 export const ProductDialog: React.FC = () => {
   const { isOpen, mode, selectedProduct, closeDialog, isSubmitting, setIsSubmitting } = useProductDialog();
@@ -74,7 +79,9 @@ export const ProductDialog: React.FC = () => {
     title: "",
     netPrice: "",
     retailPrice: "",
+    salePrice: "",
     supplierId: "",
+    kind: "",
   });
   const [variantFormErrors, setVariantFormErrors] = React.useState<VariantFormErrors>({});
 
@@ -219,7 +226,9 @@ export const ProductDialog: React.FC = () => {
         title: "",
         netPrice: "",
         retailPrice: "",
+        salePrice: "",
         supplierId: "",
+        kind: "",
       });
       setVariantFormErrors({});
     } else {
@@ -239,6 +248,7 @@ export const ProductDialog: React.FC = () => {
         title: "",
         netPrice: "",
         retailPrice: "",
+        salePrice: "",
         supplierId: "",
       });
       setVariantFormErrors({});
@@ -342,6 +352,7 @@ export const ProductDialog: React.FC = () => {
       title: "",
       netPrice: "",
       retailPrice: "",
+      salePrice: "",
       supplierId: "",
     });
     setVariantFormErrors({});
@@ -356,7 +367,9 @@ export const ProductDialog: React.FC = () => {
       title: variant.title,
       netPrice: variant.netPrice.toString(),
       retailPrice: variant.retailPrice.toString(),
+      salePrice: variant.salePrice?.toString() || "",
       supplierId: variant.supplierId.toString(),
+      kind: variant.kind || "",
     });
     setVariantFormErrors({});
     setShowVariantForm(true);
@@ -374,7 +387,9 @@ export const ProductDialog: React.FC = () => {
       title: variantFormData.title.trim(),
       netPrice: Number(variantFormData.netPrice),
       retailPrice: Number(variantFormData.retailPrice),
+      salePrice: Number(variantFormData.salePrice),
       supplierId: Number(variantFormData.supplierId),
+      kind: (variantFormData.kind as ProductVariantKind) || undefined,
     };
 
     if (editingVariant) {
@@ -399,7 +414,9 @@ export const ProductDialog: React.FC = () => {
       title: "",
       netPrice: "",
       retailPrice: "",
+      salePrice: "",
       supplierId: "",
+      kind: "",
     });
     setVariantFormErrors({});
   };
@@ -515,6 +532,7 @@ export const ProductDialog: React.FC = () => {
                   netPrice: variant.netPrice,
                   retailPrice: variant.retailPrice,
                   supplierId: variant.supplierId,
+                  kind: variant.kind,
                 })
               )
             );
@@ -555,7 +573,9 @@ export const ProductDialog: React.FC = () => {
                     title: variant.title,
                     netPrice: variant.netPrice,
                     retailPrice: variant.retailPrice,
+                    ...(variant.salePrice && { salePrice: variant.salePrice }),
                     supplierId: variant.supplierId,
+                    kind: variant.kind,
                   })
                 );
               });
@@ -570,7 +590,9 @@ export const ProductDialog: React.FC = () => {
                     title: variant.title,
                     netPrice: variant.netPrice,
                     retailPrice: variant.retailPrice,
+                    ...(variant.salePrice && { salePrice: variant.salePrice }),
                     supplierId: variant.supplierId,
+                    kind: variant.kind,
                   })
                 );
               });
@@ -914,6 +936,23 @@ export const ProductDialog: React.FC = () => {
                     </div>
 
                     <div>
+                      <label htmlFor="variant-kind" className="block text-sm font-medium text-gray-700 mb-1">
+                        Loại variant (tuỳ chọn)
+                      </label>
+                      <Select
+                        id="variant-kind"
+                        value={variantFormData.kind || ""}
+                        onChange={(e) => handleVariantInputChange("kind", e.target.value)}
+                        className="w-full"
+                      >
+                        <option value="">-- Không chọn --</option>
+                        <option value="ownership_upgrade">Ownership upgrade</option>
+                        <option value="pre_made_account">Pre-made account</option>
+                        <option value="sharing">Sharing</option>
+                      </Select>
+                    </div>
+
+                    <div>
                       <label htmlFor="variant-net-price" className="block text-sm font-medium text-gray-700 mb-1">
                         Giá nhập <span className="text-red-500">*</span>
                       </label>
@@ -960,6 +999,29 @@ export const ProductDialog: React.FC = () => {
                       </div>
                       {variantFormErrors.retailPrice && (
                         <p className="mt-1 text-sm text-red-600">{variantFormErrors.retailPrice}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label htmlFor="variant-retail-price" className="block text-sm font-medium text-gray-700 mb-1">
+                        Giá khuyến mãi <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="variant-retail-price"
+                          type="number"
+                          placeholder="0"
+                          value={variantFormData.salePrice}
+                          onChange={(e) => handleVariantInputChange("salePrice", e.target.value)}
+                          className={`pl-10 ${
+                            variantFormErrors.salePrice ? "border-red-300 focus:border-red-500 focus:ring-red-500" : ""
+                          }`}
+                          min="0"
+                          step="1000"
+                        />
+                      </div>
+                      {variantFormErrors.salePrice && (
+                        <p className="mt-1 text-sm text-red-600">{variantFormErrors.salePrice}</p>
                       )}
                     </div>
                   </div>
