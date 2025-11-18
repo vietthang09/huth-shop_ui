@@ -1,0 +1,56 @@
+name: Deploy Next.js to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm install -f
+
+      - name: Build Next.js application
+        run: npm run build
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_KEY }}
+          script: |
+            cd ../
+            cd /home/apps/huthshop/huth-shop_ui
+
+            export NVM_DIR=~/.nvm
+            source ~/.nvm/nvm.sh
+
+            git reset --hard
+
+            git clean -fd
+
+            git pull origin main
+
+            cat > .env << EOF
+            NEXTAUTH_URL=${{ vars.NEXTAUTH_URL }}
+            NEXTAUTH_SECRET=${{ vars.NEXTAUTH_SECRET }}
+            EOF
+
+            npm install -f
+
+            npm run build
+
+            pm2 reload huthshop-ui
