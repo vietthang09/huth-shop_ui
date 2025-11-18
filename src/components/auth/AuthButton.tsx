@@ -6,17 +6,16 @@ import { signIn } from "next-auth/react";
 import { useAuth } from "@/hooks/useAuth";
 
 import { Button } from "../ui";
+import { useState } from "react";
 
 export function AuthButton() {
   const { user, isAuthenticated } = useAuth();
 
   if (isAuthenticated && user) {
     return (
-      <Link href="/ca-nhan">
-        <div className="size-8 flex items-center justify-center text-center border-[2px] text-gray-800 border-gray-400 rounded-full">
-          {user.name?.charAt(0)}
-        </div>
-      </Link>
+      <div className="size-8 flex items-center justify-center text-center border-[2px] text-white border-white rounded-full">
+        {user.name?.charAt(0)}
+      </div>
     );
   }
 

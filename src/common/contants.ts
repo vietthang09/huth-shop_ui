@@ -12,3 +12,15 @@ export enum OrderStatus {
   CANCELLED = "cancelled",
   REFUNDED = "refunded",
 }
+
+export enum ProductSortBy {
+  CREATED_AT = "createdAt",
+  UPDATED_AT = "updatedAt",
+  TITLE = "title",
+  PRICE = "price",
+}
+
+export enum SortOrder {
+  ASC = "ASC",
+  DESC = "DESC",
+}

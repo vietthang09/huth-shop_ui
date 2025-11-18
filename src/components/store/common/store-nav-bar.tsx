@@ -9,6 +9,7 @@ import { AuthButton } from "@/components/auth/AuthButton";
 import { mockProducts } from "@/components/store/home/data";
 import { useCartStore } from "@/store/cartStore";
 import Image from "next/image";
+import CartButton from "./CartButton";
 
 const StoreNavBar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -368,14 +369,7 @@ const StoreNavBar = () => {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-2">
-          <Link href="/gio-hang" className="p-4 rounded-full  text-white hover:bg-[#171a3c]">
-            <ShoppingCart className="size-5" />
-            {cartItems.length > 0 && (
-              <div className="flex items-center justify-center size-4 border rounded-full text-center align-middle text-xs">
-                {cartItems.length}
-              </div>
-            )}
-          </Link>
+          <CartButton />
           <AuthButton />
         </div>
 

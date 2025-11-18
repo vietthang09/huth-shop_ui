@@ -8,6 +8,10 @@ import ProductCard from "@/components/store/common/ProductCard";
 import BuyingFlow from "@/components/store/home/components/BuyingFlow";
 import { Carousel } from "@/components/ui";
 import { fCurrency } from "@/shared/utils/format-number";
+import BestSeller from "@/features/store/home/best-seller";
+import Newest from "@/features/store/home/newest";
+import BestRating from "@/features/store/home/best-rating";
+import OnSale from "@/features/store/home/on-sale";
 
 export default function Home() {
   const categories = [
@@ -80,34 +84,8 @@ export default function Home() {
             </h2>
             <p className="mt-1 text-gray-400">Tuyển chọn các sản phẩm đang &quot;làm mưa làm gió&quot;</p>
           </Link>
-          <div className="mt-6 grid grid-cols-12 gap-6">
-            <div className="col-span-9">
-              <Carousel slidesToShow={4} slidesToScroll={2} autoPlay={true} showDots={true} showArrows={true} gap={24}>
-                <ProductCard direction="vertical" />
-                <ProductCard direction="vertical" />
-                <ProductCard direction="vertical" />
-                <ProductCard direction="vertical" />
-                <ProductCard direction="vertical" />
-                <ProductCard direction="vertical" />
-                <ProductCard direction="vertical" />
-                <ProductCard direction="vertical" />
-                <ProductCard direction="vertical" />
-                <ProductCard direction="vertical" />
-                <ProductCard direction="vertical" />
-                <ProductCard direction="vertical" />
-              </Carousel>
-            </div>
-
-            <div className="col-span-3">
-              <Image
-                src="https://cdn.k4g.com/files/homepage_promo/fee01e73808f859daaf5ab0e537addef.jpg"
-                height={100}
-                width={100}
-                alt="banner"
-                unoptimized
-                className="h-full w-full rounded-xl"
-              />
-            </div>
+          <div className="mt-6">
+            <BestSeller />
           </div>
         </div>
       </div>
@@ -120,20 +98,7 @@ export default function Home() {
           <p className="mt-1 text-gray-400">Săn Deal Hời Nhất! Toàn bộ sản phẩm được giảm giá đặc biệt.</p>
 
           <div className="mt-6">
-            <Carousel slidesToShow={6} slidesToScroll={2} autoPlay={true} showDots={true} showArrows={true} gap={24}>
-              <ProductCard direction="vertical" />
-              <ProductCard direction="vertical" />
-              <ProductCard direction="vertical" />
-              <ProductCard direction="vertical" />
-              <ProductCard direction="vertical" />
-              <ProductCard direction="vertical" />
-              <ProductCard direction="vertical" />
-              <ProductCard direction="vertical" />
-              <ProductCard direction="vertical" />
-              <ProductCard direction="vertical" />
-              <ProductCard direction="vertical" />
-              <ProductCard direction="vertical" />
-            </Carousel>
+            <OnSale />
           </div>
         </div>
       </div>
@@ -147,13 +112,8 @@ export default function Home() {
             Danh sách các sản phẩm Đánh giá Tuyệt đối. Nơi chỉ có chất lượng hàng đầu.
           </p>
 
-          <div className="mt-6 grid grid-cols-3 gap-6">
-            <ProductCard />
-            <ProductCard />
-            <ProductCard />
-            <ProductCard />
-            <ProductCard />
-            <ProductCard />
+          <div className="mt-6">
+            <BestRating />
           </div>
         </div>
       </div>
@@ -165,13 +125,8 @@ export default function Home() {
           </h2>
           <p className="mt-1 text-gray-400">Những sản phẩm vừa &quot;lên kệ&quot; nóng hổi nhất.</p>
 
-          <div className="mt-6 grid grid-cols-6 gap-2 bg-[#f3f4fa] p-2 rounded-xl">
-            <ProductCard theme="light" direction="vertical" />
-            <ProductCard theme="light" direction="vertical" />
-            <ProductCard theme="light" direction="vertical" />
-            <ProductCard theme="light" direction="vertical" />
-            <ProductCard theme="light" direction="vertical" />
-            <ProductCard theme="light" direction="vertical" />
+          <div className="mt-6  bg-[#f3f4fa] p-2 rounded-xl">
+            <Newest />
           </div>
         </div>
       </div>

@@ -1,21 +1,13 @@
 "use client";
 
-import ProductCard from "@/components/store/common/ProductCard";
-import { Button, Input, Select } from "@/components/ui";
 import { ChevronRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import Filter from "@/features/store/search/filter";
+import { Button, Input, Select } from "@/components/ui";
+import ProductCard from "@/components/store/common/ProductCard";
 
 export default function SearchPage() {
-  const searchParams = useSearchParams();
-
-  const asc = searchParams.get("tang_dan");
-  const category = searchParams.get("danh_muc");
-  const sortBy = searchParams.get("sap_xep");
-
-  const page = searchParams.get("trang");
-
   const categories = [
     {
       title: "Bestsellers",
@@ -87,23 +79,7 @@ export default function SearchPage() {
         />
         <div className="mt-4 grid grid-cols-12 gap-6">
           <div className="col-span-2">
-            <div>
-              <ul className="bg-[#f4f5fa] rounded-xl overflow-hidden divide-y divide-gray-300">
-                <li>
-                  <Link href="#" className="p-3 flex items-center justify-between hover:bg-gray-200">
-                    <span className="font-bold">Games</span>{" "}
-                    <span className="text-gray-500 text-xs font-semibold">38064</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="p-3 flex items-center justify-between hover:bg-gray-200">
-                    <span className="font-bold">Software</span>{" "}
-                    <span className="text-gray-500 text-xs font-semibold">2031</span>
-                  </Link>
-                </li>
-              </ul>
-              <h3 className="mt-4">Lọc theo</h3>
-            </div>
+            <Filter />
           </div>
           <div className="col-span-10 bg-[#f4f5fa] p-2 rounded-xl">
             <div className="flex justify-between items-center">
@@ -112,8 +88,12 @@ export default function SearchPage() {
                 <div className="flex items-center gap-1">
                   <span className="text-gray-700 font-bold text-sm">Sắp xếp theo</span>
                   <Select>
-                    <option>a</option>
-                    <option>a</option>
+                    <option>Bán chạy</option>
+                    <option>Đánh giá</option>
+                    <option>Tên</option>
+                    <option>Giá thấp trước</option>
+                    <option>Giá cao trước</option>
+                    <option>Giảm giá</option>
                   </Select>
                 </div>
                 <div className="flex items-center gap-2">
