@@ -2,6 +2,7 @@
 
 import { Flame, Key, ShoppingCart, ThumbsUp, User, Zap } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 import { Button } from "@/components/ui";
 import { TProduct } from "@/services/product";
@@ -18,6 +19,7 @@ type ProductCardProps = {
 };
 
 const ProductCard = ({ product, direction = "horizontal", theme = "dark", tag }: ProductCardProps) => {
+  if (!product) return;
   const lowestRetailPrice = Math.min(...(product?.variants || []).map((variant) => Number(variant.retailPrice)));
   const lowestSalePrice = Math.min(...(product?.variants || []).map((variant) => variant.salePrice || 0));
   return (
@@ -29,14 +31,16 @@ const ProductCard = ({ product, direction = "horizontal", theme = "dark", tag }:
       )}
     >
       <div className="col-span-2 relative">
-        <Image
-          width={100}
-          height={100}
-          className="w-full h-64 rounded-xl object-cover"
-          alt="product"
-          unoptimized
-          src={product?.images ? product?.images[0] : ""}
-        />
+        <Link href={`san-pham/${product.sku}`}>
+          <Image
+            width={100}
+            height={100}
+            className="w-full h-64 rounded-xl object-cover"
+            alt="product"
+            unoptimized
+            src={product?.images ? product?.images[0] : ""}
+          />
+        </Link>
         {tag === "hot" ? (
           <span className="absolute left-4 bottom-0 translate-y-1/2 flex items-center px-2 py-1 gap-1 w-fit bg-white uppercase font-bold text-xs rounded-full">
             <Flame className="text-red-500 size-4" /> Hot deal
@@ -56,7 +60,9 @@ const ProductCard = ({ product, direction = "horizontal", theme = "dark", tag }:
         )}
       >
         <div>
-          <p className="text-sm font-bold line-clamp-4">{product?.title || "Tên sản phẩm"}</p>
+          <Link href={`san-pham/${product.sku}`}>
+            <p className="text-sm font-bold line-clamp-4">{product.title}</p>
+          </Link>
           <div className="mt-1 flex gap-2">
             <Key className="size-5" />
             <User className="size-5" />
