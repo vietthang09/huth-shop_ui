@@ -3,217 +3,220 @@
 @import "tailwindcss";
 
 @theme {
-  --color-black: #252525;
-  --color-primary: #c7000b;
+    --color-black: #252525;
+    --color-primary: #c7000b;
+    --color-background: #000326;
 }
 
 * {
-  font-family: "Nunito", sans-serif;
+    font-family: "Nunito", sans-serif;
 }
 
 /* Carousel animations */
 @keyframes carousel-progress {
-  0% {
-    width: 0%;
-  }
-  100% {
-    width: 100%;
-  }
+    0% {
+        width: 0%;
+    }
+    100% {
+        width: 100%;
+    }
 }
 
 /* Fade in up animation */
 @keyframes fadeInUp {
-  0% {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Scrollbar hide utility */
 .scrollbar-hide {
-  -ms-overflow-style: none;  /* Internet Explorer 10+ */
-  scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+    scrollbar-width: none; /* Firefox */
 }
 
 .scrollbar-hide::-webkit-scrollbar {
-  display: none;  /* Safari and Chrome */
+    display: none; /* Safari and Chrome */
 }
 
 /* Custom line clamp */
 .line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 input[type="range"]::-webkit-slider-thumb {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  pointer-events: auto;
-  appearance: none;
-  -webkit-appearance: none;
-  background-color: #f9fafb; /* Tailwind: light-100 */
-  border: 2px solid #3b82f6; /* Tailwind: blue-500 */
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    pointer-events: auto;
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: #f9fafb; /* Tailwind: light-100 */
+    border: 2px solid #3b82f6; /* Tailwind: blue-500 */
 }
 
 input[type="range"]::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  pointer-events: auto;
-  appearance: none;
-  -moz-appearance: none;
-  background-color: #f9fafb; /* Tailwind: light-100 */
-  border: 2px solid #3b82f6; /* Tailwind: blue-500 */
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    pointer-events: auto;
+    appearance: none;
+    -moz-appearance: none;
+    background-color: #f9fafb; /* Tailwind: light-100 */
+    border: 2px solid #3b82f6; /* Tailwind: blue-500 */
 }
 
 /* Scrollbar hide utility */
 .scrollbar-hide {
-  -ms-overflow-style: none;  /* Internet Explorer 10+ */
-  scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+    scrollbar-width: none; /* Firefox */
 }
 
 .scrollbar-hide::-webkit-scrollbar {
-  display: none;  /* Safari and Chrome */
+    display: none; /* Safari and Chrome */
 }
 
 /* Custom line clamp */
 .line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 @theme {
-  @keyframes newSlide {
-    0% {
-      opacity: 0;
-      visibility: "hidden";
+    @keyframes newSlide {
+        0% {
+            opacity: 0;
+            visibility: "hidden";
+        }
+        100% {
+            opacity: 1;
+            visibility: "visible";
+        }
     }
-    100% {
-      opacity: 1;
-      visibility: "visible";
-    }
-  }
 
-  @keyframes oldSlide {
-    0% {
-      opacity: 0;
-      visibility: "visible";
+    @keyframes oldSlide {
+        0% {
+            opacity: 0;
+            visibility: "visible";
+        }
+        100% {
+            opacity: 1;
+            visibility: "hidden";
+        }
     }
-    100% {
-      opacity: 1;
-      visibility: "hidden";
+    @keyframes autoSlide {
+        0% {
+            width: 0%;
+        }
+        100% {
+            width: 100%;
+        }
     }
-  }
-  @keyframes autoSlide {
-    0% {
-      width: 0%;
-    }
-    100% {
-      width: 100%;
-    }
-  }
 
-  @keyframes carousel-progress {
-    0% {
-      width: 0%;
+    @keyframes carousel-progress {
+        0% {
+            width: 0%;
+        }
+        100% {
+            width: 100%;
+        }
     }
-    100% {
-      width: 100%;
-    }
-  }
 
-  @keyframes loading {
-    0% {
-      transform: translateX(-100%);
+    @keyframes loading {
+        0% {
+            transform: translateX(-100%);
+        }
+        100% {
+            transform: translateX(100%);
+        }
     }
-    100% {
-      transform: translateX(100%);
+    @keyframes poppingUp {
+        0% {
+            margin-top: 24px;
+            transform: scale(1.03);
+        }
+        100% {
+            margin-top: 0px;
+            transform: scale(1);
+        }
     }
-  }  @keyframes poppingUp {
-    0% {
-      margin-top: 24px;
-      transform: scale(1.03);
-    }
-    100% {
-      margin-top: 0px;
-      transform: scale(1);
-    }
-  }
 
-  @keyframes fadeIn {
-    0% {
-      opacity: 0;
-      transform: translateY(10px);
+    @keyframes fadeIn {
+        0% {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
 
-  @keyframes slideInUp {
-    0% {
-      opacity: 0;
-      transform: translateY(20px);
+    @keyframes slideInUp {
+        0% {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
 }
 
 /* Carousel progress animation */
 @keyframes progress {
-  0% {
-    width: 0%;
-  }
-  100% {
-    width: 100%;
-  }
+    0% {
+        width: 0%;
+    }
+    100% {
+        width: 100%;
+    }
 }
 
 ::-webkit-scrollbar {
-  height: 6px;
-  width: 6px;
-  background: white;
+    height: 6px;
+    width: 6px;
+    background: white;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #797979;
-  -webkit-border-radius: 4px;
+    background: #797979;
+    -webkit-border-radius: 4px;
 }
 
 ::-webkit-scrollbar-corner {
-  background: white;
+    background: white;
 }
 
 html,
 body {
-  max-width: 100vw;
-  padding: 0;
-  margin: 0;
-  background-color: #ffffff; /* Consistent background */
+    max-width: 100vw;
+    padding: 0;
+    margin: 0;
+    background-color: #ffffff; /* Consistent background */
 }
 
 input {
-  outline: none;
-  font-family: inherit;
-  transition: border-color 1s, box-shadow 0.5s;
+    outline: none;
+    font-family: inherit;
+    transition:
+        border-color 1s,
+        box-shadow 0.5s;
 }
 
 .noScroll {
-  overflow: hidden;
+    overflow: hidden;
 }
-

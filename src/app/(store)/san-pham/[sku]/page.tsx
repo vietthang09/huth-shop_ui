@@ -1,30 +1,19 @@
 "use client";
 
+import { ChevronRight, ShoppingCart, Star, Key, Zap, Info, ArrowDownRight } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import parse from "html-react-parser";
-import Image from "next/image";
-import {
-  ChevronRight,
-  ShoppingCart,
-  MessageCircle,
-  Shield,
-  Clock,
-  Mail,
-  Star,
-  Key,
-  User,
-  Zap,
-  Info,
-} from "lucide-react";
-import { fCurrency } from "@/shared/utils/format-number";
-import { useRecentlyVisited } from "@/hooks/useRecentlyVisited";
-import { useCartStore } from "@/store/cartStore";
-import { findOne, findOneBySku, TProduct } from "@/services/product";
+
 import ProductPlaceholderImage from "@/components/store/common/product-placeholder-image";
-import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui";
+import Advantages from "@/features/store/details/Advantages";
+import RelatedProducts from "@/features/store/details/RelatedProducts";
+import SafeCheckout from "@/features/store/details/SafeCheckout";
+import { useRecentlyVisited } from "@/hooks/useRecentlyVisited";
+import { findOneBySku, TProduct } from "@/services/product";
+import { fCurrency } from "@/shared/utils/format-number";
 import { cn } from "@/shared/utils/styling";
 
 const ProductPage = () => {
@@ -34,7 +23,6 @@ const ProductPage = () => {
   const [productInfo, setProductInfo] = useState<TProduct | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState<number>(1);
   const [selectedVariant, setSelectedVariant] = useState<number | null>(null);
 
   // Redirect if no SKU
@@ -72,22 +60,12 @@ const ProductPage = () => {
     fetchProduct();
   }, [sku]);
 
-  const handleQuantityChange = useCallback((isReducing: boolean) => {
-    setQuantity((prev) => (isReducing ? Math.max(prev - 1, 1) : prev + 1));
-  }, []);
-
-  // Get selected variant's price
-  const getSelectedVariantPrice = useCallback(() => {
-    if (!productInfo || !selectedVariant) return 0;
+  const getSelectedVariant = useCallback(() => {
+    if (!productInfo || !selectedVariant) return;
     const variant = productInfo.variants?.find((prop: any) => prop.id === selectedVariant);
-    console.log("Selected variant:", selectedVariant, "Found variant:", variant);
-    if (!variant) return 0;
-    // Use sale price if available, otherwise use retail price
-    return variant.retailPrice;
+    if (!variant) return;
+    return variant;
   }, [productInfo, selectedVariant]);
-
-  // Calculate total price
-  const totalPrice = getSelectedVariantPrice() * quantity;
 
   // Error state
   if (error) {
@@ -132,7 +110,7 @@ const ProductPage = () => {
   if (!productInfo) return;
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <nav className="py-2" aria-label="Breadcrumb">
           <div className="flex items-center text-sm text-[#8083a1] font-semibold space-x-2">
@@ -204,116 +182,205 @@ const ProductPage = () => {
                   <div className="size-8 p-1 flex items-center justify-center rounded-full bg-orange-400/20 text-orange-400">
                     <Info size={20} />
                   </div>
-                  <p className="text-sm text-gray-300">Xem ghi chú quan trọng</p>
+                  <p className="text-sm text-gray-300">
+                    Xem hướng dẫn cài đặt <ArrowDownRight className="size-4 inline-block" />
+                  </p>
                 </div>
               </div>
             </div>
 
-            <div>
-              <h3>Các tùy chọn</h3>
-              <ProductOptions
-                product={productInfo}
-                selectedVariant={selectedVariant}
-                onVariantSelect={setSelectedVariant}
-              />
+            <div className="mt-8 font-bold text-white border-b border-b-gray-500/20 sticky top-28 bg-background z-50">
+              <ul className="flex gap-4 pt-4">
+                <li className="pb-4 border-b border-red-500 cursor-pointer">Các tùy chọn</li>
+                <li>
+                  <Link href="#san_pham_lien_quan">Sản phẩm liên quan</Link>
+                </li>
+                <li>
+                  <Link href="#mo_ta">Mô tả sản phẩm</Link>
+                </li>
+                <li>
+                  <Link href="#huong_dan">Hướng dẫn cài đặt</Link>
+                </li>
+                {/*<li>Đánh giá</li>*/}
+              </ul>
             </div>
+
+            <div className="mt-8">
+              <h3 className="text-white font-bold text-2xl mb-3">Được đề xuất</h3>
+              <div className="border border-gray-800 rounded-xl overflow-hidden divide-y divide-gray-800">
+                <div
+                  key={productInfo.variants[0].id}
+                  onClick={() => setSelectedVariant(productInfo.variants[0].id)}
+                  className={`relative p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                    selectedVariant === productInfo.variants[0].id
+                      ? "border border-yellow-400 bg-yellow-400/20 shadow-sm rounded-xl z-20"
+                      : ""
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 flex items-center gap-4">
+                      <div
+                        className={cn(
+                          "size-5 border  rounded-full flex items-center justify-center",
+                          selectedVariant === productInfo.variants[0].id ? "border-yellow-400" : "border-gray-500",
+                        )}
+                      >
+                        {selectedVariant === productInfo.variants[0].id && (
+                          <div className="size-3 bg-yellow-400 rounded-full" />
+                        )}
+                      </div>
+                      <h3
+                        className={cn(
+                          "font-medium",
+                          selectedVariant === productInfo.variants[0].id ? "text-white" : "text-gray-500",
+                        )}
+                      >{`${productInfo.title} - ${productInfo.variants[0].title}`}</h3>
+
+                      <div className="flex items-center gap-4 text-sm">
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 text-green-500 fill-current" />
+                          <span className="font-semibold text-green-600">100.00%</span>
+                        </div>
+                        <span className="text-gray-500">|</span>
+                        <span className="text-gray-600">Đã bán 3,083</span>
+                      </div>
+                    </div>
+                    <div className="text-lg font-bold text-white">
+                      {fCurrency(productInfo.variants[0].retailPrice, { currency: "VND" })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8">
+              <h3 className="text-white font-bold text-2xl mb-3">Các tùy chọn</h3>
+              <div className="border border-gray-800 rounded-xl overflow-hidden divide-y divide-gray-800">
+                {productInfo.variants?.slice(1).map((property) => (
+                  <div
+                    key={property.id}
+                    onClick={() => setSelectedVariant(property.id)}
+                    className={`relative p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                      selectedVariant === property.id
+                        ? "border border-yellow-400 bg-yellow-400/20 shadow-sm rounded-xl z-20"
+                        : ""
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 flex items-center gap-4">
+                        <div
+                          className={cn(
+                            "size-5 border  rounded-full flex items-center justify-center",
+                            selectedVariant === property.id ? "border-yellow-400" : "border-gray-500",
+                          )}
+                        >
+                          {selectedVariant === property.id && <div className="size-3 bg-yellow-400 rounded-full" />}
+                        </div>
+                        <h3
+                          className={cn(
+                            "font-medium",
+                            selectedVariant === property.id ? "text-white" : "text-gray-500",
+                          )}
+                        >{`${productInfo.title} - ${property.title}`}</h3>
+
+                        <div className="flex items-center gap-4 text-sm">
+                          <div className="flex items-center gap-1">
+                            <Star className="w-4 h-4 text-green-500 fill-current" />
+                            <span className="font-semibold text-green-600">100.00%</span>
+                          </div>
+                          <span className="text-gray-500">|</span>
+                          <span className="text-gray-600">Đã bán 3,083</span>
+                        </div>
+                      </div>
+                      <div className="text-lg font-bold text-white">
+                        {fCurrency(property.retailPrice, { currency: "VND" })}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-8" id="san_pham_lien_quan">
+              <h3 className="text-white font-bold text-2xl mb-3">Các sản phẩm liên quan</h3>
+              <RelatedProducts categorySlug={productInfo.category.slug} />
+            </div>
+
+            <div className="mt-8" id="mo_ta">
+              <h3 className="text-white font-bold text-2xl mb-3">Mô tả sản phẩm</h3>
+              <div className="bg-[#171a3c] p-8 rounded-xl">
+                <p className="text-white">{productInfo.description}</p>
+              </div>
+            </div>
+
+            <div className="mt-8" id="huong_dan">
+              <h3 className="text-white font-bold text-2xl mb-3">Hướng dẫn cài đặt</h3>
+              <div className="bg-[#171a3c] p-8 rounded-xl">
+                <p className="text-white">{productInfo.description}</p>
+              </div>
+            </div>
+
+            {/*<div className="mt-8">
+              <h3 className="text-white font-bold text-2xl mb-3">Đánh giá</h3>
+            </div>*/}
           </div>
           <div className="col-span-1">
-            <div className="bg-[#171a3c] rounded-xl shadow">
-              <div className="px-4 py-3 gap-4 space-y-6">
-                <h3 className="text-white">Lựa chọn tốt nhất cho bạn</h3>
-                <div className="flex items-center justify-center gap-4">
-                  <button
-                    className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center font-semibold"
-                    onClick={() => handleQuantityChange(true)}
-                    disabled={quantity <= 1}
-                  >
-                    −
-                  </button>
-                  <span className="text-xl font-semibold min-w-[2rem] text-center">{quantity}</span>
-                  <button
-                    className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center font-semibold"
-                    onClick={() => handleQuantityChange(false)}
-                  >
-                    +
-                  </button>
-                </div>
-                <Button className="w-full gap-2 bg-gradient-to-r from-[#f0b46a] to-[#fce08f] text-[#5a4323] font-bold">
-                  <ShoppingCart size={20} /> Thêm vào giỏ
-                </Button>
-                <div className="flex items-center gap-4">
-                  <div className="relative">
-                    <div className="w-12 h-12 bg-gradient-to-br from-gray-800 to-black rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold text-lg">VT</span>
+            <div className="sticky top-40 space-y-4">
+              <div className="bg-[#171a3c] rounded-xl shadow">
+                <div className="px-4 py-3 gap-4 space-y-6">
+                  <h3 className="text-white">Lựa chọn tốt nhất cho bạn</h3>
+
+                  <div className="border border-yellow-400 bg-amber-50/10 p-4 rounded-lg">
+                    <div className="flex gap-2">
+                      <div className="size-8 border border-yellow-500 rounded-full flex items-center justify-center">
+                        <div className="size-3  bg-yellow-500 rounded-full" />
+                      </div>
+                      <p className="text-amber-300">{`${productInfo.title} - ${getSelectedVariant()?.title}`}</p>
                     </div>
-                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                    {getSelectedVariant()?.salePrice ? (
+                      <>
+                        <p className="text-white uppercase font-medium text-xs line-through">
+                          <span>{fCurrency(getSelectedVariant()?.retailPrice, { currency: "VND" })}</span>
+                        </p>
+                        <div className="flex items-center gap-1">
+                          <p className="text-lg font-bold uppercase">
+                            {fCurrency(getSelectedVariant()?.salePrice, { currency: "VND" })}
+                          </p>
+                          <span className="bg-green-500 text-white text-xs font-bold p-1 rounded-full">-90%</span>
+                        </div>
+                      </>
+                    ) : (
+                      <p className="text-xl font-bold uppercase text-white">
+                        {fCurrency(getSelectedVariant()?.retailPrice, { currency: "VND" })}
+                      </p>
+                    )}
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-white">Việt Thắng</h3>
-                    <p className="text-sm text-gray-500">Hỗ trợ viên</p>
+
+                  <Button className="w-full gap-2 bg-gradient-to-r from-[#f0b46a] to-[#fce08f] text-[#5a4323] font-bold">
+                    <ShoppingCart size={20} /> Thêm vào giỏ
+                  </Button>
+                  <div className="flex items-center gap-4">
+                    <div className="relative">
+                      <div className="w-12 h-12 bg-gradient-to-br from-gray-800 to-black rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-lg">VT</span>
+                      </div>
+                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white">Việt Thắng</h3>
+                      <p className="text-sm text-gray-500">Hỗ trợ viên</p>
+                    </div>
                   </div>
                 </div>
+                <hr className="h-[2px] bg-gray-200" />
+                <div className="px-4 py-3">
+                  <Link href="#" className="text-white text-sm font-semibold flex items-center gap-2">
+                    Xem 7 lựa chọn khác giá từ 30.000 đ <ArrowDownRight className="size-4" />
+                  </Link>
+                </div>
               </div>
-              <hr className="h-[2px] bg-gray-200" />
-              <div className="px-4 py-3">
-                <Link href="#" className="text-white text-sm font-semibold">
-                  Xem 7 lựa chọn khác giá từ 30.000 đ
-                </Link>
-              </div>
-            </div>
-            <div className="mt-4 bg-[#171a3c] rounded-xl shadow grid grid-cols-2 divide-x-2 divide-[#000326] divide-y-2">
-              <div className="p-3 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 16 16">
-                  <path
-                    fill="#F73030"
-                    d="M4.7 6.172s-1.008-2.747-.56-4.486C4.59-.053 6.4-.065 7.264 1.504c.864 1.57.37 3.464-.237 4.583-.607 1.12-2.028 1.053-2.325.085ZM3.582 7.719s-.185-2.445-1.13-3.615c-.945-1.17-2.33-.55-2.443.946-.114 1.496.92 2.768 1.772 3.411.85.643 1.91.099 1.801-.742ZM3.953 9.451s1.99-1.94 3.087-2.04c1.097-.098.956.521.127 1.44-.83.918-2.789 2.619-2.908 3.362-.12.742 3.082.106 3.374.379.291.272-1.21 2.24-3.433 2.957-2.224.716-3.654-2.617-.247-6.098Z"
-                  ></path>
-                  <path
-                    fill="#DBDCE9"
-                    d="M10.134 6.795s-1.03-.433-1.095-2.12c-.064-1.688.966-3.7 2.287-4.097 1.322-.397 2.29 1.669 1.608 3.67-.683 2.003-2.277 2.974-2.8 2.547ZM12.15 7.755s1.66-2.625 2.998-2.539c1.337.087 1.065 2.752-.567 4.167-1.632 1.416-3.047-.777-2.43-1.628ZM12.357 10.676s-1.383-1.587-2.03-2.411c-.648-.825-1.281-1.189-1.04 0 .24 1.189.527 2.046.057 2.431-.381.313-.963.162-.808-.297.154-.459-.232-.697-.741-.124-.508.573-1.051.864-.773 1.105.301.26 2.204-.042 2.589.3.385.342-.93 1.336-.797 2.178.133.842 1.649 1.922 3.285 1.565 1.637-.357 2.753-2.511.258-4.747Z"
-                  ></path>
-                </svg>
-                <p className="text-white text-sm font-bold">Nâng cấp tức thì</p>
-              </div>
-              <div className="p-3 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 16 16">
-                  <path
-                    fill="#F73030"
-                    d="M4.7 6.172s-1.008-2.747-.56-4.486C4.59-.053 6.4-.065 7.264 1.504c.864 1.57.37 3.464-.237 4.583-.607 1.12-2.028 1.053-2.325.085ZM3.582 7.719s-.185-2.445-1.13-3.615c-.945-1.17-2.33-.55-2.443.946-.114 1.496.92 2.768 1.772 3.411.85.643 1.91.099 1.801-.742ZM3.953 9.451s1.99-1.94 3.087-2.04c1.097-.098.956.521.127 1.44-.83.918-2.789 2.619-2.908 3.362-.12.742 3.082.106 3.374.379.291.272-1.21 2.24-3.433 2.957-2.224.716-3.654-2.617-.247-6.098Z"
-                  ></path>
-                  <path
-                    fill="#DBDCE9"
-                    d="M10.134 6.795s-1.03-.433-1.095-2.12c-.064-1.688.966-3.7 2.287-4.097 1.322-.397 2.29 1.669 1.608 3.67-.683 2.003-2.277 2.974-2.8 2.547ZM12.15 7.755s1.66-2.625 2.998-2.539c1.337.087 1.065 2.752-.567 4.167-1.632 1.416-3.047-.777-2.43-1.628ZM12.357 10.676s-1.383-1.587-2.03-2.411c-.648-.825-1.281-1.189-1.04 0 .24 1.189.527 2.046.057 2.431-.381.313-.963.162-.808-.297.154-.459-.232-.697-.741-.124-.508.573-1.051.864-.773 1.105.301.26 2.204-.042 2.589.3.385.342-.93 1.336-.797 2.178.133.842 1.649 1.922 3.285 1.565 1.637-.357 2.753-2.511.258-4.747Z"
-                  ></path>
-                </svg>
-                <p className="text-white text-sm font-bold">Sản phẩm chất lượng</p>
-              </div>
-              <div className="p-3 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 16 16">
-                  <path
-                    fill="#F73030"
-                    d="M4.7 6.172s-1.008-2.747-.56-4.486C4.59-.053 6.4-.065 7.264 1.504c.864 1.57.37 3.464-.237 4.583-.607 1.12-2.028 1.053-2.325.085ZM3.582 7.719s-.185-2.445-1.13-3.615c-.945-1.17-2.33-.55-2.443.946-.114 1.496.92 2.768 1.772 3.411.85.643 1.91.099 1.801-.742ZM3.953 9.451s1.99-1.94 3.087-2.04c1.097-.098.956.521.127 1.44-.83.918-2.789 2.619-2.908 3.362-.12.742 3.082.106 3.374.379.291.272-1.21 2.24-3.433 2.957-2.224.716-3.654-2.617-.247-6.098Z"
-                  ></path>
-                  <path
-                    fill="#DBDCE9"
-                    d="M10.134 6.795s-1.03-.433-1.095-2.12c-.064-1.688.966-3.7 2.287-4.097 1.322-.397 2.29 1.669 1.608 3.67-.683 2.003-2.277 2.974-2.8 2.547ZM12.15 7.755s1.66-2.625 2.998-2.539c1.337.087 1.065 2.752-.567 4.167-1.632 1.416-3.047-.777-2.43-1.628ZM12.357 10.676s-1.383-1.587-2.03-2.411c-.648-.825-1.281-1.189-1.04 0 .24 1.189.527 2.046.057 2.431-.381.313-.963.162-.808-.297.154-.459-.232-.697-.741-.124-.508.573-1.051.864-.773 1.105.301.26 2.204-.042 2.589.3.385.342-.93 1.336-.797 2.178.133.842 1.649 1.922 3.285 1.565 1.637-.357 2.753-2.511.258-4.747Z"
-                  ></path>
-                </svg>
-                <p className="text-white text-sm font-bold">Hỗ trợ 24/7</p>
-              </div>
-              <div className="p-3 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 16 16">
-                  <path
-                    fill="#F73030"
-                    d="M4.7 6.172s-1.008-2.747-.56-4.486C4.59-.053 6.4-.065 7.264 1.504c.864 1.57.37 3.464-.237 4.583-.607 1.12-2.028 1.053-2.325.085ZM3.582 7.719s-.185-2.445-1.13-3.615c-.945-1.17-2.33-.55-2.443.946-.114 1.496.92 2.768 1.772 3.411.85.643 1.91.099 1.801-.742ZM3.953 9.451s1.99-1.94 3.087-2.04c1.097-.098.956.521.127 1.44-.83.918-2.789 2.619-2.908 3.362-.12.742 3.082.106 3.374.379.291.272-1.21 2.24-3.433 2.957-2.224.716-3.654-2.617-.247-6.098Z"
-                  ></path>
-                  <path
-                    fill="#DBDCE9"
-                    d="M10.134 6.795s-1.03-.433-1.095-2.12c-.064-1.688.966-3.7 2.287-4.097 1.322-.397 2.29 1.669 1.608 3.67-.683 2.003-2.277 2.974-2.8 2.547ZM12.15 7.755s1.66-2.625 2.998-2.539c1.337.087 1.065 2.752-.567 4.167-1.632 1.416-3.047-.777-2.43-1.628ZM12.357 10.676s-1.383-1.587-2.03-2.411c-.648-.825-1.281-1.189-1.04 0 .24 1.189.527 2.046.057 2.431-.381.313-.963.162-.808-.297.154-.459-.232-.697-.741-.124-.508.573-1.051.864-.773 1.105.301.26 2.204-.042 2.589.3.385.342-.93 1.336-.797 2.178.133.842 1.649 1.922 3.285 1.565 1.637-.357 2.753-2.511.258-4.747Z"
-                  ></path>
-                </svg>
-                <p className="text-white text-sm font-bold">Chính sách hoàn tiền</p>
-              </div>
+              <Advantages />
+              <SafeCheckout />
             </div>
           </div>
         </div>
@@ -321,56 +388,5 @@ const ProductPage = () => {
     </div>
   );
 };
-
-// Component for product options
-const ProductOptions = ({
-  product,
-  selectedVariant,
-  onVariantSelect,
-}: {
-  product: TProduct;
-  selectedVariant: number | null;
-  onVariantSelect: (id: number) => void;
-}) => (
-  <div className="border border-white rounded-xl overflow-hidden">
-    {product.variants?.map((property) => (
-      <div
-        key={property.id}
-        onClick={() => onVariantSelect(property.id)}
-        className={`relative p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
-          selectedVariant === property.id
-            ? "border-yellow-400 bg-yellow-400/20 shadow-sm"
-            : "border-gray-200 hover:border-gray-300"
-        }`}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex-1 flex items-center gap-4">
-            <div
-              className={cn(
-                "size-5 border  rounded-full flex items-center justify-center",
-                selectedVariant === property.id ? "border-yellow-400" : "border-gray-500",
-              )}
-            >
-              {selectedVariant === property.id && <div className="size-3 bg-yellow-400 rounded-full" />}
-            </div>
-            <h3
-              className={cn("font-medium", selectedVariant === property.id ? "text-white" : "text-gray-500")}
-            >{`${product.title} - ${property.title}`}</h3>
-
-            <div className="flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-1">
-                <Star className="w-4 h-4 text-green-500 fill-current" />
-                <span className="font-semibold text-green-600">100.00%</span>
-              </div>
-              <span className="text-gray-500">|</span>
-              <span className="text-gray-600">Đã bán 3,083</span>
-            </div>
-          </div>
-          <div className="text-lg font-bold text-white">{fCurrency(property.retailPrice, { currency: "VND" })}</div>
-        </div>
-      </div>
-    ))}
-  </div>
-);
 
 export default ProductPage;

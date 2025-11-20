@@ -11,7 +11,7 @@ const Footer = () => {
     <footer className="flex flex-col border-t bg-[#000326] z-50 border-t-gray-300 w-full">
       <div className="flex-col">
         {/* Payment Methods */}
-        <div className="bg-white pt-4 flex justify-center items-center gap-8">
+        <div className="bg-white flex justify-center items-center gap-8">
           <Image
             src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-MoMo-Circle-1024x1024.png"
             alt="Visa"
