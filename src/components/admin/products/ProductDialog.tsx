@@ -271,8 +271,6 @@ export const ProductDialog: React.FC = () => {
 
     if (!formData.title.trim()) {
       newErrors.title = "Tên sản phẩm là bắt buộc";
-    } else if (formData.title.trim().length < 3) {
-      newErrors.title = "Tên sản phẩm phải có ít nhất 3 ký tự";
     } else if (formData.title.trim().length > 200) {
       newErrors.title = "Tên sản phẩm không được vượt quá 200 ký tự";
     }
@@ -533,8 +531,8 @@ export const ProductDialog: React.FC = () => {
                   retailPrice: variant.retailPrice,
                   supplierId: variant.supplierId,
                   kind: variant.kind,
-                })
-              )
+                }),
+              ),
             );
           }
 
@@ -576,7 +574,7 @@ export const ProductDialog: React.FC = () => {
                     ...(variant.salePrice && { salePrice: variant.salePrice }),
                     supplierId: variant.supplierId,
                     kind: variant.kind,
-                  })
+                  }),
                 );
               });
             }
@@ -593,7 +591,7 @@ export const ProductDialog: React.FC = () => {
                     ...(variant.salePrice && { salePrice: variant.salePrice }),
                     supplierId: variant.supplierId,
                     kind: variant.kind,
-                  })
+                  }),
                 );
               });
             }

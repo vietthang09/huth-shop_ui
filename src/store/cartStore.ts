@@ -10,17 +10,15 @@ export const useCartStore = create<CartState>()(
       cartItems: [],
       addToCart: (product: TProduct, variantId?: number) => {
         set((state) => {
-          console.log("Adding to cart:", product, "Variant ID:", variantId);
-          console.log("Current cart items:", state.cartItems);
           const existingItem = state.cartItems.find(
-            (item) => item.product.id === product.id && item.variantId === variantId
+            (item) => item.product.id === product.id && item.variantId === variantId,
           );
           if (existingItem) {
             return {
               cartItems: state.cartItems.map((item) =>
                 item.product.id === product.id && item.variantId === variantId
                   ? { ...item, quantity: item.quantity + 1 }
-                  : item
+                  : item,
               ),
             };
           } else {
@@ -40,7 +38,7 @@ export const useCartStore = create<CartState>()(
           cartItems: state.cartItems.map((item) =>
             item.product.id === productId && item.variantId === variantId
               ? { ...item, quantity: Math.max(1, quantity) }
-              : item
+              : item,
           ),
         }));
       },
@@ -64,6 +62,6 @@ export const useCartStore = create<CartState>()(
     {
       name: "cart-storage",
       storage: createJSONStorage(() => sessionStorage),
-    }
-  )
+    },
+  ),
 );

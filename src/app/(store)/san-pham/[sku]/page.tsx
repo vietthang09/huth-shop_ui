@@ -11,20 +11,20 @@ import { Button } from "@/components/ui";
 import Advantages from "@/features/store/details/Advantages";
 import RelatedProducts from "@/features/store/details/RelatedProducts";
 import SafeCheckout from "@/features/store/details/SafeCheckout";
-import { useRecentlyVisited } from "@/hooks/useRecentlyVisited";
 import { findOneBySku, TProduct } from "@/services/product";
 import { fCurrency } from "@/shared/utils/format-number";
 import { cn } from "@/shared/utils/styling";
+import { useCartStore } from "@/store/cartStore";
+import { toast } from "sonner";
 
 const ProductPage = () => {
   const router = useRouter();
   const { sku } = useParams<{ sku: string }>();
-  const { addProduct } = useRecentlyVisited();
   const [productInfo, setProductInfo] = useState<TProduct | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<number | null>(null);
-
+  const cartStore = useCartStore();
   // Redirect if no SKU
   useEffect(() => {
     if (!sku) {
@@ -67,45 +67,13 @@ const ProductPage = () => {
     return variant;
   }, [productInfo, selectedVariant]);
 
-  // Error state
-  if (error) {
-    return (
-      <div className="storeContainer">
-        <div className="w-full h-[400px] mt-[160px] flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-medium text-gray-800 mb-4">Oops! Có lỗi xảy ra</h2>
-            <p className="text-gray-600 mb-6">{error}</p>
-            <button
-              onClick={() => router.back()}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Quay lại
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Product not found
-  if (productInfo === null && !loading) {
-    return (
-      <div className="storeContainer">
-        <div className="w-full h-[400px] mt-[160px] flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-medium text-gray-800 mb-4">Không tìm thấy sản phẩm</h2>
-            <p className="text-gray-600 mb-6">Sản phẩm bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.</p>
-            <Link
-              href="/"
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-block"
-            >
-              Về trang chủ
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const onAddToCart = () => {
+    if (!productInfo || !selectedVariant) return;
+    const variant = getSelectedVariant();
+    if (!variant) return;
+    cartStore.addToCart(productInfo, selectedVariant);
+    toast.success(`Đã thêm vào giỏ hàng`);
+  };
 
   if (!productInfo) return;
 
@@ -189,7 +157,7 @@ const ProductPage = () => {
               </div>
             </div>
 
-            <div className="mt-8 font-bold text-white border-b border-b-gray-500/20 sticky top-28 bg-background z-50">
+            <div className="mt-8 font-bold text-white border-b border-b-gray-500/20 sticky top-28 bg-background z-40">
               <ul className="flex gap-4 pt-4">
                 <li className="pb-4 border-b border-red-500 cursor-pointer">Các tùy chọn</li>
                 <li>
@@ -356,7 +324,10 @@ const ProductPage = () => {
                     )}
                   </div>
 
-                  <Button className="w-full gap-2 bg-gradient-to-r from-[#f0b46a] to-[#fce08f] text-[#5a4323] font-bold">
+                  <Button
+                    className="w-full gap-2 bg-gradient-to-r from-[#f0b46a] to-[#fce08f] text-[#5a4323] font-bold"
+                    onClick={onAddToCart}
+                  >
                     <ShoppingCart size={20} /> Thêm vào giỏ
                   </Button>
                   <div className="flex items-center gap-4">

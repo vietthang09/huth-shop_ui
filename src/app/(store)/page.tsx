@@ -75,7 +75,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="bg-[#000326] py-10">
+      <div className="bg-[#000326] py-10 px-2">
         <div className="max-w-screen-xl mx-auto ">
           <Link href="/tim-kiem?asc=0&page=1" className="group">
             <h2 className="text-3xl text-white font-bold flex gap-1 items-center">

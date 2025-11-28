@@ -38,7 +38,11 @@ const ProductCard = ({ product, direction = "horizontal", theme = "dark", tag }:
             className="w-full h-64 rounded-xl object-cover"
             alt="product"
             unoptimized
-            src={product?.images ? product?.images[0] : ""}
+            src={
+              product?.images.length > 0
+                ? product?.images[0]
+                : "http://res.cloudinary.com/dezvlwnnj/image/upload/v1763564460/huthshop/vnm4niqbhfr4xduo8qvz.png"
+            }
           />
         </Link>
         {tag === "hot" ? (
