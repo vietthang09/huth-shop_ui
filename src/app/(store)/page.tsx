@@ -1,249 +1,95 @@
 "use client";
 
-import { ChevronRight } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-
 import ProductCard from "@/components/store/common/ProductCard";
-import BuyingFlow from "@/components/store/home/components/BuyingFlow";
-import { Carousel } from "@/components/ui";
-import { fCurrency } from "@/shared/utils/format-number";
-import BestSeller from "@/features/store/home/best-seller";
-import Newest from "@/features/store/home/newest";
-import BestRating from "@/features/store/home/best-rating";
-import OnSale from "@/features/store/home/on-sale";
+import WhyChooseUs from "@/components/store/home/WhyChooseUs";
+import { cn } from "@/shared/utils/styling";
+import { Clapperboard, Cpu, Grid2X2, Laptop, ListMusic, Menu } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
 
 export default function Home() {
-  const categories = [
+  const tabs = [
+    { name: "Tất cả", icon: <Grid2X2 /> },
     {
-      title: "Bestsellers",
-      href: "#",
+      name: "Video",
+      icon: <Clapperboard />,
     },
     {
-      title: "Games",
-      href: "#",
+      name: "Âm nhạc",
+      icon: <ListMusic />,
     },
     {
-      title: "Software",
-      href: "#",
+      name: "AI",
+      icon: <Cpu />,
     },
     {
-      title: "Pre-paids",
-      href: "#",
-    },
-    {
-      title: "Fragments",
-      href: "#",
-    },
-    {
-      icon: "https://cdn.k4g.com/files/marketing_menuitem/406d252a254529a5722e05593f46158d.png",
-      title: "Cheap Accounts",
-      href: "#",
-    },
-    {
-      icon: "https://cdn.k4g.com/files/marketing_menuitem/c40fc8fbfd783da787d0ff338d18925d.png",
-      title: "COD 7",
-      href: "#",
-    },
-    {
-      icon: "https://cdn.k4g.com/files/marketing_menuitem/2f85a3c8da36ef936434d02a8406e173.png",
-      title: "ARC Raiders",
-      href: "#",
-    },
-    {
-      icon: "https://cdn.k4g.com/files/marketing_menuitem/f038659c6954e35f798741f5c487b632.png",
-      title: "Game Pass",
-      href: "#",
+      name: "Phần mềm",
+      icon: <Laptop />,
     },
   ];
+  const [selectedTab, setSelectedTab] = useState(tabs[0]);
   return (
-    <div>
-      <div className="bg-[#171a3c]">
-        <div className="max-w-screen-2xl mx-auto flex divide-x divide-[#9597ae1a]">
-          {categories.map((category) => (
-            <Link
-              className="py-4 flex-1 flex items-center gap-1 justify-center text-white text-lg font-bold text-center"
-              href={category.href}
-              key={category.href}
-            >
-              {category.icon && (
-                <Image className="size-5" height={16} width={16} alt={category.title} src={category.icon} />
-              )}
-              {category.title}
-            </Link>
-          ))}
+    <div className="pb-8">
+      <div>
+        <div className="bg-[#ef534f] relative">
+          <div className="py-20 pb-28 max-w-7xl mx-auto z-50">
+            <h1 className="text-3xl text-center text-white/80 font-bold">Tài khoản Premium giá rẻ từ HuthShop</h1>
+            <p className="mt-2 text-lg text-center text-white/80">
+              Cung cấp các tài khoản chất lượng, bảo hành trọn đời
+            </p>
+            <div className="mt-10 w-fit flex gap-2 mx-auto pb-2 border-b-2 border-white/20">
+              {tabs.map((tab) => (
+                <div key={tab.name}>
+                  <div
+                    className={cn(
+                      "text-sm font-bold flex flex-col items-center justify-center gap-2 text-white/80 p-2 w-24 h-20 rounded-xl cursor-pointer",
+                      selectedTab.name === tab.name
+                        ? "bg-white text-[#ef534f] transition-all duration-300"
+                        : "hover:bg-white/20"
+                    )}
+                    onClick={() => setSelectedTab(tab)}
+                  >
+                    {tab.icon}
+                    <span className="text-nowrap">{tab.name}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <Image
+            src="/images/header-radian.svg"
+            alt="Header Radian"
+            width={1920}
+            height={30}
+            className="absolute bottom-0 w-full translate-y-full"
+          />
         </div>
-      </div>
+        <div className="-translate-y-24 max-w-7xl mx-auto z-50">
+          <div className="mt-4 grid grid-cols-4 gap-4">
+            <ProductCard />
+            <ProductCard />
+            <ProductCard isSales={true} />
+            <ProductCard isSales={true} />
+            <ProductCard />
+            <ProductCard />
+            <ProductCard />
+            <ProductCard />
+            <ProductCard />
+            <ProductCard />
+            <ProductCard />
+            <ProductCard />
+          </div>
 
-      <div className="bg-[#000326] py-10 px-2">
-        <div className="max-w-screen-xl mx-auto ">
-          <Link href="/tim-kiem?asc=0&page=1" className="group">
-            <h2 className="text-3xl text-white font-bold flex gap-1 items-center">
-              Được mua nhiều nhất{" "}
-              <ChevronRight className="size-4 text-gray-400 transition-all duration-500 group-hover:translate-x-1" />
-            </h2>
-            <p className="mt-1 text-gray-400">Tuyển chọn các sản phẩm đang &quot;làm mưa làm gió&quot;</p>
-          </Link>
-          <div className="mt-6">
-            <BestSeller />
+          <div className="mt-4 w-full flex">
+            <button className="mx-auto bg-gray-50 font-bold text-sm rounded-full py-3 min-w-[400px] hover:bg-gray-100 transition-colors duration-300">
+              Xem thêm
+            </button>
           </div>
         </div>
       </div>
 
-      <div className="bg-[#000326] py-10">
-        <div className="max-w-screen-xl mx-auto">
-          <h2 className="text-3xl text-white font-bold flex gap-1 items-center">
-            Đang giảm giá <ChevronRight className="size-4 text-gray-400" />
-          </h2>
-          <p className="mt-1 text-gray-400">Săn Deal Hời Nhất! Toàn bộ sản phẩm được giảm giá đặc biệt.</p>
-
-          <div className="mt-6">
-            <OnSale />
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-[#000326] py-10">
-        <div className="max-w-screen-xl mx-auto">
-          <h2 className="text-3xl text-white font-bold flex gap-1 items-center">
-            Sản phẩm được đánh giá cao <ChevronRight className="size-4 text-gray-400" />
-          </h2>
-          <p className="mt-1 text-gray-400">
-            Danh sách các sản phẩm Đánh giá Tuyệt đối. Nơi chỉ có chất lượng hàng đầu.
-          </p>
-
-          <div className="mt-6">
-            <BestRating />
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white py-10">
-        <div className="max-w-screen-xl mx-auto">
-          <h2 className="text-3xl text-black font-bold flex gap-1 items-center">
-            Sản phẩm mới <ChevronRight className="size-4 text-gray-400" />
-          </h2>
-          <p className="mt-1 text-gray-400">Những sản phẩm vừa &quot;lên kệ&quot; nóng hổi nhất.</p>
-
-          <div className="mt-6  bg-[#f3f4fa] p-2 rounded-xl">
-            <Newest />
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white py-10">
-        <div className="max-w-screen-xl mx-auto">
-          <h2 className="text-3xl text-black font-bold">Xu hướng gần đây</h2>
-          <p className="mt-1 text-gray-400">
-            Những sản phẩm đang được tìm kiếm, chia sẻ và mua sắm nhiều nhất chỉ trong 24 giờ qua.
-          </p>
-
-          <div className="mt-6 grid grid-cols-6 gap-2 bg-[#f3f4fa] p-2 rounded-xl">
-            <ProductCard theme="light" direction="vertical" />
-            <ProductCard theme="light" direction="vertical" />
-            <ProductCard theme="light" direction="vertical" />
-            <ProductCard theme="light" direction="vertical" />
-            <ProductCard theme="light" direction="vertical" />
-            <ProductCard theme="light" direction="vertical" />
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-[#000326] py-10">
-        <div className="max-w-screen-xl mx-auto">
-          <h2 className="text-3xl text-white font-bold">Cheap Products</h2>
-          <p className="mt-1 text-gray-400">Check our best products for the lowest prices!</p>
-          <div className="mt-6 grid grid-cols-6 gap-4">
-            <div className="text-black relative bg-white rounded-xl overflow-hidden h-44 group flex items-center justify-center">
-              <Image
-                src="https://k4g.com/images/bg-price-card@2x.png"
-                width={100}
-                height={100}
-                alt="bg"
-                className="absolute inset-0 w-full h-full object-contain group-hover:scale-125"
-              />
-              <div className="bg-black h-6 w-6 rounded-full absolute top-6 right-6" />
-              <div className="">
-                <p className="text-2xl font-bold">Up to</p>
-                <p className="text-3xl font-bold">{fCurrency(20000, { currency: "VND" })}</p>
-              </div>
-            </div>
-            <div className="text-black relative bg-white rounded-xl overflow-hidden h-44 group flex items-center justify-center">
-              <Image
-                src="https://k4g.com/images/bg-price-card@2x.png"
-                width={100}
-                height={100}
-                alt="bg"
-                className="absolute inset-0 w-full h-full object-contain group-hover:scale-125"
-              />
-              <div className="bg-black h-6 w-6 rounded-full absolute top-6 right-6" />
-              <div className="">
-                <p className="text-2xl font-bold">Up to</p>
-                <p className="text-3xl font-bold">{fCurrency(20000, { currency: "VND" })}</p>
-              </div>
-            </div>
-            <div className="text-black relative bg-white rounded-xl overflow-hidden h-44 group flex items-center justify-center">
-              <Image
-                src="https://k4g.com/images/bg-price-card@2x.png"
-                width={100}
-                height={100}
-                alt="bg"
-                className="absolute inset-0 w-full h-full object-contain group-hover:scale-125"
-              />
-              <div className="bg-black h-6 w-6 rounded-full absolute top-6 right-6" />
-              <div className="">
-                <p className="text-2xl font-bold">Up to</p>
-                <p className="text-3xl font-bold">{fCurrency(20000, { currency: "VND" })}</p>
-              </div>
-            </div>
-            <div className="text-black relative bg-white rounded-xl overflow-hidden h-44 group flex items-center justify-center">
-              <Image
-                src="https://k4g.com/images/bg-price-card@2x.png"
-                width={100}
-                height={100}
-                alt="bg"
-                className="absolute inset-0 w-full h-full object-contain group-hover:scale-125"
-              />
-              <div className="bg-black h-6 w-6 rounded-full absolute top-6 right-6" />
-              <div className="">
-                <p className="text-2xl font-bold">Up to</p>
-                <p className="text-3xl font-bold">{fCurrency(20000, { currency: "VND" })}</p>
-              </div>
-            </div>
-            <div className="text-black relative bg-white rounded-xl overflow-hidden h-44 group flex items-center justify-center">
-              <Image
-                src="https://k4g.com/images/bg-price-card@2x.png"
-                width={100}
-                height={100}
-                alt="bg"
-                className="absolute inset-0 w-full h-full object-contain group-hover:scale-125"
-              />
-              <div className="bg-black h-6 w-6 rounded-full absolute top-6 right-6" />
-              <div className="">
-                <p className="text-2xl font-bold">Up to</p>
-                <p className="text-3xl font-bold">{fCurrency(20000, { currency: "VND" })}</p>
-              </div>
-            </div>
-            <div className="text-black relative bg-white rounded-xl overflow-hidden h-44 group flex items-center justify-center">
-              <Image
-                src="https://k4g.com/images/bg-price-card@2x.png"
-                width={100}
-                height={100}
-                alt="bg"
-                className="absolute inset-0 w-full h-full object-contain group-hover:scale-125"
-              />
-              <div className="bg-black h-6 w-6 rounded-full absolute top-6 right-6" />
-              <div className="">
-                <p className="text-2xl font-bold">Up to</p>
-                <p className="text-3xl font-bold">{fCurrency(20000, { currency: "VND" })}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-10 max-w-7xl mx-auto lg:px-4 space-y-10">
-        <BuyingFlow />
+      <div className="max-w-7xl mx-auto">
+        <WhyChooseUs />
       </div>
     </div>
   );

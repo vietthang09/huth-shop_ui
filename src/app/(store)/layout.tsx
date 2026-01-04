@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 import FloatingButtons from "@/components/store/common/FloatingButtons";
-import StoreNavBar from "@/components/store/common/store-nav-bar";
+import Header from "@/components/store/common/Header";
 
 import StoreFooter from "./../../components/store/footer/index";
 export const metadata: Metadata = {
@@ -11,8 +11,8 @@ export const metadata: Metadata = {
 const StoreLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
-      <StoreNavBar />
-      <main className="bg-white min-h-screen">{children}</main>
+      <Header />
+      <main className="bg-white">{children}</main>
       <StoreFooter />
       <FloatingButtons />
     </>
