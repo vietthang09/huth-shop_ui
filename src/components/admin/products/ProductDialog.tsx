@@ -9,8 +9,8 @@ import {
   Button,
   Input,
   Select,
-  Textarea,
   Autocomplete,
+  RichTextEditor,
 } from "@/components/ui";
 import type { AutocompleteOption } from "@/components/ui";
 import { useProductDialog } from "./ProductDialogContext";
@@ -25,11 +25,13 @@ import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
 import { toast } from "sonner";
 import { Trash2, Upload, X, Plus, Edit3, DollarSign } from "lucide-react";
 import { fCurrency } from "@/shared/utils/format-number";
+import { Category, Supplier } from "@/services/type";
 
 type FormData = {
   sku: string;
   title: string;
   description: string;
+  shortDescription: string;
   categoryId: string;
 };
 
@@ -37,6 +39,7 @@ type FormErrors = {
   sku?: string;
   title?: string;
   description?: string;
+  shortDescription?: string;
   categoryId?: string;
 };
 
@@ -48,6 +51,11 @@ type VariantFormData = {
   salePrice: string;
   supplierId: string;
   kind?: ProductVariantKind | string;
+  fields?: Array<{
+    label: string;
+    type?: string;
+    required?: boolean;
+  }>;
 };
 
 type VariantFormErrors = {
@@ -57,6 +65,7 @@ type VariantFormErrors = {
   salePrice?: string;
   supplierId?: string;
   kind?: string;
+  fields?: string;
 };
 
 type VariantFormField = "title" | "netPrice" | "retailPrice" | "salePrice" | "supplierId" | "kind";
@@ -82,6 +91,7 @@ export const ProductDialog: React.FC = () => {
     salePrice: "",
     supplierId: "",
     kind: "",
+    fields: [],
   });
   const [variantFormErrors, setVariantFormErrors] = React.useState<VariantFormErrors>({});
 
@@ -108,6 +118,7 @@ export const ProductDialog: React.FC = () => {
     sku: "",
     title: "",
     description: "",
+    shortDescription: "",
     categoryId: "",
   });
 
@@ -125,11 +136,11 @@ export const ProductDialog: React.FC = () => {
         const [categoriesResponse, suppliersResponse] = await Promise.all([findAllCategories(), findAllSuppliers()]);
 
         if (categoriesResponse.status === 200) {
-          setCategories(categoriesResponse.data as TCategory[]);
+          setCategories(categoriesResponse.data.data as Category[]);
         }
 
         if (suppliersResponse.status === 200) {
-          setSuppliers(suppliersResponse.data as TSupplier[]);
+          setSuppliers(suppliersResponse.data as Supplier[]);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -191,6 +202,7 @@ export const ProductDialog: React.FC = () => {
           sku: "",
           title: "",
           description: "",
+          shortDescription: "",
           categoryId: "",
         });
         setImageFiles([]);
@@ -201,6 +213,7 @@ export const ProductDialog: React.FC = () => {
           sku: selectedProduct.sku,
           title: selectedProduct.title,
           description: selectedProduct.description || "",
+          shortDescription: selectedProduct.shortDescription || "",
           categoryId: selectedProduct.categoryId?.toString() || "",
         });
 
@@ -214,7 +227,12 @@ export const ProductDialog: React.FC = () => {
 
         // Handle existing variants
         if (selectedProduct.variants && Array.isArray(selectedProduct.variants)) {
-          setVariants(selectedProduct.variants);
+          setVariants(
+            selectedProduct.variants.map((v) => ({
+              ...v,
+              fields: v.fields ? [...v.fields] : [],
+            })),
+          );
         } else {
           setVariants([]);
         }
@@ -236,6 +254,7 @@ export const ProductDialog: React.FC = () => {
         sku: "",
         title: "",
         description: "",
+        shortDescription: "",
         categoryId: "",
       });
       setImageFiles([]);
@@ -250,6 +269,7 @@ export const ProductDialog: React.FC = () => {
         retailPrice: "",
         salePrice: "",
         supplierId: "",
+        kind: "",
       });
       setVariantFormErrors({});
     }
@@ -275,9 +295,9 @@ export const ProductDialog: React.FC = () => {
       newErrors.title = "Tên sản phẩm không được vượt quá 200 ký tự";
     }
 
-    if (formData.description.length > 1000) {
-      newErrors.description = "Mô tả không được vượt quá 1000 ký tự";
-    }
+    // if (formData.description.length > 100000) {
+    //   newErrors.description = "Mô tả không được vượt quá 1000 ký tự";
+    // }
 
     if (!formData.categoryId) {
       newErrors.categoryId = "Vui lòng chọn danh mục";
@@ -352,6 +372,8 @@ export const ProductDialog: React.FC = () => {
       retailPrice: "",
       salePrice: "",
       supplierId: "",
+      kind: "",
+      fields: [],
     });
     setVariantFormErrors({});
     setShowVariantForm(true);
@@ -368,6 +390,7 @@ export const ProductDialog: React.FC = () => {
       salePrice: variant.salePrice?.toString() || "",
       supplierId: variant.supplierId.toString(),
       kind: variant.kind || "",
+      fields: variant.fields ? [...variant.fields] : [],
     });
     setVariantFormErrors({});
     setShowVariantForm(true);
@@ -388,6 +411,7 @@ export const ProductDialog: React.FC = () => {
       salePrice: Number(variantFormData.salePrice),
       supplierId: Number(variantFormData.supplierId),
       kind: (variantFormData.kind as ProductVariantKind) || undefined,
+      fields: variantFormData.fields ? [...variantFormData.fields] : [],
     };
 
     if (editingVariant) {
@@ -415,8 +439,30 @@ export const ProductDialog: React.FC = () => {
       salePrice: "",
       supplierId: "",
       kind: "",
+      fields: [],
     });
     setVariantFormErrors({});
+  };
+  // Handlers for fields array in variant form
+  const handleAddField = () => {
+    setVariantFormData((prev) => ({
+      ...prev,
+      fields: [...(prev.fields || []), { label: "", type: "", required: false }],
+    }));
+  };
+
+  const handleRemoveField = (index: number) => {
+    setVariantFormData((prev) => ({
+      ...prev,
+      fields: (prev.fields || []).filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleFieldChange = (index: number, key: "label" | "type" | "required", value: string | boolean) => {
+    setVariantFormData((prev) => {
+      const updatedFields = (prev.fields || []).map((field, i) => (i === index ? { ...field, [key]: value } : field));
+      return { ...prev, fields: updatedFields };
+    });
   };
 
   // Handle remove variant
@@ -508,6 +554,7 @@ export const ProductDialog: React.FC = () => {
         sku: formData.sku.trim().toLowerCase(),
         title: formData.title.trim(),
         description: formData.description.trim() || "",
+        shortDescription: formData.shortDescription.trim() || "",
         categoryId: parseInt(formData.categoryId),
         images: allImageUrls,
       };
@@ -531,6 +578,7 @@ export const ProductDialog: React.FC = () => {
                   retailPrice: variant.retailPrice,
                   supplierId: variant.supplierId,
                   kind: variant.kind,
+                  fields: variant.fields || [],
                 }),
               ),
             );
@@ -538,7 +586,7 @@ export const ProductDialog: React.FC = () => {
 
           toast.success("Thêm sản phẩm thành công");
           closeDialog();
-          window.location.reload();
+          // window.location.reload();
         }
       } else if (mode === "edit" && selectedProduct) {
         productId = selectedProduct.id;
@@ -574,6 +622,7 @@ export const ProductDialog: React.FC = () => {
                     ...(variant.salePrice && { salePrice: variant.salePrice }),
                     supplierId: variant.supplierId,
                     kind: variant.kind,
+                    fields: variant.fields || [],
                   }),
                 );
               });
@@ -591,6 +640,7 @@ export const ProductDialog: React.FC = () => {
                     ...(variant.salePrice && { salePrice: variant.salePrice }),
                     supplierId: variant.supplierId,
                     kind: variant.kind,
+                    fields: variant.fields || [],
                   }),
                 );
               });
@@ -602,7 +652,7 @@ export const ProductDialog: React.FC = () => {
 
           toast.success("Cập nhật sản phẩm thành công");
           closeDialog();
-          window.location.reload();
+          // window.location.reload();
         }
       }
     } catch (error: any) {
@@ -629,7 +679,7 @@ export const ProductDialog: React.FC = () => {
         setDeleteDialogOpen(false);
         closeDialog();
         // Trigger refresh of the parent component
-        window.location.reload();
+        // window.location.reload();
       }
     } catch (error: any) {
       console.error("Error deleting product:", error);
@@ -739,17 +789,27 @@ export const ProductDialog: React.FC = () => {
             </div>
 
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Mô tả ngắn</label>
+              <Input
+                id="shortDescription"
+                type="text"
+                placeholder="Nhập mô tả ngắn về sản phẩm..."
+                value={formData.shortDescription}
+                onChange={(e) => handleInputChange("shortDescription", e.target.value)}
+                disabled={mode === "view"}
+              />
+            </div>
+
+            <div>
               <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
                 Mô tả sản phẩm
               </label>
-              <Textarea
-                id="description"
-                placeholder="Nhập mô tả sản phẩm..."
+              <RichTextEditor
                 value={formData.description}
-                onChange={(e) => handleInputChange("description", e.target.value)}
+                onChange={(content) => handleInputChange("description", content)}
+                placeholder="Nhập mô tả sản phẩm..."
                 disabled={mode === "view"}
-                rows={3}
-                className={errors.description ? "border-red-300 focus:border-red-500 focus:ring-red-500" : ""}
+                height="250px"
               />
               {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
             </div>
@@ -1001,7 +1061,7 @@ export const ProductDialog: React.FC = () => {
                     </div>
                     <div>
                       <label htmlFor="variant-retail-price" className="block text-sm font-medium text-gray-700 mb-1">
-                        Giá khuyến mãi <span className="text-red-500">*</span>
+                        Giá khuyến mãi <span className="text-gray-400">(tuỳ chọn)</span>
                       </label>
                       <div className="relative">
                         <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -1022,6 +1082,51 @@ export const ProductDialog: React.FC = () => {
                         <p className="mt-1 text-sm text-red-600">{variantFormErrors.salePrice}</p>
                       )}
                     </div>
+                  </div>
+
+                  {/* Fields Array Section */}
+                  <div className="mt-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-gray-700">Trường tuỳ chỉnh (fields)</span>
+                      <Button type="button" size="sm" variant="outline" onClick={handleAddField}>
+                        <Plus className="h-4 w-4 mr-1" /> Thêm trường
+                      </Button>
+                    </div>
+                    {(variantFormData.fields || []).length === 0 && (
+                      <div className="text-gray-400 text-sm">Chưa có trường nào</div>
+                    )}
+                    {(variantFormData.fields || []).map((field, idx) => (
+                      <div key={idx} className="flex gap-2 mb-2 items-center">
+                        <Input
+                          type="text"
+                          placeholder="Nhãn trường (label)"
+                          value={field.label}
+                          onChange={(e) => handleFieldChange(idx, "label", e.target.value)}
+                          className="w-1/3"
+                        />
+                        <Select
+                          value={field.type || ""}
+                          onChange={(e) => handleFieldChange(idx, "type", e.target.value)}
+                          className="w-full"
+                        >
+                          <option value="">Kiểu dữ liệu</option>
+                          <option value="string">Văn bản</option>
+                          <option value="number">Số</option>
+                          <option value="boolean">Đúng/Sai</option>
+                        </Select>
+                        <label className="flex items-center gap-1 text-xs">
+                          <input
+                            type="checkbox"
+                            checked={!!field.required}
+                            onChange={(e) => handleFieldChange(idx, "required", e.target.checked)}
+                          />
+                          Bắt buộc
+                        </label>
+                        <Button type="button" size="icon" variant="destructive" onClick={() => handleRemoveField(idx)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
                   </div>
 
                   <div className="flex justify-end gap-2">

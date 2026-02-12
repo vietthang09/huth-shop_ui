@@ -15,6 +15,11 @@ export type TProductVariant = {
   supplierId: number;
   supplier: TSupplier;
   kind?: ProductVariantKind;
+  fields?: Array<{
+    label: string;
+    type?: string;
+    required?: boolean;
+  }>;
 };
 
 export async function create(data: {
@@ -24,6 +29,11 @@ export async function create(data: {
   retailPrice: number;
   supplierId: number;
   kind?: ProductVariantKind;
+  fields?: Array<{
+    label: string;
+    type?: string;
+    required?: boolean;
+  }>;
 }) {
   return axiosInstance.post("/product-variants", data);
 }

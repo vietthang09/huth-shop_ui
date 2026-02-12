@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import { TProduct } from "@/services/product";
+import { Product } from "@/services/type";
 
 export type ProductDialogMode = "add" | "edit" | "view";
 
@@ -7,17 +8,17 @@ interface ProductDialogContextType {
   // Dialog states
   isOpen: boolean;
   mode: ProductDialogMode;
-  selectedProduct: TProduct | null;
+  selectedProduct: Product | null;
 
   // Dialog actions
   openAddDialog: () => void;
-  openEditDialog: (product: TProduct) => void;
-  openViewDialog: (product: TProduct) => void;
+  openEditDialog: (product: Product) => void;
+  openViewDialog: (product: Product) => void;
   closeDialog: () => void;
 
   // Form state
-  formData: Partial<TProduct>;
-  setFormData: (data: Partial<TProduct>) => void;
+  formData: Partial<Product>;
+  setFormData: (data: Partial<Product>) => void;
   resetFormData: () => void;
 
   // Loading states
@@ -37,12 +38,12 @@ export const useProductDialog = () => {
 
 interface ProductDialogProviderProps {
   children: ReactNode;
-  onProductCreated?: (product: TProduct) => void;
-  onProductUpdated?: (product: TProduct) => void;
+  onProductCreated?: (product: Product) => void;
+  onProductUpdated?: (product: Product) => void;
   onProductDeleted?: (id: number) => void;
 }
 
-const defaultFormData: Partial<TProduct> = {
+const defaultFormData: Partial<Product> = {
   sku: "",
   title: "",
   description: "",
@@ -58,8 +59,8 @@ export const ProductDialogProvider: React.FC<ProductDialogProviderProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState<ProductDialogMode>("add");
-  const [selectedProduct, setSelectedProduct] = useState<TProduct | null>(null);
-  const [formData, setFormData] = useState<Partial<TProduct>>(defaultFormData);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [formData, setFormData] = useState<Partial<Product>>(defaultFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const openAddDialog = () => {
@@ -69,7 +70,7 @@ export const ProductDialogProvider: React.FC<ProductDialogProviderProps> = ({
     setIsOpen(true);
   };
 
-  const openEditDialog = (product: TProduct) => {
+  const openEditDialog = (product: Product) => {
     setMode("edit");
     setSelectedProduct(product);
     setFormData({
@@ -85,7 +86,7 @@ export const ProductDialogProvider: React.FC<ProductDialogProviderProps> = ({
     setIsOpen(true);
   };
 
-  const openViewDialog = (product: TProduct) => {
+  const openViewDialog = (product: Product) => {
     setMode("view");
     setSelectedProduct(product);
     setFormData({

@@ -2,28 +2,33 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { CartState } from "./types";
-import { TProduct } from "../services/product";
+import { Product } from "@/services/type";
 
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       cartItems: [],
-      addToCart: (product: TProduct, variantId?: number) => {
+      addToCart: (product: Product, variantId?: number, fields?: Record<string, any>) => {
         set((state) => {
           const existingItem = state.cartItems.find(
-            (item) => item.product.id === product.id && item.variantId === variantId,
+            (item) =>
+              item.product.id === product.id &&
+              item.variantId === variantId &&
+              JSON.stringify(item.fields) === JSON.stringify(fields),
           );
           if (existingItem) {
             return {
               cartItems: state.cartItems.map((item) =>
-                item.product.id === product.id && item.variantId === variantId
+                item.product.id === product.id &&
+                item.variantId === variantId &&
+                JSON.stringify(item.fields) === JSON.stringify(fields)
                   ? { ...item, quantity: item.quantity + 1 }
                   : item,
               ),
             };
           } else {
             return {
-              cartItems: [...state.cartItems, { product, quantity: 1, variantId }],
+              cartItems: [...state.cartItems, { product, quantity: 1, variantId, fields }],
             };
           }
         });

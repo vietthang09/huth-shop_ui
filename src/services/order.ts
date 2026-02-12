@@ -1,7 +1,9 @@
+import { Order } from "@/types/order";
 import axiosInstance from "./axiosInstance";
 import { TProduct } from "./product";
 import { TProductVariant } from "./product-variants";
 import { TSupplier } from "./supplier";
+import { PaymentMethod } from "./type";
 import { TUser } from "./user";
 export type TOrderItem = {
   id: number;
@@ -16,6 +18,7 @@ export type TOrderItem = {
   product: TProduct;
   variant: TProductVariant;
   supplier: TSupplier;
+  fields: Record<string, any>;
 };
 
 export type TOrder = {
@@ -27,19 +30,32 @@ export type TOrder = {
   updatedAt: string;
   orderItems: TOrderItem[];
   user: TUser;
+  paymentMethod: PaymentMethod;
 };
-export function createOrder(data: { productId: number; variantId: number; quantity: number }[]) {
-  return axiosInstance.post("/orders", { orderItems: data });
+export function createOrder(
+  data: {
+    productId: number;
+    variantId: number;
+    quantity: number;
+    fields?: Record<string, any>;
+  }[],
+  paymentMethod: PaymentMethod,
+) {
+  return axiosInstance.post("/orders", { orderItems: data, paymentMethod });
 }
 
 export function findAll() {
-  return axiosInstance.get<TOrder[]>("/orders");
+  return axiosInstance.get<Order[]>("/orders");
 }
 
 export function findOne(id: number) {
-  return axiosInstance.get<TOrder>(`/orders/${id}`);
+  return axiosInstance.get<Order>(`/orders/${id}`);
 }
 
 export function getMyOrders() {
-  return axiosInstance.get<TOrder[]>("/orders/my-orders");
+  return axiosInstance.get<Order[]>("/orders/my-orders");
+}
+
+export function sendConfirmationEmail(orderId: number, content?: string) {
+  return axiosInstance.post(`/orders/${orderId}/send-confirmation-email`, { content });
 }

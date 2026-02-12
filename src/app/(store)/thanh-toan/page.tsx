@@ -1,9 +1,10 @@
 "use client";
 
-import { PaymentMethod } from "@/common/contants";
 import { Button, Input } from "@/components/ui";
 import { useAuth } from "@/hooks/useAuth";
+import { createOrder } from "@/services/order";
 import { TProduct } from "@/services/product";
+import { PaymentMethod } from "@/services/type";
 import { fCurrency } from "@/shared/utils/format-number";
 import { cn } from "@/shared/utils/styling";
 import { useCartStore } from "@/store/cartStore";
@@ -19,9 +20,8 @@ export default function CheckoutPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState<string>(PaymentMethod.BANK_TRANSFER);
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>(PaymentMethod.MOMO);
   const items = cartStore?.cartItems;
-  const [products, setProducts] = useState<TProduct[]>([]);
 
   const onIncrement = (productId: number, quantity: number, variantId?: number) => {
     if (!cartStore) return;
@@ -38,10 +38,18 @@ export default function CheckoutPage() {
     cartStore.removeFromCart(productId, variantId);
   };
 
-  // const onClear = () => {
-  //   if (!cartStore) return;
-  //   cartStore.clear();
-  // };
+  const handleSubmit = async () => {
+    const data = cartStore.cartItems.map((item) => ({
+      productId: item.product.id,
+      variantId: item.variantId!,
+      quantity: item.quantity,
+      fields: item.fields || {},
+    }));
+    const res = await createOrder(data, selectedMethod);
+    if (res.status === 201) {
+      router.push(res.data.paymentUrl);
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto py-4">
@@ -54,11 +62,6 @@ export default function CheckoutPage() {
                   <h2 className="text-2xl font-semibold">
                     Sản phẩm <span className="text-sm font-medium">({cartStore.getTotalItems()})</span>
                   </h2>
-                </div>
-                <div className="flex items-center gap-4 text-xs">
-                  <Button variant="ghost" color="danger" size="sm">
-                    Xóa hết
-                  </Button>
                 </div>
               </div>
             </header>
@@ -94,31 +97,37 @@ export default function CheckoutPage() {
                             <span className="text-neutral-300">•</span>
                             <span className="font-medium text-neutral-700">{fCurrency(variant.retailPrice)}</span>
                           </div>
+
                           <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
-                            <div className="flex items-center gap-2">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                color="primary"
-                                aria-label="Decrease quantity"
-                                disabled={item.quantity <= 1}
-                                onClick={() => onDecrement(item.product.id, item.quantity - 1, item.variantId)}
-                              >
-                                <Minus className="size-4" />
-                              </Button>
-                              <span className="w-8 text-center select-none tabular-nums font-medium">
-                                {item.quantity}
-                              </span>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                color="primary"
-                                aria-label="Increase quantity"
-                                onClick={() => onIncrement(item.product.id, item.quantity + 1, item.variantId)}
-                              >
-                                <Plus className="size-4" />
-                              </Button>
-                            </div>
+                            {variant.fields?.length === 0 ? (
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  color="primary"
+                                  aria-label="Decrease quantity"
+                                  disabled={item.quantity <= 1}
+                                  onClick={() => onDecrement(item.product.id, item.quantity - 1, item.variantId)}
+                                >
+                                  <Minus className="size-4" />
+                                </Button>
+                                <span className="w-8 text-center select-none tabular-nums font-medium">
+                                  {item.quantity}
+                                </span>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  color="primary"
+                                  aria-label="Increase quantity"
+                                  onClick={() => onIncrement(item.product.id, item.quantity + 1, item.variantId)}
+                                >
+                                  <Plus className="size-4" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div />
+                            )}
+
                             <div className="text-right min-w-[110px]">
                               <p className="text-[11px] uppercase tracking-wide text-neutral-400">Tổng</p>
                               <p className="text-base font-semibold leading-none mt-0.5">
@@ -171,10 +180,10 @@ export default function CheckoutPage() {
                   </div>
                   <div
                     className="relative border p-2 rounded-xl cursor-pointer group overflow-hidden"
-                    onClick={() => setSelectedMethod(PaymentMethod.BANK_TRANSFER)}
+                    onClick={() => setSelectedMethod(PaymentMethod.VIETCOMBANK)}
                   >
                     <div className="size-5 border rounded-full flex items-center justify-center">
-                      {selectedMethod === PaymentMethod.BANK_TRANSFER && (
+                      {selectedMethod === PaymentMethod.VIETCOMBANK && (
                         <div className="bg-black size-2.5 rounded-full" />
                       )}
                     </div>
@@ -185,11 +194,11 @@ export default function CheckoutPage() {
                       alt="bank transfer"
                       className={cn(
                         "w-24 h-24 p-4 object-contain",
-                        selectedMethod !== PaymentMethod.BANK_TRANSFER && "opacity-50 group-hover:opacity-100",
+                        selectedMethod !== PaymentMethod.VIETCOMBANK && "opacity-50 group-hover:opacity-100",
                       )}
                       unoptimized
                     />
-                    {selectedMethod === PaymentMethod.BANK_TRANSFER && (
+                    {selectedMethod === PaymentMethod.VIETCOMBANK && (
                       <span className="bg-green-400 text-white text-[11px] p-1 text-nowrap text-center font-semibold absolute bottom-0 left-0 right-0">
                         Đã chọn
                       </span>
@@ -197,12 +206,10 @@ export default function CheckoutPage() {
                   </div>
                   <div
                     className="relative border p-2 rounded-xl cursor-pointer group overflow-hidden"
-                    onClick={() => setSelectedMethod(PaymentMethod.ViettelPay)}
+                    onClick={() => setSelectedMethod(PaymentMethod.TPBANK)}
                   >
                     <div className="size-5 border rounded-full flex items-center justify-center">
-                      {selectedMethod === PaymentMethod.ViettelPay && (
-                        <div className="bg-black size-2.5 rounded-full" />
-                      )}
+                      {selectedMethod === PaymentMethod.TPBANK && <div className="bg-black size-2.5 rounded-full" />}
                     </div>
                     <Image
                       src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4OGDffm88naSCEqDH3fV1GljafXzX2GkERw&s"
@@ -211,11 +218,11 @@ export default function CheckoutPage() {
                       alt="paypal"
                       className={cn(
                         "w-24 h-24 p-4 object-contain",
-                        selectedMethod !== PaymentMethod.ViettelPay && "opacity-50 group-hover:opacity-100",
+                        selectedMethod !== PaymentMethod.TPBANK && "opacity-50 group-hover:opacity-100",
                       )}
                       unoptimized
                     />
-                    {selectedMethod === PaymentMethod.ViettelPay && (
+                    {selectedMethod === PaymentMethod.TPBANK && (
                       <span className="bg-green-400 text-white text-[11px] p-1 text-nowrap text-center font-semibold absolute bottom-0 left-0 right-0">
                         Đã chọn
                       </span>
@@ -224,7 +231,7 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              <form id="checkout-form" className="mt-6">
+              <div className="mt-6">
                 <h3 className="text-xl font-semibold">Email</h3>
                 <div className="mt-4 flex flex-col gap-4">
                   <Input
@@ -233,10 +240,10 @@ export default function CheckoutPage() {
                     placeholder="you@example.com"
                     disabled
                     required
-                    value={user?.email}
+                    value={user?.email!}
                   />
                 </div>
-              </form>
+              </div>
             </div>
           )}
         </div>
@@ -255,7 +262,7 @@ export default function CheckoutPage() {
                 className="mt-2 w-full font-semibold"
                 color="secondary"
                 type="submit"
-                form="checkout-form"
+                onClick={handleSubmit}
                 disabled={isLoading}
               >
                 Thanh toán

@@ -29,6 +29,7 @@ const categorySchema = z.object({
     .max(100, "Tên danh mục không được vượt quá 100 ký tự")
     .trim(),
   slug: z.string().min(2, "Slug phải có ít nhất 2 ký tự").max(100, "Slug không được vượt quá 100 ký tự").trim(),
+  icon: z.string().optional(),
   description: z.string().max(500, "Mô tả không được vượt quá 500 ký tự").trim(),
   image: z
     .union([z.string().url("URL hình ảnh không hợp lệ"), z.string(), z.instanceof(File), z.literal("")])
@@ -50,6 +51,7 @@ export const CategoryDialog: React.FC = () => {
     defaultValues: {
       title: "",
       description: "",
+      icon: "",
       image: "",
     },
   });
@@ -259,6 +261,21 @@ export const CategoryDialog: React.FC = () => {
                   {...register("slug")}
                 />
                 {errors.slug && <p className="mt-1 text-sm text-red-600">{errors.slug.message}</p>}
+              </div>
+
+              <div>
+                <label htmlFor="icon" className="block text-sm font-medium text-gray-700 mb-2">
+                  Icon
+                </label>
+                <Input
+                  id="icon"
+                  type="text"
+                  placeholder="Nhập icon danh mục..."
+                  disabled={mode === "view"}
+                  className={errors.icon ? "border-red-300 focus:border-red-500 focus:ring-red-500" : ""}
+                  {...register("icon")}
+                />
+                {errors.icon && <p className="mt-1 text-sm text-red-600">{errors.icon.message}</p>}
               </div>
 
               <div>

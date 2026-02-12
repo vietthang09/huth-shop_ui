@@ -2,19 +2,27 @@
 
 import ProductCard from "@/components/store/common/ProductCard";
 import WhyChooseUs from "@/components/store/home/WhyChooseUs";
+import { findAll as findProducts } from "@/services/product";
+import { findAll as findCategories } from "@/services/category";
+import { Category, Product } from "@/services/type";
 import { cn } from "@/shared/utils/styling";
 import { Clapperboard, Cpu, Grid2X2, Laptop, ListMusic, Menu } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { DynamicIcon } from "lucide-react/dynamic";
 
+const App = () => <DynamicIcon name="camera" color="red" size={48} />;
 export default function Home() {
+  const [categories, setCategories] = useState<Category[]>([]);
   const tabs = [
     { name: "Tất cả", icon: <Grid2X2 /> },
     {
+      id: 1,
       name: "Video",
       icon: <Clapperboard />,
     },
     {
+      id: 2,
       name: "Âm nhạc",
       icon: <ListMusic />,
     },
@@ -27,30 +35,69 @@ export default function Home() {
       icon: <Laptop />,
     },
   ];
-  const [selectedTab, setSelectedTab] = useState(tabs[0]);
+  const [selectedTab, setSelectedTab] = useState<number>(0);
+
+  const [products, setProducts] = useState<Array<Product>>([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await findProducts({ categoryId: selectedTab || undefined });
+        setProducts(response.data.data);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+
+    const fetchCategories = async () => {
+      try {
+        const response = await findCategories();
+        setCategories(response.data.data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchProducts();
+    fetchCategories();
+  }, [selectedTab]);
+
   return (
     <div className="pb-8">
       <div>
         <div className="bg-[#ef534f] relative">
           <div className="py-20 pb-28 max-w-7xl mx-auto z-50">
-            <h1 className="text-3xl text-center text-white/80 font-bold">Tài khoản Premium giá rẻ từ HuthShop</h1>
-            <p className="mt-2 text-lg text-center text-white/80">
+            <h1 className="text-3xl text-center !text-white/80 font-bold">Tài khoản Premium giá rẻ từ HuthShop</h1>
+            <p className="mt-2 text-lg text-center !text-white/80">
               Cung cấp các tài khoản chất lượng, bảo hành trọn đời
             </p>
             <div className="mt-10 w-fit flex gap-2 mx-auto pb-2 border-b-2 border-white/20">
-              {tabs.map((tab) => (
-                <div key={tab.name}>
+              <div>
+                <div
+                  className={cn(
+                    "text-sm font-bold flex flex-col items-center justify-center gap-2 text-white/80 p-2 w-24 h-20 rounded-xl cursor-pointer",
+                    selectedTab === 0 ? "bg-white text-[#ef534f] transition-all duration-300" : "hover:bg-white/20",
+                  )}
+                  onClick={() => setSelectedTab(0)}
+                >
+                  <Menu />
+                  <span className="text-nowrap">Tất cả</span>
+                </div>
+              </div>
+              {categories.map((category) => (
+                <div key={category.id}>
                   <div
                     className={cn(
                       "text-sm font-bold flex flex-col items-center justify-center gap-2 text-white/80 p-2 w-24 h-20 rounded-xl cursor-pointer",
-                      selectedTab.name === tab.name
+                      selectedTab === category.id
                         ? "bg-white text-[#ef534f] transition-all duration-300"
-                        : "hover:bg-white/20"
+                        : "hover:bg-white/20",
                     )}
-                    onClick={() => setSelectedTab(tab)}
+                    onClick={() => setSelectedTab(category.id)}
                   >
-                    {tab.icon}
-                    <span className="text-nowrap">{tab.name}</span>
+                    <DynamicIcon name={(category.icon as any) || "file"} size={24} />
+
+                    <span className="text-nowrap">{category.title}</span>
                   </div>
                 </div>
               ))}
@@ -66,18 +113,9 @@ export default function Home() {
         </div>
         <div className="-translate-y-24 max-w-7xl mx-auto z-50">
           <div className="mt-4 grid grid-cols-4 gap-4">
-            <ProductCard />
-            <ProductCard />
-            <ProductCard isSales={true} />
-            <ProductCard isSales={true} />
-            <ProductCard />
-            <ProductCard />
-            <ProductCard />
-            <ProductCard />
-            <ProductCard />
-            <ProductCard />
-            <ProductCard />
-            <ProductCard />
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
           </div>
 
           <div className="mt-4 w-full flex">

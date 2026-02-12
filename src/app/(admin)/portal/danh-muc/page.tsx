@@ -6,12 +6,13 @@ import { TableToolbar, createCommonActions, Table, Button } from "@/components/u
 import type { TableToolbarFilter, TableColumn, TableSort } from "@/components/ui";
 import { CategoryDialogProvider, useCategoryDialog, CategoryDialog } from "@/components/admin/categories";
 import { toast } from "sonner";
+import { Category } from "@/services/type";
 
 function CategoriesPageContent() {
   const { openAddDialog, openEditDialog, openViewDialog } = useCategoryDialog();
 
-  const [categories, setCategories] = useState<TCategory[]>([]);
-  const [filteredCategories, setFilteredCategories] = useState<TCategory[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
   const [selectedRows, setSelectedRows] = useState<(string | number)[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,7 +24,7 @@ function CategoriesPageContent() {
     try {
       const response = await findAll();
       if (response.status === 200) {
-        const data = response.data as TCategory[];
+        const data = response.data.data;
         setCategories(data);
         setFilteredCategories(data);
       }
@@ -54,7 +55,7 @@ function CategoriesPageContent() {
       filtered = filtered.filter(
         (category) =>
           category.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          category.description.toLowerCase().includes(searchTerm.toLowerCase())
+          category.description.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 

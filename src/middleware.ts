@@ -38,7 +38,7 @@ export default withAuth(
       const userRole = user?.role?.toLowerCase();
       if (userRole === "admin") {
         return NextResponse.redirect(new URL("/portal", request.url));
-      } else if (userRole === "user") {
+      } else if (userRole === "customer") {
         return NextResponse.redirect(new URL("/", request.url));
       }
     }
@@ -85,7 +85,7 @@ export default withAuth(
     callbacks: {
       authorized: () => true, // We handle authorization in the middleware function
     },
-  }
+  },
 );
 
 export const config = {

@@ -4,6 +4,7 @@ import { TCategory } from "./category";
 import { TProductVariant } from "./product-variants";
 import { ProductVariantKind } from "@/types/product";
 import { ProductSortBy, SortOrder } from "@/common/contants";
+import { ApiResponse, Product } from "./type";
 
 export async function create(data: { sku: string; title: string; categoryId: number }) {
   return axiosInstance.post("/products", data);
@@ -15,7 +16,7 @@ export type TProduct = {
   title: string;
   description: string;
   categoryId: number;
-  images: string[];
+  image: string;
   createdAt: string;
   updatedAt: string;
   category: TCategory;
@@ -27,9 +28,10 @@ export interface FindAllQuery {
   sortBy?: ProductSortBy;
   order?: SortOrder;
   search?: string;
+  categoryId?: number;
 }
 export async function findAll(params?: FindAllQuery) {
-  return axiosInstance.get("/products", { params });
+  return axiosInstance.get<ApiResponse<Product[]>>("/products", { params });
 }
 
 export async function findAllByCategory(categorySlug: string) {
@@ -41,7 +43,7 @@ export async function findOne(id: number) {
 }
 
 export async function findOneBySku(sku: string) {
-  return axiosInstance.get(`/products/sku/${sku}`);
+  return axiosInstance.get<Product>(`/products/sku/${sku}`);
 }
 
 export async function update(id: number, data: any) {

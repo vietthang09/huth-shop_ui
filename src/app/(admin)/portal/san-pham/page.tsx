@@ -6,12 +6,13 @@ import { TableToolbar, createCommonActions, Table, Button } from "@/components/u
 import type { TableToolbarFilter, TableColumn, TableSort } from "@/components/ui";
 import { ProductDialogProvider, useProductDialog, ProductDialog } from "@/components/admin/products";
 import { toast } from "sonner";
+import { Product } from "@/services/type";
 
 // Inner component that uses the dialog context
 function ProductsPageContent() {
   const { openAddDialog, openEditDialog, openViewDialog } = useProductDialog();
-  const [products, setProducts] = useState<TProduct[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<TProduct[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [selectedRows, setSelectedRows] = useState<(string | number)[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,7 +24,7 @@ function ProductsPageContent() {
     try {
       const response = await findAll();
       if (response.status === 200) {
-        const data = response.data.data as TProduct[];
+        const data = response.data.data as Product[];
         setProducts(data);
         setFilteredProducts(data);
       }
@@ -70,8 +71,8 @@ function ProductsPageContent() {
     // Apply sorting
     if (sort.key && sort.direction) {
       filtered.sort((a, b) => {
-        const aValue = a[sort.key as keyof TProduct];
-        const bValue = b[sort.key as keyof TProduct];
+        const aValue = a[sort.key as keyof Product];
+        const bValue = b[sort.key as keyof Product];
 
         let comparison = 0;
         if (typeof aValue === "string" && typeof bValue === "string") {
@@ -116,7 +117,7 @@ function ProductsPageContent() {
       sortable: true,
       render: (value, row) => (
         <div className="flex items-center gap-3">
-          {row.images && Array.isArray(row.images) && row.images[0] && (
+          {/* {row.images && Array.isArray(row.images) && row.images[0] && (
             <img
               src={row.images[0]}
               alt={value}
@@ -125,7 +126,7 @@ function ProductsPageContent() {
                 e.currentTarget.style.display = "none";
               }}
             />
-          )}
+          )} */}
           <div>
             <div className="font-medium text-gray-900">{value}</div>
             <div className="text-sm text-gray-500 truncate max-w-[200px]">{row.description || "Không có mô tả"}</div>

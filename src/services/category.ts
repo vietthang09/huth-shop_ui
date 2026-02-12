@@ -1,4 +1,5 @@
 import axiosInstance from "./axiosInstance";
+import { ApiResponse, Category } from "./type";
 
 export async function create(data: { title: string; description: string; image: string }) {
   return axiosInstance.post("/categories", data);
@@ -14,7 +15,7 @@ export type TCategory = {
   updatedAt: string;
 };
 export async function findAll() {
-  return axiosInstance.get("/categories");
+  return axiosInstance.get<ApiResponse<Category[]>>("/categories");
 }
 
 export async function findOne(id: number) {

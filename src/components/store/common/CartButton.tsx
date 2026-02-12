@@ -8,8 +8,6 @@ import { useCartStore } from "@/store/cartStore";
 import { Button } from "@/components/ui";
 import { fCurrency } from "@/shared/utils/format-number";
 import Image from "next/image";
-import { TProduct } from "@/services/product";
-import { CartItem } from "@/store/types";
 import { useRouter } from "next/navigation";
 
 export default function CartButton() {
@@ -31,10 +29,7 @@ export default function CartButton() {
 
   return (
     <div className="relative">
-      <div
-        className="p-4 realative rounded-full  text-white hover:bg-[#171a3c] cursor-pointer"
-        onClick={onClickCartButton}
-      >
+      <div className="realative rounded-full text-white cursor-pointer" onClick={onClickCartButton}>
         <ShoppingCart className="size-5" />
         {totalItems > 0 && (
           <div className="bg-white text-[#171a3c] absolute z-50 top-1 right-1 flex items-center justify-center size-5 border rounded-full text-center align-middle p-1 text-xs">
@@ -44,8 +39,8 @@ export default function CartButton() {
       </div>
       {showPopup && (
         <>
-          <div className="bg-black/50 fixed inset-0" onClick={onClickCartButton} />
-          <div className="bg-white p-3 absolute bottom-0 left-0 translate-y-full -translate-x-full rounded-xl">
+          <div className="fixed inset-0" onClick={onClickCartButton} />
+          <div className="shadow bg-white p-3 absolute bottom-0 left-0 translate-y-full -translate-x-full rounded-xl">
             {totalItems === 0 ? (
               <div className="flex flex-col items-center justify-center gap-4">
                 <Image
@@ -84,7 +79,7 @@ export default function CartButton() {
 }
 
 type CartItemProps = {
-  item: CartItem;
+  item: any;
 };
 function CartItem({ item }: CartItemProps) {
   const cartStore = useCartStore();

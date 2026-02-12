@@ -12,7 +12,7 @@ const StoreLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <Header />
-      <main className="bg-white">{children}</main>
+      <main className="bg-white min-h-screen">{children}</main>
       <StoreFooter />
       <FloatingButtons />
     </>

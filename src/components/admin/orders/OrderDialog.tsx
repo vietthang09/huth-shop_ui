@@ -21,6 +21,7 @@ import { z } from "zod";
 import { fCurrency } from "@/shared/utils/format-number";
 import { OrderStatus } from "@/common/contants";
 import { ProductVariantKind } from "@/types/product";
+import { sendConfirmationEmail } from "@/services/order";
 
 // Zod schema for order validation
 const orderSchema = z.object({});
@@ -32,6 +33,7 @@ export const OrderDialog: React.FC = () => {
 
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
+  const [replyContent, setReplyContent] = React.useState("");
 
   // React Hook Form setup
   const form = useForm<OrderFormData>({
@@ -78,7 +80,7 @@ export const OrderDialog: React.FC = () => {
         // Update order
 
         // Send confirmation email
-
+        await sendConfirmationEmail(selectedOrder.id, replyContent);
         toast.success(`Đơn hàng "${selectedOrder.id}" đã được xử lý thành công`);
         closeDialog();
       }
@@ -87,7 +89,7 @@ export const OrderDialog: React.FC = () => {
       if (error.response?.data?.message) {
         toast.error(error.response.data.message);
       } else {
-        toast.error(mode === "add" ? "Có lỗi xảy ra khi thêm nhà cung cấp" : "Có lỗi xảy ra khi cập nhật nhà cung cấp");
+        toast.error(mode === "add" ? "Có lỗi xảy ra khi thêm đơn hàng" : "Có lỗi xảy ra khi cập nhật đơn hàng");
       }
     } finally {
       setIsSubmitting(false);
@@ -191,28 +193,27 @@ export const OrderDialog: React.FC = () => {
                   <div className="p-2 border border-gray-300 w-full rounded-md">
                     <p>Tên sản phẩm: {item.product.title}</p>
                     <p>Phân loại: {item.variant.title}</p>
-                    <p>Giá: {fCurrency(item.variant.retailPrice, { currency: "VND" })}</p>
                     <p>Số lượng: {item.quantity}</p>
-
-                    {item.variant.kind === ProductVariantKind.PRE_MADE_ACCOUNT && (
-                      <div className="border border-gray-300 p-2 rounded space-y-4">
-                        <div>
-                          <label htmlFor="email-username" className="block text-sm font-medium text-gray-700 mb-2">
-                            Email/Tên tài khoản <span className="text-red-500">*</span>
-                          </label>
-                          <Input id="email-username" type="text" />
-                        </div>
-                        <div>
-                          <label htmlFor="account-password" className="block text-sm font-medium text-gray-700 mb-2">
-                            Mật khẩu <span className="text-red-500">*</span>
-                          </label>
-                          <Input id="account-password" type="text" />
-                        </div>
+                    {item.fields && (
+                      <div>
+                        <h3>Thông tin tài khoản:</h3>
+                        {Object.entries(item.fields).map(([key, value], index) => (
+                          <p key={index}>
+                            {key}: {value}
+                          </p>
+                        ))}
                       </div>
                     )}
                   </div>
                 ))}
               </div>
+
+              <textarea
+                className="mt-4 border border-gray-300 w-full rounded p-2"
+                rows={4}
+                placeholder="Nội dung email"
+                onChange={(e) => setReplyContent(e.target.value)}
+              />
             </div>
           </form>
         </div>

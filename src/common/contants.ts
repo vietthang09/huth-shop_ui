@@ -24,9 +24,3 @@ export enum SortOrder {
   ASC = "ASC",
   DESC = "DESC",
 }
-
-export enum PaymentMethod {
-  BANK_TRANSFER = "bank_transfer",
-  MOMO = "momo",
-  ViettelPay = "viettelpay",
-}
