@@ -1,21 +1,152 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { mockPosts, mockTopics, getFeaturedPosts, getRecentPosts } from "@/data/mockBlogData";
+import { useEffect, useMemo, useState } from "react";
+import { findAll } from "@/services/blog";
+import { Blog } from "@/services/type";
 import BlogPostCard from "@/components/blog/BlogPostCard";
 import BlogFilters from "@/components/blog/BlogFilters";
 import BlogSidebar from "@/components/blog/BlogSidebar";
 import ClientPagination from "@/components/blog/ClientPagination";
+import { Post, Topic } from "@/types/blog";
+import { useSearchParams } from "next/navigation";
+
+const toTopicSlug = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
+
+const normalizePost = (blog: Blog): Post => {
+  const unknownBlog = blog as Blog & {
+    shortDescription?: string;
+    cover?: string;
+    userId?: number;
+    user?: any;
+    topicId?: number;
+    topic?: any;
+  };
+
+  const author = unknownBlog.user || (blog as Blog & { author?: any }).author;
+  const topic = unknownBlog.topic;
+  const firstTag = blog.tags?.[0];
+  const fallbackTopic = firstTag
+    ? {
+        id: -blog.id,
+        name: firstTag,
+        slug: toTopicSlug(firstTag),
+        image: null,
+        _count: { posts: 0 },
+      }
+    : null;
+
+  return {
+    id: blog.id,
+    userId: unknownBlog.userId || author?.id || null,
+    user: author
+      ? {
+          id: author.id || 0,
+          fullname: author.fullname || [author.firstName, author.lastName].filter(Boolean).join(" ") || null,
+          email: author.email || "",
+          password: "",
+          role: author.role || null,
+          createdAt: author.createdAt ? new Date(author.createdAt) : new Date(),
+          updatedAt: author.updatedAt ? new Date(author.updatedAt) : new Date(),
+          isActive: author.isActive ?? true,
+          lastLogin: author.lastLogin ? new Date(author.lastLogin) : null,
+          posts: [],
+          logs: [],
+          orders: [],
+          inventoryImports: [],
+        }
+      : null,
+    topicId: unknownBlog.topicId || topic?.id || fallbackTopic?.id || null,
+    topic: topic
+      ? {
+          id: topic.id || 0,
+          name: topic.name || "",
+          slug: topic.slug || toTopicSlug(topic.name || "topic"),
+          image: topic.image || null,
+          _count: topic._count,
+        }
+      : fallbackTopic,
+    slug: blog.slug,
+    title: blog.title,
+    shortDescription: unknownBlog.shortDescription || blog.excerpt || null,
+    content: blog.content || null,
+    cover: unknownBlog.cover || blog.thumbnail || null,
+    createdAt: new Date(blog.createdAt),
+    updatedAt: new Date(blog.updatedAt),
+    logs: [],
+  };
+};
+
+const buildTopics = (posts: Post[]): Topic[] => {
+  const bySlug = posts
+    .filter((post) => post.topic)
+    .reduce<Record<string, Topic>>((acc, post) => {
+      const topic = post.topic as Topic;
+      const key = topic.slug;
+      if (!acc[key]) {
+        acc[key] = {
+          ...topic,
+          _count: { posts: 0 },
+        };
+      }
+      acc[key]._count = { posts: (acc[key]._count?.posts || 0) + 1 };
+      return acc;
+    }, {});
+
+  return Object.values(bySlug).sort((a, b) => a.name.localeCompare(b.name));
+};
 
 const BlogListPage = () => {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 6;
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const topicFromQuery = searchParams.get("topic");
+    if (topicFromQuery) {
+      setSelectedTopic(topicFromQuery);
+      setCurrentPage(1);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      setIsLoading(true);
+      setIsError(false);
+
+      try {
+        const response = await findAll();
+        const blogs = response.data.data as Blog[];
+        const mappedPosts = blogs.map(normalizePost);
+
+        setPosts(mappedPosts);
+        setTopics(buildTopics(mappedPosts));
+      } catch (error) {
+        console.error("Failed to fetch blog posts", error);
+        setIsError(true);
+        setPosts([]);
+        setTopics([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBlogs();
+  }, []);
 
   // Filter posts based on search and topic
   const filteredPosts = useMemo(() => {
-    let filtered = mockPosts;
+    let filtered = posts;
 
     // Filter by topic
     if (selectedTopic) {
@@ -29,12 +160,12 @@ const BlogListPage = () => {
         (post) =>
           post.title.toLowerCase().includes(query) ||
           post.shortDescription?.toLowerCase().includes(query) ||
-          post.topic?.name.toLowerCase().includes(query)
+          post.topic?.name.toLowerCase().includes(query),
       );
     }
 
     return filtered;
-  }, [searchQuery, selectedTopic]);
+  }, [posts, searchQuery, selectedTopic]);
 
   // Paginate filtered posts
   const paginatedData = useMemo(() => {
@@ -51,8 +182,11 @@ const BlogListPage = () => {
     };
   }, [filteredPosts, currentPage]);
 
-  const featuredPosts = getFeaturedPosts(3);
-  const recentPosts = getRecentPosts(5);
+  const featuredPosts = useMemo(() => posts.slice(0, 3), [posts]);
+  const recentPosts = useMemo(
+    () => [...posts].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5),
+    [posts],
+  );
 
   // Reset page when filters change
   const handleTopicChange = (topicSlug: string | null) => {
@@ -89,7 +223,7 @@ const BlogListPage = () => {
           <div className="lg:col-span-1 order-2 lg:order-1">
             <div className="sticky top-4 space-y-6">
               <BlogFilters
-                topics={mockTopics}
+                topics={topics}
                 selectedTopic={selectedTopic}
                 onTopicChange={handleTopicChange}
                 searchQuery={searchQuery}
@@ -106,7 +240,7 @@ const BlogListPage = () => {
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">
                   {selectedTopic
-                    ? `Bài viết về ${mockTopics.find((t) => t.slug === selectedTopic)?.name}`
+                    ? `Bài viết về ${topics.find((t) => t.slug === selectedTopic)?.name || selectedTopic}`
                     : "Tất cả bài viết"}
                 </h2>
                 <p className="text-gray-600 mt-1">
@@ -131,7 +265,11 @@ const BlogListPage = () => {
             </div>
 
             {/* Posts Grid */}
-            {paginatedData.posts.length > 0 ? (
+            {isLoading ? (
+              <div className="text-center py-12 text-gray-600">Đang tải bài viết...</div>
+            ) : isError ? (
+              <div className="text-center py-12 text-red-600">Không thể tải bài viết. Vui lòng thử lại sau.</div>
+            ) : paginatedData.posts.length > 0 ? (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                   {paginatedData.posts.map((post) => (
@@ -168,8 +306,8 @@ const BlogListPage = () => {
                   {searchQuery
                     ? `Không có bài viết nào phù hợp với từ khóa \"${searchQuery}\"`
                     : selectedTopic
-                    ? `Không có bài viết nào trong danh mục đã chọn`
-                    : "Chưa có bài viết nào"}
+                      ? `Không có bài viết nào trong danh mục đã chọn`
+                      : "Chưa có bài viết nào"}
                 </p>
                 {(selectedTopic || searchQuery) && (
                   <button

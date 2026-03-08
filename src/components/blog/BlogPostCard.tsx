@@ -17,10 +17,9 @@ const BlogPostCard = ({ post, variant = "default" }: BlogPostCardProps) => {
     return (
       <div className="relative flex flex-col md:flex-row group rounded-2xl overflow-hidden bg-white shadow-md hover:shadow-lg transition-all duration-300">
         <div className="relative aspect-video md:aspect-auto md:w-1/2 overflow-hidden">
-          <Image
+          <img
             src={post.cover || "/images/blog/placeholder.jpg"}
             alt={post.title}
-            fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className="object-cover group-hover:scale-105 transition-transform duration-500"
           />
@@ -29,7 +28,7 @@ const BlogPostCard = ({ post, variant = "default" }: BlogPostCardProps) => {
           <div>
             {post.topic && (
               <Link
-                href={`/blog/topic/${post.topic.slug}`}
+                href={`/bai-viet?topic=${post.topic.slug}`}
                 className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-2 inline-block"
               >
                 {post.topic.name}
@@ -62,16 +61,15 @@ const BlogPostCard = ({ post, variant = "default" }: BlogPostCardProps) => {
     return (
       <div className="flex group items-start space-x-4">
         <div className="relative flex-shrink-0 w-16 h-16 rounded-md overflow-hidden">
-          <Image
+          <img
             src={post.cover || "/images/blog/placeholder.jpg"}
             alt={post.title}
-            fill
             sizes="64px"
             className="object-cover"
           />
         </div>
         <div className="flex-1 min-w-0">
-          <Link href={`/blog/${post.slug}`}>
+          <Link href={`/bai-viet/${post.slug}`}>
             <h3 className="text-sm font-medium text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2">
               {post.title}
             </h3>
@@ -85,10 +83,9 @@ const BlogPostCard = ({ post, variant = "default" }: BlogPostCardProps) => {
   return (
     <div className="group flex flex-col rounded-xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-all duration-300">
       <div className="relative aspect-video overflow-hidden">
-        <Image
+        <img
           src={post.cover || "/images/blog/placeholder.jpg"}
           alt={post.title}
-          fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           className="object-cover group-hover:scale-105 transition-transform duration-500"
         />
@@ -96,13 +93,13 @@ const BlogPostCard = ({ post, variant = "default" }: BlogPostCardProps) => {
       <div className="p-5">
         {post.topic && (
           <Link
-            href={`/blog/topic/${post.topic.slug}`}
+            href={`/bai-viet?topic=${post.topic.slug}`}
             className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-2 inline-block"
           >
             {post.topic.name}
           </Link>
         )}
-        <Link href={`/blog/${post.slug}`} className="block group">
+        <Link href={`/bai-viet/${post.slug}`} className="block group">
           <h2 className="text-xl font-semibold mb-3 text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2">
             {post.title}
           </h2>

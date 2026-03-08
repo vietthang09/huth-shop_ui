@@ -1,19 +1,120 @@
-// Temporarily using mock data - replace with real data actions later
-import { mockPosts, getRecentPosts } from "@/data/mockBlogData";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { format } from "date-fns";
 import { Metadata } from "next";
+import Link from "next/link";
 import ShareButtons from "@/components/blog/ShareButtons";
 import TableOfContents from "@/components/blog/TableOfContents";
 import BlogPostCard from "@/components/blog/BlogPostCard";
-import Link from "next/link";
+import { findAll, findOneBySlug } from "@/services/blog";
+import { Blog } from "@/services/type";
+import { Post } from "@/types/blog";
 
-export const revalidate = 3600; // Revalidate every hour
+export const revalidate = 3600;
+
+const toTopicSlug = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
+
+const normalizePost = (blog: Blog): Post => {
+  const unknownBlog = blog as Blog & {
+    shortDescription?: string;
+    cover?: string;
+    userId?: number;
+    user?: any;
+    topicId?: number;
+    topic?: any;
+  };
+
+  const author = unknownBlog.user || (blog as Blog & { author?: any }).author;
+  const topic = unknownBlog.topic;
+  const firstTag = blog.tags?.[0];
+  const fallbackTopic = firstTag
+    ? {
+        id: -blog.id,
+        name: firstTag,
+        slug: toTopicSlug(firstTag),
+        image: null,
+        _count: { posts: 0 },
+      }
+    : null;
+
+  return {
+    id: blog.id,
+    userId: unknownBlog.userId || author?.id || null,
+    user: author
+      ? {
+          id: author.id || 0,
+          fullname: author.fullname || [author.firstName, author.lastName].filter(Boolean).join(" ") || null,
+          email: author.email || "",
+          password: "",
+          role: author.role || null,
+          createdAt: author.createdAt ? new Date(author.createdAt) : new Date(),
+          updatedAt: author.updatedAt ? new Date(author.updatedAt) : new Date(),
+          isActive: author.isActive ?? true,
+          lastLogin: author.lastLogin ? new Date(author.lastLogin) : null,
+          posts: [],
+          logs: [],
+          orders: [],
+          inventoryImports: [],
+        }
+      : null,
+    topicId: unknownBlog.topicId || topic?.id || fallbackTopic?.id || null,
+    topic: topic
+      ? {
+          id: topic.id || 0,
+          name: topic.name || "",
+          slug: topic.slug || toTopicSlug(topic.name || "topic"),
+          image: topic.image || null,
+          _count: topic._count,
+        }
+      : fallbackTopic,
+    slug: blog.slug,
+    title: blog.title,
+    shortDescription: unknownBlog.shortDescription || blog.excerpt || null,
+    content: blog.content || null,
+    cover: unknownBlog.cover || blog.thumbnail || null,
+    createdAt: new Date(blog.createdAt),
+    updatedAt: new Date(blog.updatedAt),
+    logs: [],
+  };
+};
+
+async function getPostBySlug(slug: string): Promise<Post | null> {
+  try {
+    const response = await findOneBySlug(slug);
+    return normalizePost(response.data.data as Blog);
+  } catch (error) {
+    console.error(`Failed to fetch blog post by slug: ${slug}`, error);
+    return null;
+  }
+}
+
+async function getRelatedPosts(currentPost: Post): Promise<Post[]> {
+  try {
+    const response = await findAll();
+    const allPosts = (response.data.data as Blog[]).map(normalizePost);
+
+    const sameTopicPosts = currentPost.topic
+      ? allPosts.filter((post) => post.id !== currentPost.id && post.topic?.slug === currentPost.topic?.slug)
+      : [];
+
+    if (sameTopicPosts.length > 0) {
+      return sameTopicPosts.slice(0, 3);
+    }
+
+    return allPosts.filter((post) => post.id !== currentPost.id).slice(0, 3);
+  } catch (error) {
+    console.error("Failed to fetch related posts", error);
+    return [];
+  }
+}
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  // Use mock data for now
-  const post = mockPosts.find((p) => p.slug === params.slug);
+  const post = await getPostBySlug(params.slug);
 
   if (!post) {
     return {
@@ -33,29 +134,17 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export async function generateStaticParams() {
-  // Use mock data for static generation
-  return mockPosts.map((post) => ({
-    slug: post.slug,
-  }));
-}
-
 const BlogDetailPage = async ({ params }: { params: { slug: string } }) => {
-  // Use mock data for now
-  const post = mockPosts.find((p) => p.slug === params.slug);
+  const post = await getPostBySlug(params.slug);
 
   if (!post) {
     notFound();
   }
 
-  // Get related posts using mock data
-  const relatedPosts = getRecentPosts(4)
-    .filter((p) => p.id !== post.id)
-    .slice(0, 3);
+  const relatedPosts = await getRelatedPosts(post);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Breadcrumb */}
       <div className="max-w-7xl mx-auto px-4 py-4">
         <nav className="flex text-sm text-gray-600">
           <Link href="/" className="hover:text-blue-600">
@@ -72,10 +161,8 @@ const BlogDetailPage = async ({ params }: { params: { slug: string } }) => {
 
       <div className="mx-auto px-4 py-8 max-w-7xl">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Main Content */}
           <div className="lg:col-span-3">
             <article className="bg-white rounded-lg shadow-sm overflow-hidden">
-              {/* Cover image */}
               {post.cover && (
                 <div className="relative aspect-video">
                   <Image
@@ -90,7 +177,6 @@ const BlogDetailPage = async ({ params }: { params: { slug: string } }) => {
               )}
 
               <div className="p-8">
-                {/* Meta Info */}
                 <div className="flex items-center mb-6">
                   {post.topic && (
                     <Link
@@ -110,78 +196,40 @@ const BlogDetailPage = async ({ params }: { params: { slug: string } }) => {
                   )}
                 </div>
 
-                {/* Title */}
                 <h1 className="text-4xl font-bold text-gray-900 mb-6 leading-tight">{post.title}</h1>
 
-                {/* Short Description */}
                 {post.shortDescription && (
                   <p className="text-xl text-gray-600 mb-8 leading-relaxed">{post.shortDescription}</p>
                 )}
 
-                {/* Share Buttons */}
                 <div className="mb-8">
                   <ShareButtons url={`/bai-viet/${post.slug}`} title={post.title} />
                 </div>
 
-                {/* Content */}
                 <div className="prose prose-lg max-w-none">
                   {post.content ? (
                     <div dangerouslySetInnerHTML={{ __html: post.content }} />
                   ) : (
-                    <div className="space-y-6 text-gray-700 leading-relaxed">
-                      <p>
-                        This is a comprehensive guide about {post.title.toLowerCase()}. In this article, we'll explore
-                        the key concepts, best practices, and actionable strategies you can implement right away.
-                      </p>
-                      <p>
-                        Our team of experts has carefully researched and compiled this information to provide you with
-                        the most up-to-date and relevant insights in the gaming and account trading industry.
-                      </p>
-                      <h3 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">Key Takeaways</h3>
-                      <ul className="space-y-2">
-                        <li>• Security should always be your top priority when handling accounts</li>
-                        <li>• Stay informed about market trends and platform updates</li>
-                        <li>• Build a reputation through consistent and trustworthy practices</li>
-                        <li>• Use proper tools and resources to enhance your experience</li>
-                      </ul>
-                      <h3 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">Best Practices</h3>
-                      <p>
-                        Following industry best practices ensures that you maximize your potential while minimizing
-                        risks. Always verify information from multiple sources and stay updated with the latest security
-                        measures.
-                      </p>
-                      <h3 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">Conclusion</h3>
-                      <p>
-                        This article provides a solid foundation for understanding the topic. For more detailed guides
-                        and regular updates, make sure to bookmark our blog and follow our newsletter for exclusive
-                        content.
-                      </p>
-                    </div>
+                    <div className="text-gray-700">Nội dung đang được cập nhật.</div>
                   )}
                 </div>
 
-                {/* Tags */}
-                <div className="mt-8 pt-8 border-t border-gray-200">
-                  <div className="flex flex-wrap gap-2">
-                    <span className="text-sm font-medium text-gray-700 mr-2">Tags:</span>
-                    {["Gaming", "Security", "Trading", "Tips", "Guide"].map((tag) => (
-                      <span
-                        key={tag}
-                        className="inline-block bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm hover:bg-gray-200 cursor-pointer transition-colors"
-                      >
-                        {tag}
+                {!!post.topic?.name && (
+                  <div className="mt-8 pt-8 border-t border-gray-200">
+                    <div className="flex flex-wrap gap-2">
+                      <span className="text-sm font-medium text-gray-700 mr-2">Tags:</span>
+                      <span className="inline-block bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">
+                        {post.topic.name}
                       </span>
-                    ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </article>
           </div>
 
-          {/* Sidebar */}
           <div className="lg:col-span-1">
             <div className="sticky top-4 space-y-6">
-              {/* Table of Contents */}
               {post.content && (
                 <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Table of Contents</h3>
@@ -189,7 +237,6 @@ const BlogDetailPage = async ({ params }: { params: { slug: string } }) => {
                 </div>
               )}
 
-              {/* Author Info */}
               {post.user?.fullname && (
                 <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">About the Author</h3>
@@ -204,27 +251,10 @@ const BlogDetailPage = async ({ params }: { params: { slug: string } }) => {
                   </div>
                 </div>
               )}
-
-              {/* Newsletter */}
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg p-6 border border-blue-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Stay Updated</h3>
-                <p className="text-sm text-gray-600 mb-4">Get the latest articles delivered to your inbox.</p>
-                <div className="space-y-3">
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                  />
-                  <button className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors text-sm font-medium">
-                    Subscribe
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         </div>
 
-        {/* Related posts */}
         {relatedPosts.length > 0 && (
           <div className="mt-12 pt-8 border-t border-gray-200">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Related Articles</h2>
@@ -236,7 +266,6 @@ const BlogDetailPage = async ({ params }: { params: { slug: string } }) => {
           </div>
         )}
 
-        {/* Navigation */}
         <div className="mt-12 pt-8 border-t border-gray-200">
           <div className="flex justify-between items-center">
             <Link href="/bai-viet" className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium">

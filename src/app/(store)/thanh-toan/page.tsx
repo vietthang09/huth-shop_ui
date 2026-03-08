@@ -1,27 +1,41 @@
 "use client";
 
-import { Button, Input } from "@/components/ui";
 import { useAuth } from "@/hooks/useAuth";
+import { validateCoupon } from "@/services/coupon";
 import { createOrder } from "@/services/order";
-import { TProduct } from "@/services/product";
 import { PaymentMethod } from "@/services/type";
 import { fCurrency } from "@/shared/utils/format-number";
 import { cn } from "@/shared/utils/styling";
 import { useCartStore } from "@/store/cartStore";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Button, Input } from "@heroui/react";
 import { Minus, Plus, ShieldCheck, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function CheckoutPage() {
   const cartStore = useCartStore();
   const { user } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>(PaymentMethod.MOMO);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>(PaymentMethod.VIETCOMBANK);
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [couponError, setCouponError] = useState("");
+  const [couponSuccess, setCouponSuccess] = useState("");
   const items = cartStore?.cartItems;
+  const subtotal = cartStore.getTotalPrice();
+  const totalAfterDiscount = Math.max(0, subtotal - discountAmount);
+
+  const clearCouponState = (withMessage?: string) => {
+    setAppliedCouponCode(null);
+    setDiscountAmount(0);
+    setCouponSuccess("");
+    setCouponError(withMessage || "");
+  };
 
   const onIncrement = (productId: number, quantity: number, variantId?: number) => {
     if (!cartStore) return;
@@ -39,17 +53,74 @@ export default function CheckoutPage() {
   };
 
   const handleSubmit = async () => {
-    const data = cartStore.cartItems.map((item) => ({
-      productId: item.product.id,
-      variantId: item.variantId!,
-      quantity: item.quantity,
-      fields: item.fields || {},
-    }));
-    const res = await createOrder(data, selectedMethod);
-    if (res.status === 201) {
-      router.push(res.data.paymentUrl);
+    if (items.length === 0) return;
+    try {
+      setIsLoading(true);
+      const data = cartStore.cartItems.map((item) => ({
+        productId: item.product.id,
+        variantId: item.variantId!,
+        quantity: item.quantity,
+        fields: item.fields || {},
+      }));
+      const res = await createOrder(data, selectedMethod, appliedCouponCode || undefined);
+      if (res.status === 201) {
+        router.push(res.data.paymentUrl);
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  const handleApplyCoupon = async () => {
+    const normalizedCode = couponCode.trim().toUpperCase();
+    const userId = Number(user?.id);
+    if (!normalizedCode) {
+      setCouponSuccess("");
+      setCouponError("Vui lòng nhập mã giảm giá");
+      return;
+    }
+    if (!Number.isFinite(userId) || userId <= 0) {
+      setCouponSuccess("");
+      setCouponError("Vui lòng đăng nhập để áp dụng mã giảm giá");
+      return;
+    }
+    if (subtotal <= 0) {
+      setCouponSuccess("");
+      setCouponError("Không thể áp dụng mã khi giỏ hàng trống");
+      return;
+    }
+
+    try {
+      setIsApplyingCoupon(true);
+      setCouponError("");
+      setCouponSuccess("");
+
+      const response = await validateCoupon(normalizedCode, subtotal);
+      const payload = response.data;
+
+      const parsedDiscount = Number(payload?.discountAmount);
+
+      if (!payload?.isValid || !parsedDiscount || parsedDiscount <= 0) {
+        setCouponSuccess("");
+        setCouponError(payload?.description || "Mã không hợp lệ hoặc không áp dụng được cho đơn hàng này");
+        return;
+      }
+
+      setAppliedCouponCode(normalizedCode);
+      setDiscountAmount(Math.min(parsedDiscount, subtotal));
+      setCouponSuccess(payload?.description || "Áp dụng mã giảm giá thành công");
+      setCouponError("");
+    } catch (error: any) {
+      clearCouponState(error?.response?.data?.message || "Không thể áp dụng mã giảm giá");
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!appliedCouponCode) return;
+    clearCouponState("Giỏ hàng đã thay đổi, vui lòng áp dụng lại mã giảm giá");
+  }, [items.length, subtotal]);
 
   return (
     <div className="max-w-7xl mx-auto py-4">
@@ -65,7 +136,7 @@ export default function CheckoutPage() {
                 </div>
               </div>
             </header>
-            <hr />
+            <hr className="border-gray-200" />
             <div className="space-y-4 p-4 divide-y">
               {items.length === 0 && (
                 <div className="py-20 flex items-center justify-center">
@@ -84,10 +155,10 @@ export default function CheckoutPage() {
                             <h3 className="font-medium truncate max-w-[40ch]">{item.product.title}</h3>
                             <Button
                               color="danger"
-                              variant="ghost"
-                              aria-label="Remove item"
-                              size="sm"
-                              onClick={() => onRemove(item.product.id, item.variantId)}
+                              variant="light"
+                              radius="full"
+                              isIconOnly
+                              onPress={() => onRemove(item.product.id, item.variantId)}
                             >
                               <Trash2 className="size-4" />
                             </Button>
@@ -107,7 +178,7 @@ export default function CheckoutPage() {
                                   color="primary"
                                   aria-label="Decrease quantity"
                                   disabled={item.quantity <= 1}
-                                  onClick={() => onDecrement(item.product.id, item.quantity - 1, item.variantId)}
+                                  onPress={() => onDecrement(item.product.id, item.quantity - 1, item.variantId)}
                                 >
                                   <Minus className="size-4" />
                                 </Button>
@@ -119,7 +190,7 @@ export default function CheckoutPage() {
                                   variant="ghost"
                                   color="primary"
                                   aria-label="Increase quantity"
-                                  onClick={() => onIncrement(item.product.id, item.quantity + 1, item.variantId)}
+                                  onPress={() => onIncrement(item.product.id, item.quantity + 1, item.variantId)}
                                 >
                                   <Plus className="size-4" />
                                 </Button>
@@ -154,7 +225,7 @@ export default function CheckoutPage() {
               <div className="mt-6">
                 <h3 className="text-xl font-semibold">Chọn phương thức thanh toán</h3>
                 <div className="mt-4 flex gap-4">
-                  <div
+                  {/* <div
                     className="relative border p-2 rounded-xl cursor-pointer group overflow-hidden"
                     onClick={() => setSelectedMethod(PaymentMethod.MOMO)}
                   >
@@ -177,7 +248,7 @@ export default function CheckoutPage() {
                         Đã chọn
                       </span>
                     )}
-                  </div>
+                  </div> */}
                   <div
                     className="relative border p-2 rounded-xl cursor-pointer group overflow-hidden"
                     onClick={() => setSelectedMethod(PaymentMethod.VIETCOMBANK)}
@@ -188,12 +259,12 @@ export default function CheckoutPage() {
                       )}
                     </div>
                     <Image
-                      src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Logo_TPBank.svg/2560px-Logo_TPBank.svg.png"
+                      src="https://static.wixstatic.com/media/9d8ed5_810e9e3b7fad40eca3ec5087da674662~mv2.png/v1/fit/w_500,h_500,q_90/file.png"
                       width={44}
                       height={44}
                       alt="bank transfer"
                       className={cn(
-                        "w-24 h-24 p-4 object-contain",
+                        "w-24 h-24 object-contain",
                         selectedMethod !== PaymentMethod.VIETCOMBANK && "opacity-50 group-hover:opacity-100",
                       )}
                       unoptimized
@@ -204,7 +275,7 @@ export default function CheckoutPage() {
                       </span>
                     )}
                   </div>
-                  <div
+                  {/* <div
                     className="relative border p-2 rounded-xl cursor-pointer group overflow-hidden"
                     onClick={() => setSelectedMethod(PaymentMethod.TPBANK)}
                   >
@@ -227,12 +298,12 @@ export default function CheckoutPage() {
                         Đã chọn
                       </span>
                     )}
-                  </div>
+                  </div> */}
                 </div>
               </div>
 
               <div className="mt-6">
-                <h3 className="text-xl font-semibold">Email</h3>
+                <h3 className="text-xl font-semibold">Email nhận đơn hàng</h3>
                 <div className="mt-4 flex flex-col gap-4">
                   <Input
                     type="email"
@@ -252,18 +323,53 @@ export default function CheckoutPage() {
           <div className="bg-white p-4 rounded-xl">
             <div>
               <h2 className="font-medium">Tổng tiền</h2>
-              <hr />
+              <hr className="border-gray-200" />
               <div className="mt-2 flex justify-between font-medium">
                 <span>Tạm tính</span>
-                <span>{fCurrency(cartStore.getTotalPrice())}</span>
+                <span>{fCurrency(subtotal)}</span>
+              </div>
+
+              <div className="mt-4 space-y-2">
+                <h3 className="text-sm font-medium">Mã giảm giá</h3>
+                <div className="flex gap-2">
+                  <Input
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value)}
+                    placeholder="Nhập mã giảm giá"
+                    className="flex-1"
+                  />
+                  <Button
+                    color="default"
+                    onPress={handleApplyCoupon}
+                    isLoading={isApplyingCoupon}
+                    disabled={isApplyingCoupon || items.length === 0}
+                  >
+                    Áp dụng
+                  </Button>
+                </div>
+                {!!couponError && <p className="text-xs text-danger">{couponError}</p>}
+                {!!couponSuccess && <p className="text-xs text-success">{couponSuccess}</p>}
+              </div>
+
+              {discountAmount > 0 && (
+                <div className="mt-3 flex justify-between text-sm text-success">
+                  <span>Giảm giá {appliedCouponCode ? `(${appliedCouponCode})` : ""}</span>
+                  <span>-{fCurrency(discountAmount)}</span>
+                </div>
+              )}
+
+              <div className="mt-2 flex justify-between font-semibold text-base">
+                <span>Tổng thanh toán</span>
+                <span>{fCurrency(totalAfterDiscount)}</span>
               </div>
 
               <Button
                 className="mt-2 w-full font-semibold"
-                color="secondary"
+                color="primary"
                 type="submit"
-                onClick={handleSubmit}
-                disabled={isLoading}
+                onPress={handleSubmit}
+                disabled={isLoading || items.length === 0}
+                isLoading={isLoading}
               >
                 Thanh toán
               </Button>

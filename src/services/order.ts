@@ -40,8 +40,9 @@ export function createOrder(
     fields?: Record<string, any>;
   }[],
   paymentMethod: PaymentMethod,
+  couponCode?: string,
 ) {
-  return axiosInstance.post("/orders", { orderItems: data, paymentMethod });
+  return axiosInstance.post("/orders", { orderItems: data, paymentMethod, couponCode });
 }
 
 export function findAll() {

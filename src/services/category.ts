@@ -14,8 +14,8 @@ export type TCategory = {
   createdAt: string;
   updatedAt: string;
 };
-export async function findAll() {
-  return axiosInstance.get<ApiResponse<Category[]>>("/categories");
+export async function findAll(params: any) {
+  return axiosInstance.get<ApiResponse<Category[]>>("/categories", { params });
 }
 
 export async function findOne(id: number) {

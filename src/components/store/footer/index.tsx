@@ -18,8 +18,8 @@ const Footer = () => {
                 <h3 className="text-lg text-white! font-medium uppercase">Liên hệ</h3>
                 <ul className="text-[#fff9] text-sm space-y-2 mt-4 font-semibold">
                   <li>SĐT: 0377196605</li>
-                  <li>Địa chỉ: Hải Châu, Đà Nẵng, Việt Nam</li>
-                  <li>Email: vthcvn@gmail.com</li>
+                  <li>Địa chỉ: Ngũ Hành Sơn, Đà Nẵng, Việt Nam</li>
+                  <li>Email: contact@huthshop.com</li>
                 </ul>
               </div>
               <div>

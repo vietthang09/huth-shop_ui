@@ -1,3 +1,14 @@
+export type User = {
+  id: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: UserRole;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export type Product = {
   id: number;
   sku: string;
@@ -50,11 +61,54 @@ export type Supplier = {
   updatedAt: string;
 };
 
+export type Coupon = {
+  id: number;
+  code: string;
+  description: string;
+  discountType: DiscountType;
+  discountValue: number;
+  minOrderAmount: number;
+  maxDiscountAmount: number;
+  maxUses: number;
+  usedCount: number;
+  maxUsesPerUser: number;
+  isActive: boolean;
+  validFrom: Date;
+  validTo: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  usages: any[];
+};
+
+export type CouponUsage = {
+  id: number;
+  couponId: number;
+  userId: number;
+  orderId: number;
+  createdAt: Date;
+  coupon: Coupon;
+};
+
 export enum ProductVariantKind {
   OWNERSHIP_UPGRADE = "ownership_upgrade",
   PRE_MADE_ACCOUNT = "pre_made_account",
   SHARING = "sharing",
 }
+
+export type Blog = {
+  id: number;
+  title: string;
+  slug: string;
+  content: string;
+  excerpt: string;
+  thumbnail: string;
+  status: BlogStatus;
+  tags: string[];
+  authorId: number;
+  author: User;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 export type ApiResponse<T> = {
   data: T;
@@ -67,4 +121,19 @@ export enum PaymentMethod {
   MOMO = "momo",
   VIETCOMBANK = "vietcombank",
   TPBANK = "tpbank",
+}
+
+export enum DiscountType {
+  PERCENTAGE = "percentage",
+  FIXED_AMOUNT = "fixed_amount",
+}
+
+export enum BlogStatus {
+  DRAFT = "draft",
+  PUBLISHED = "published",
+}
+
+export enum UserRole {
+  CUSTOMER = "customer",
+  ADMIN = "admin",
 }

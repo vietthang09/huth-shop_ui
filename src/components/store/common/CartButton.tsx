@@ -5,10 +5,11 @@ import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 
 import { useCartStore } from "@/store/cartStore";
-import { Button } from "@/components/ui";
 import { fCurrency } from "@/shared/utils/format-number";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { ProductVariant } from "@/services/type";
+import { Badge, Button, Popover, PopoverContent, PopoverTrigger } from "@heroui/react";
 
 export default function CartButton() {
   const router = useRouter();
@@ -29,51 +30,52 @@ export default function CartButton() {
 
   return (
     <div className="relative">
-      <div className="realative rounded-full text-white cursor-pointer" onClick={onClickCartButton}>
-        <ShoppingCart className="size-5" />
-        {totalItems > 0 && (
-          <div className="bg-white text-[#171a3c] absolute z-50 top-1 right-1 flex items-center justify-center size-5 border rounded-full text-center align-middle p-1 text-xs">
-            {totalItems}
-          </div>
-        )}
-      </div>
-      {showPopup && (
-        <>
-          <div className="fixed inset-0" onClick={onClickCartButton} />
-          <div className="shadow bg-white p-3 absolute bottom-0 left-0 translate-y-full -translate-x-full rounded-xl">
-            {totalItems === 0 ? (
-              <div className="flex flex-col items-center justify-center gap-4">
-                <Image
-                  src="https://k4g.com/_next/static/images/empty_cart-547358581b9e42f4c9725d348a9c5f4f.png"
-                  width={24}
-                  height={24}
-                  alt="emptry cart"
-                  unoptimized
-                  className="w-24"
-                />
-                <p className="px-10 text-nowrap font-bold">Giỏ của bạn đang hàng trống</p>
-              </div>
-            ) : (
-              <div>
-                <h3 className="text-lg font-semibold">Giỏ hàng</h3>
-                <hr />
-                {cartStore.cartItems.map((item) => (
-                  <CartItem key={item.product.id} item={item} />
-                ))}
-                <hr />
-                <div className="flex items-center justify-between gap-4 p-2">
-                  <p>
-                    Tổng: <b>{fCurrency(cartStore.getTotalPrice())}</b>
-                  </p>
-                  <Button size="sm" color="secondary" className="gap-2" onClick={onCheckout}>
-                    <ShoppingCart size={20} /> Thanh toán
-                  </Button>
+      <Popover placement="bottom">
+        <PopoverTrigger>
+          <Button isIconOnly variant="light" radius="full" className="overflow-visible">
+            <Badge color="danger" content={totalItems}>
+              <ShoppingCart size={20} className="text-white" />
+            </Badge>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent>
+          <>
+            <div className="fixed inset-0" onClick={onClickCartButton} />
+            <div className="shadow bg-white p-3 absolute bottom-0 left-0 translate-y-full -translate-x-full rounded-xl">
+              {totalItems === 0 ? (
+                <div className="flex flex-col items-center justify-center gap-4">
+                  <Image
+                    src="https://k4g.com/_next/static/images/empty_cart-547358581b9e42f4c9725d348a9c5f4f.png"
+                    width={24}
+                    height={24}
+                    alt="emptry cart"
+                    unoptimized
+                    className="w-24"
+                  />
+                  <p className="px-10 text-nowrap font-bold">Giỏ của bạn đang hàng trống</p>
                 </div>
-              </div>
-            )}
-          </div>
-        </>
-      )}
+              ) : (
+                <div>
+                  <h3 className="text-lg font-semibold">Giỏ hàng</h3>
+                  <hr className="border-gray-200" />
+                  {cartStore.cartItems.map((item) => (
+                    <CartItem key={item.product.id} item={item} />
+                  ))}
+                  <hr className="border-gray-200" />
+                  <div className="flex items-center justify-between gap-4 p-2">
+                    <p>
+                      Tổng: <b>{fCurrency(cartStore.getTotalPrice())}</b>
+                    </p>
+                    <Button size="sm" color="primary" className="gap-2" onPress={onCheckout}>
+                      <ShoppingCart size={20} /> Thanh toán
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }
@@ -107,12 +109,14 @@ function CartItem({ item }: CartItemProps) {
               SL: <b>{item.quantity}</b>
             </p>
             <p>
-              <b>{fCurrency(item.product.variants.find((p) => p.id === item.variantId)?.retailPrice)}</b>
+              <b>
+                {fCurrency(item.product.variants.find((p: ProductVariant) => p.id === item.variantId)?.retailPrice)}
+              </b>
             </p>
           </div>
         </div>
       </div>
-      <Button size="sm" variant="ghost" onClick={onDelete}>
+      <Button size="sm" isIconOnly variant="light" onPress={onDelete}>
         <X size={16} className="text-red-500" />
       </Button>
     </div>

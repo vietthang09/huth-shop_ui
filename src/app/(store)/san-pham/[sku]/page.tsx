@@ -13,6 +13,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import parse from "html-react-parser";
 import { toast } from "sonner";
+import { CircularProgress } from "@heroui/react";
 
 const VARIANT_TYPE_LABEL: Record<string, string> = {
   ownership_upgrade: "Nâng cấp chính chủ",
@@ -68,7 +69,11 @@ export default function ProductPage() {
   }, [sku]);
 
   if (!product || !selectedVariant) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-96 flex justify-center items-center">
+        <CircularProgress aria-label="Loading..." size="lg" color="primary" />
+      </div>
+    );
   }
 
   return (

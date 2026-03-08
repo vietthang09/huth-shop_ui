@@ -1,11 +1,19 @@
 "use client";
-import { Button } from "@/components/ui";
+
+import { Button } from "@heroui/react";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 
 export default function VietcombankPage() {
+  const router = useRouter();
   const params = useSearchParams();
   const QRImage = params.get("url") || "";
+
+  const handleConfirm = () => {
+    toast.success("Cảm ơn bạn đã chuyển khoản! Đơn hàng của bạn đang được xử lý.");
+    router.push("/");
+  };
 
   return (
     <div className="flex flex-col items-center space-y-6 p-6">
@@ -17,7 +25,9 @@ export default function VietcombankPage() {
         className="rounded-lg"
       />
 
-      <Button>Xác nhận hoàn thành</Button>
+      <Button color="primary" onPress={handleConfirm}>
+        Xác nhận đã chuyển khoản
+      </Button>
     </div>
   );
 }

@@ -10,6 +10,7 @@ import { Clapperboard, Cpu, Grid2X2, Laptop, ListMusic, Menu } from "lucide-reac
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { DynamicIcon } from "lucide-react/dynamic";
+import {CircularProgress} from "@heroui/react";
 
 const App = () => <DynamicIcon name="camera" color="red" size={48} />;
 export default function Home() {
@@ -38,20 +39,24 @@ export default function Home() {
   const [selectedTab, setSelectedTab] = useState<number>(0);
 
   const [products, setProducts] = useState<Array<Product>>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false)
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
+        setIsLoading(true);
         const response = await findProducts({ categoryId: selectedTab || undefined });
         setProducts(response.data.data);
       } catch (error) {
         console.error("Error fetching products:", error);
+      } finally {
+        setIsLoading(false)
       }
     };
 
     const fetchCategories = async () => {
       try {
-        const response = await findCategories();
+        const response = await findCategories({ limit: 4 });
         setCategories(response.data.data);
       } catch (error) {
         console.error("Error fetching categories:", error);
@@ -111,19 +116,25 @@ export default function Home() {
             className="absolute bottom-0 w-full translate-y-full"
           />
         </div>
-        <div className="-translate-y-24 max-w-7xl mx-auto z-50">
-          <div className="mt-4 grid grid-cols-4 gap-4">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
+        {isLoading ? 
+          <div className="min-h-96 flex justify-center items-center">
+            <CircularProgress aria-label="Loading..." size="lg" color="primary" />
           </div>
+        :
+          <div className="-translate-y-24 max-w-7xl mx-auto z-50">
+            <div className="mt-4 grid grid-cols-4 gap-4">
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
 
-          <div className="mt-4 w-full flex">
-            <button className="mx-auto bg-gray-50 font-bold text-sm rounded-full py-3 min-w-[400px] hover:bg-gray-100 transition-colors duration-300">
-              Xem thêm
-            </button>
+            <div className="mt-4 w-full flex">
+              <button className="mx-auto bg-gray-50 font-bold text-sm rounded-full py-3 min-w-[400px] hover:bg-gray-100 transition-colors duration-300">
+                Xem thêm
+              </button>
+            </div>
           </div>
-        </div>
+        }
       </div>
 
       <div className="max-w-7xl mx-auto">

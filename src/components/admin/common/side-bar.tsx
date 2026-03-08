@@ -48,8 +48,10 @@ const navigationSections: NavSection[] = [
     items: [
       { name: "Sản phẩm", href: "/portal/san-pham", icon: Package },
       { name: "Danh mục", href: "/portal/danh-muc", icon: Tag },
+      { name: "Bài viết", href: "/portal/blog", icon: FileText },
       { name: "Đơn hàng", href: "/portal/don-hang", icon: ShoppingCart },
       { name: "Nhà cung cấp", href: "/portal/nha-cung-cap", icon: Clipboard },
+      { name: "Mã giảm giá", href: "/portal/ma-giam-gia", icon: Tag },
     ],
   },
   // {

@@ -8,13 +8,32 @@ import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import { useCartStore } from "@/store/cartStore";
 import CartButton from "./CartButton";
+import { useRouter } from "next/navigation";
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from "@heroui/react";
+import { Input } from "@heroui/input";
+import { Chip } from "@heroui/chip";
+import { Button } from "@heroui/button";
 
 const Header = () => {
   const { user, isAuthenticated, signOut } = useAuth();
-  const cartStore = useCartStore();
   const [showDropdown, setShowDropdown] = useState(false);
+  const router = useRouter();
+  const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
+  const [searchText, setSearchText] = useState("");
+
+  const handleSearch = () => {
+    router.push(`/tim-kiem?tu-khoa=${searchText}`);
+    onClose();
+  };
+
+  const handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
   return (
-    <nav className="sticky bg-[#ef534f] top-0 z-50 py-4">
+    <nav className="sticky bg-[#ef534f] top-0 z-50 py-4 relative">
       <div className="max-w-7xl mx-auto w-full flex justify-between gap-8 items-center text-sm text-nowrap">
         <Link href="/" className="rounded font-semibold text-xl transition-colors duration-300">
           <Image
@@ -45,9 +64,9 @@ const Header = () => {
           Liên hệ
         </Link>
 
-        <div className="w-full bg-white/20 rounded-full px-4 py-2 flex items-center gap-2">
+        <div className="w-full bg-white/20 rounded-full px-4 py-2 flex items-center gap-2" onClick={onOpen}>
           <Search className="text-white" size={16} />
-          <input placeholder="Tìm trong HuthShop" className="text-white" />
+          <input placeholder="Tìm trong HuthShop" className="text-white focus:outline-none" />
         </div>
 
         <Link
@@ -119,6 +138,34 @@ const Header = () => {
           </>
         )}
       </div>
+
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalBody className="p-8">
+                <Input
+                  placeholder="Tìm trong HuthShop"
+                  value={searchText}
+                  onKeyDown={handleEnter}
+                  onValueChange={setSearchText}
+                />
+
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold text-sm">Tìm kiếm gần đây</span>
+                  <Button size="sm" color="danger" variant="light">
+                    Xóa hết
+                  </Button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Chip variant="bordered">Netflix</Chip>
+                  <Chip variant="bordered">Spotify</Chip>
+                </div>
+              </ModalBody>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </nav>
   );
 };
