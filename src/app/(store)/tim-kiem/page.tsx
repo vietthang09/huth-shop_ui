@@ -8,11 +8,11 @@ import { Breadcrumbs, BreadcrumbItem } from "@heroui/breadcrumbs";
 import { Select, SelectItem } from "@heroui/react";
 import { Pagination } from "@heroui/react";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { findAll } from "@/services/product";
 import { Product } from "@/services/type";
 
-export default function SearchPage() {
+function SearchPageContent() {
   const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -98,5 +98,13 @@ export default function SearchPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="max-w-7xl mx-auto mt-8 text-center text-gray-600">Đang tải...</div>}>
+      <SearchPageContent />
+    </Suspense>
   );
 }

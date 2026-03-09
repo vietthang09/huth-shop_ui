@@ -1,11 +1,12 @@
 "use client";
 
 import { Button } from "@heroui/react";
+import { Suspense } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
-export default function VietcombankPage() {
+function VietcombankPageContent() {
   const router = useRouter();
   const params = useSearchParams();
   const QRImage = params.get("url") || "";
@@ -29,5 +30,13 @@ export default function VietcombankPage() {
         Xác nhận đã chuyển khoản
       </Button>
     </div>
+  );
+}
+
+export default function VietcombankPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center p-6 text-gray-600">Đang tải...</div>}>
+      <VietcombankPageContent />
+    </Suspense>
   );
 }

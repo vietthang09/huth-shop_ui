@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { findAll } from "@/services/blog";
 import { Blog } from "@/services/type";
 import BlogPostCard from "@/components/blog/BlogPostCard";
@@ -100,7 +100,7 @@ const buildTopics = (posts: Post[]): Topic[] => {
   return Object.values(bySlug).sort((a, b) => a.name.localeCompare(b.name));
 };
 
-const BlogListPage = () => {
+const BlogListPageContent = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -327,6 +327,14 @@ const BlogListPage = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const BlogListPage = () => {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 py-12 text-center text-gray-600">Đang tải...</div>}>
+      <BlogListPageContent />
+    </Suspense>
   );
 };
 
