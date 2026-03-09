@@ -155,7 +155,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
       </div>
 
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="2xl">
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="3xl">
         <ModalContent>
           {(onClose) => (
             <>
@@ -169,32 +169,62 @@ export default function ProductCard({ product }: ProductCardProps) {
                     <div className="h-20 w-20 bg-white shadow-xl rounded-xl flex items-center justify-center">
                       <img src={product.images[0]} alt={product.title} width={240} />
                     </div>
-                    <p className="text-2xl font-bold text-primary">{fCurrency(selectedVariant?.retailPrice)}</p>
+                    <div>
+                      <p className="text-2xl font-bold text-primary">{fCurrency(selectedVariant?.retailPrice)}</p>
+                      <p>
+                        {product.title} - {selectedVariant?.title}
+                      </p>
+                    </div>
                   </ModalHeader>
                   <ModalBody className="border-t border-gray-200">
-                    <h3>Chọn gói</h3>
-                    <div className="flex gap-2">
-                      {variants.map((variant) => (
-                        <div
-                          key={variant.id}
-                          className="flex items-center gap-6"
-                          onClick={() => handleVariantSelect(variant)}
-                        >
-                          <div
-                            className={cn(
-                              "rounded-xl p-1 border-2 cursor-pointer bg-gray-50",
-                              selectedVariant?.id === variant.id ? "border-[#ef534f]" : "border-200/50",
-                            )}
-                          >
-                            <div className="text-center text-lg font-semibold bg-white text-[#ef534f] rounded-lg px-4 py-2 text-nowrap">
-                              {variant.title}
-                            </div>
-                            <span className="text-center w-full text-sm p-2 text-nowrap">
-                              {VARIANT_TYPE_LABEL[variant.kind]}
-                            </span>
-                          </div>
-                        </div>
+                    <h3 className="font-semibold">Tính năng</h3>
+                    <ul className="list-disc list-inside mb-4">
+                      {productDetails?.shortDescription.split("|").map((feature, index) => (
+                        <li key={index} className="flex items-center gap-1">
+                          <Check size={16} /> {feature.trim()}
+                        </li>
                       ))}
+                    </ul>
+                    <h3 className="font-semibold">Chọn gói</h3>
+                    <div className="grid grid-cols-4 gap-4 mt-2">
+                      {variants
+                        .sort((a, b) => a.retailPrice - b.retailPrice)
+                        .map((variant) => (
+                          <div
+                            key={variant.id}
+                            className={cn(
+                              "flex items-center gap-6 rounded-3xl",
+                              selectedVariant?.id === variant.id ? "bg-primary" : "bg-gray-200",
+                            )}
+                            onClick={() => handleVariantSelect(variant)}
+                          >
+                            <div
+                              className={cn(
+                                "w-full rounded-2xl border-2 cursor-pointer",
+                                selectedVariant?.id === variant.id
+                                  ? "border-primary bg-primary"
+                                  : "border-white bg-gray-200",
+                              )}
+                            >
+                              <div
+                                className={cn(
+                                  "text-center text-lg font-semibold bg-gray-100 text-[#ef534f] rounded-2xl px-4 py-4 text-nowrap",
+                                  selectedVariant?.id === variant.id ? "text-primary" : "text-neutral-800",
+                                )}
+                              >
+                                {variant.title}
+                              </div>
+                              <p
+                                className={cn(
+                                  "text-center w-full text-sm py-1 text-nowrap",
+                                  selectedVariant?.id === variant.id ? "text-white" : "text-gray-500",
+                                )}
+                              >
+                                {VARIANT_TYPE_LABEL[variant.kind]}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
                     </div>
 
                     {selectedVariant?.fields && selectedVariant.fields.length > 0 && (
@@ -232,10 +262,10 @@ export default function ProductCard({ product }: ProductCardProps) {
                     )}
                   </ModalBody>
                   <ModalFooter className="border-t border-gray-200">
-                    <Button color="default" fullWidth variant="bordered" onPress={onClose}>
+                    <Button color="default" size="lg" fullWidth variant="bordered" onPress={onClose} radius="full">
                       Hủy
                     </Button>
-                    <Button color="primary" fullWidth onPress={() => handleCheckout(onClose)}>
+                    <Button color="primary" size="lg" fullWidth onPress={() => handleCheckout(onClose)} radius="full">
                       Thanh toán
                     </Button>
                   </ModalFooter>

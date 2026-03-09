@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import { TProduct } from "@/services/product";
 import { Product } from "@/services/type";
 
 export type ProductDialogMode = "add" | "edit" | "view";

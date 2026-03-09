@@ -6,54 +6,76 @@ import { findAll as findProducts } from "@/services/product";
 import { findAll as findCategories } from "@/services/category";
 import { Category, Product } from "@/services/type";
 import { cn } from "@/shared/utils/styling";
-import { Clapperboard, Cpu, Grid2X2, Laptop, ListMusic, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { DynamicIcon } from "lucide-react/dynamic";
-import {CircularProgress} from "@heroui/react";
+import { Button, CircularProgress } from "@heroui/react";
 
-const App = () => <DynamicIcon name="camera" color="red" size={48} />;
 export default function Home() {
+  const PRODUCTS_PER_PAGE = 12;
+
   const [categories, setCategories] = useState<Category[]>([]);
-  const tabs = [
-    { name: "Tất cả", icon: <Grid2X2 /> },
-    {
-      id: 1,
-      name: "Video",
-      icon: <Clapperboard />,
-    },
-    {
-      id: 2,
-      name: "Âm nhạc",
-      icon: <ListMusic />,
-    },
-    {
-      name: "AI",
-      icon: <Cpu />,
-    },
-    {
-      name: "Phần mềm",
-      icon: <Laptop />,
-    },
-  ];
   const [selectedTab, setSelectedTab] = useState<number>(0);
 
   const [products, setProducts] = useState<Array<Product>>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+  const [hasMoreProducts, setHasMoreProducts] = useState<boolean>(true);
+
+  const [page, setPage] = useState<number>(1);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setIsLoading(true);
-        const response = await findProducts({ categoryId: selectedTab || undefined });
-        setProducts(response.data.data);
+        const response = await findProducts({
+          categoryId: selectedTab || undefined,
+          page: 1,
+          limit: PRODUCTS_PER_PAGE,
+        });
+        const fetchedProducts = response.data.data;
+
+        setProducts(fetchedProducts);
+        setPage(1);
+        setHasMoreProducts(fetchedProducts.length === PRODUCTS_PER_PAGE);
       } catch (error) {
         console.error("Error fetching products:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     };
 
+    fetchProducts();
+  }, [selectedTab]);
+
+  const handleLoadMoreProducts = async () => {
+    if (isLoadingMore || isLoading || !hasMoreProducts) {
+      return;
+    }
+
+    const nextPage = page + 1;
+
+    try {
+      setIsLoadingMore(true);
+      const response = await findProducts({
+        categoryId: selectedTab || undefined,
+        page: nextPage,
+        limit: PRODUCTS_PER_PAGE,
+      });
+
+      const fetchedProducts = response.data.data;
+      setProducts((prevProducts) => [...prevProducts, ...fetchedProducts]);
+      setPage(nextPage);
+      setHasMoreProducts(fetchedProducts.length === PRODUCTS_PER_PAGE);
+    } catch (error) {
+      console.error("Error loading more products:", error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  useEffect(() => {
     const fetchCategories = async () => {
       try {
         const response = await findCategories({ limit: 4 });
@@ -63,9 +85,8 @@ export default function Home() {
       }
     };
 
-    fetchProducts();
     fetchCategories();
-  }, [selectedTab]);
+  }, []);
 
   return (
     <div className="pb-8">
@@ -116,11 +137,11 @@ export default function Home() {
             className="absolute bottom-0 w-full translate-y-full"
           />
         </div>
-        {isLoading ? 
+        {isLoading ? (
           <div className="min-h-96 flex justify-center items-center">
             <CircularProgress aria-label="Loading..." size="lg" color="primary" />
           </div>
-        :
+        ) : (
           <div className="-translate-y-24 max-w-7xl mx-auto z-50">
             <div className="mt-4 grid grid-cols-4 gap-4">
               {products.map((product) => (
@@ -128,13 +149,20 @@ export default function Home() {
               ))}
             </div>
 
-            <div className="mt-4 w-full flex">
-              <button className="mx-auto bg-gray-50 font-bold text-sm rounded-full py-3 min-w-[400px] hover:bg-gray-100 transition-colors duration-300">
-                Xem thêm
-              </button>
-            </div>
+            {hasMoreProducts && (
+              <div className="mt-4 w-full flex">
+                <Button
+                  onPress={handleLoadMoreProducts}
+                  disabled={!hasMoreProducts || isLoadingMore}
+                  variant="bordered"
+                  className="mx-auto min-w-44"
+                >
+                  {isLoadingMore ? "Đang tải..." : hasMoreProducts ? "Xem thêm" : "Đã hiển thị tất cả"}
+                </Button>
+              </div>
+            )}
           </div>
-        }
+        )}
       </div>
 
       <div className="max-w-7xl mx-auto">

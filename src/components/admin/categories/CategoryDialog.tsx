@@ -6,8 +6,6 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-  Button,
-  Input,
   Textarea,
 } from "@/components/ui";
 import { useCategoryDialog } from "./CategoryDialogContext";
@@ -19,6 +17,7 @@ import { Trash2, Upload, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { Button, Input } from "@heroui/react";
 
 // Zod schema for category validation
 const categorySchema = z.object({
@@ -38,7 +37,11 @@ const categorySchema = z.object({
 
 type CategoryFormData = z.infer<typeof categorySchema>;
 
-export const CategoryDialog: React.FC = () => {
+interface CategoryDialogProps {
+  onSuccess?: () => void | Promise<void>;
+}
+
+export const CategoryDialog: React.FC<CategoryDialogProps> = ({ onSuccess }) => {
   const { isOpen, mode, selectedCategory, closeDialog, isSubmitting, setIsSubmitting } = useCategoryDialog();
 
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
@@ -49,6 +52,7 @@ export const CategoryDialog: React.FC = () => {
   const form = useForm<CategoryFormData>({
     resolver: zodResolver(categorySchema),
     defaultValues: {
+      slug: "",
       title: "",
       description: "",
       icon: "",
@@ -101,13 +105,15 @@ export const CategoryDialog: React.FC = () => {
   React.useEffect(() => {
     if (isOpen) {
       if (mode === "add") {
-        reset({ title: "", description: "", image: "" });
+        reset({ title: "", description: "", image: "", icon: "", slug: "" });
         setImagePreview("");
       } else if ((mode === "edit" || mode === "view") && selectedCategory) {
         reset({
           title: selectedCategory.title,
           description: selectedCategory.description,
           image: selectedCategory.image,
+          icon: selectedCategory.icon || "",
+          slug: selectedCategory.slug || "",
         });
         setImagePreview(selectedCategory.image || "");
       }
@@ -135,21 +141,22 @@ export const CategoryDialog: React.FC = () => {
         slug: data.slug.trim(),
         description: data.description.trim(),
         image: imageUrl,
+        icon: data.icon?.trim() || "",
       };
 
       if (mode === "add") {
         const response = await create(payload);
         if (response.status === 200 || response.status === 201) {
           toast.success("Thêm danh mục thành công");
+          await onSuccess?.();
           closeDialog();
-          window.location.reload();
         }
       } else if (mode === "edit" && selectedCategory) {
         const response = await update(selectedCategory.id, payload);
         if (response.status === 200 || response.status === 201) {
           toast.success("Cập nhật danh mục thành công");
+          await onSuccess?.();
           closeDialog();
-          window.location.reload();
         }
       }
     } catch (error: any) {
@@ -173,10 +180,9 @@ export const CategoryDialog: React.FC = () => {
       const response = await remove(selectedCategory.id);
       if (response.status === 200 || response.status === 204) {
         toast.success(`Đã xóa danh mục "${selectedCategory.title}" thành công`);
+        await onSuccess?.();
         setDeleteDialogOpen(false);
         closeDialog();
-        // Trigger refresh of the parent component
-        window.location.reload();
       }
     } catch (error: any) {
       console.error("Error deleting category:", error);
@@ -411,8 +417,9 @@ export const CategoryDialog: React.FC = () => {
             {mode === "view" && selectedCategory && (
               <Button
                 type="button"
-                variant="destructive"
-                onClick={() => setDeleteDialogOpen(true)}
+                variant="bordered"
+                color="danger"
+                onPress={() => setDeleteDialogOpen(true)}
                 disabled={isSubmitting}
                 className="w-full sm:w-auto"
               >
@@ -423,23 +430,18 @@ export const CategoryDialog: React.FC = () => {
 
             {/* Action buttons on the right */}
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 sm:ml-auto">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={closeDialog}
-                disabled={isSubmitting}
-                className="w-full sm:w-auto"
-              >
+              <Button type="button" variant="bordered" onPress={closeDialog} disabled={isSubmitting}>
                 {mode === "view" ? "Đóng" : "Hủy"}
               </Button>
               {mode !== "view" && (
                 <Button
-                  type="submit"
-                  variant="primary"
+                  type="button"
+                  color="primary"
                   disabled={isSubmitting}
-                  loading={isSubmitting}
-                  className="w-full sm:w-auto"
-                  onClick={handleSubmit(onSubmit)}
+                  isLoading={isSubmitting}
+                  onPress={() => {
+                    void handleSubmit(onSubmit)();
+                  }}
                 >
                   {mode === "add" ? "Thêm danh mục" : "Cập nhật"}
                 </Button>

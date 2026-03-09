@@ -1,20 +1,11 @@
 import axiosInstance from "./axiosInstance";
 import { ApiResponse, Category } from "./type";
 
-export async function create(data: { title: string; description: string; image: string }) {
+export async function create(data: Partial<Category>) {
   return axiosInstance.post("/categories", data);
 }
 
-export type TCategory = {
-  id: number;
-  slug: string;
-  title: string;
-  description: string;
-  image: string;
-  createdAt: string;
-  updatedAt: string;
-};
-export async function findAll(params: any) {
+export async function findAll(params?: any) {
   return axiosInstance.get<ApiResponse<Category[]>>("/categories", { params });
 }
 
@@ -22,7 +13,7 @@ export async function findOne(id: number) {
   return axiosInstance.get(`/categories/${id}`);
 }
 
-export async function update(id: number, data: { title: string; slug: string; description: string; image: string }) {
+export async function update(id: number, data: Partial<Category>) {
   return axiosInstance.patch(`/categories/${id}`, data);
 }
 

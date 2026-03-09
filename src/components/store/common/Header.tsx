@@ -100,8 +100,10 @@ const Header = () => {
                     <ul className="space-y-2">
                       {user.role === "admin" && (
                         <li className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                          <LayoutDashboard size={20} />
-                          Portal
+                          <Link href="/portal" className="flex items-center gap-2">
+                            <LayoutDashboard size={20} />
+                            Portal
+                          </Link>
                         </li>
                       )}
                       <li className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer">
@@ -149,6 +151,7 @@ const Header = () => {
                   value={searchText}
                   onKeyDown={handleEnter}
                   onValueChange={setSearchText}
+                  autoFocus
                 />
 
                 <div className="flex justify-between items-center">

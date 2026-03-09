@@ -1,10 +1,7 @@
-import axios from "axios";
 import axiosInstance, { axiosPublicInstance } from "./axiosInstance";
-import { TCategory } from "./category";
-import { TProductVariant } from "./product-variants";
 import { ProductVariantKind } from "@/types/product";
 import { ProductSortBy, SortOrder } from "@/common/contants";
-import { ApiResponse, Product } from "./type";
+import { ApiResponse, Category, Product } from "./type";
 
 export async function create(data: { sku: string; title: string; categoryId: number }) {
   return axiosInstance.post("/products", data);
@@ -19,8 +16,8 @@ export type TProduct = {
   image: string;
   createdAt: string;
   updatedAt: string;
-  category: TCategory;
-  variants: TProductVariant[];
+  category: Category;
+  variants: ProductVariantKind[];
 };
 export interface FindAllQuery {
   page?: number;

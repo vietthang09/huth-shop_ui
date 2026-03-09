@@ -1,12 +1,13 @@
 "use client";
 
-import { findAll, TCategory } from "@/services/category";
+import { findAll } from "@/services/category";
 import { useEffect, useState } from "react";
-import { TableToolbar, createCommonActions, Table, Button } from "@/components/ui";
+import { TableToolbar, createCommonActions, Table } from "@/components/ui";
 import type { TableToolbarFilter, TableColumn, TableSort } from "@/components/ui";
 import { CategoryDialogProvider, useCategoryDialog, CategoryDialog } from "@/components/admin/categories";
 import { toast } from "sonner";
 import { Category } from "@/services/type";
+import { Button } from "@heroui/react";
 
 function CategoriesPageContent() {
   const { openAddDialog, openEditDialog, openViewDialog } = useCategoryDialog();
@@ -70,8 +71,8 @@ function CategoriesPageContent() {
     // Apply sorting
     if (sort.key && sort.direction) {
       filtered.sort((a, b) => {
-        const aValue = a[sort.key as keyof TCategory];
-        const bValue = b[sort.key as keyof TCategory];
+        const aValue = a[sort.key as keyof Category];
+        const bValue = b[sort.key as keyof Category];
 
         let comparison = 0;
         if (typeof aValue === "string" && typeof bValue === "string") {
@@ -95,7 +96,7 @@ function CategoriesPageContent() {
   }, []);
 
   // Define table columns
-  const columns: TableColumn<TCategory>[] = [
+  const columns: TableColumn<Category>[] = [
     {
       key: "id",
       header: "ID",
@@ -158,17 +159,16 @@ function CategoriesPageContent() {
       render: (_, row) => (
         <div className="flex items-center justify-center gap-1">
           <Button
-            onClick={(e) => {
-              e.stopPropagation();
+            color="primary"
+            onPress={() => {
               openViewDialog(row);
             }}
           >
             Chi tiết
           </Button>
           <Button
-            variant="outline"
-            onClick={(e) => {
-              e.stopPropagation();
+            variant="bordered"
+            onPress={() => {
               openEditDialog(row);
             }}
           >
@@ -291,6 +291,8 @@ function CategoriesPageContent() {
           </Button>
         </div>
       )}
+
+      <CategoryDialog onSuccess={fetchCategories} />
     </div>
   );
 }
@@ -300,7 +302,6 @@ export default function CategoriesPage() {
   return (
     <CategoryDialogProvider>
       <CategoriesPageContent />
-      <CategoryDialog />
     </CategoryDialogProvider>
   );
 }

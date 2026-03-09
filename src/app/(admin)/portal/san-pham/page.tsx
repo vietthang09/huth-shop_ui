@@ -1,12 +1,13 @@
 "use client";
 
-import { findAll, TProduct } from "@/services/product";
+import { findAll } from "@/services/product";
 import { useEffect, useState } from "react";
-import { TableToolbar, createCommonActions, Table, Button } from "@/components/ui";
+import { TableToolbar, createCommonActions, Table } from "@/components/ui";
 import type { TableToolbarFilter, TableColumn, TableSort } from "@/components/ui";
 import { ProductDialogProvider, useProductDialog, ProductDialog } from "@/components/admin/products";
 import { toast } from "sonner";
 import { Product } from "@/services/type";
+import { Button, Pagination } from "@heroui/react";
 
 // Inner component that uses the dialog context
 function ProductsPageContent() {
@@ -18,11 +19,13 @@ function ProductsPageContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFilter, setDateFilter] = useState("");
   const [sort, setSort] = useState<TableSort>({ key: "", direction: null });
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(12);
 
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const response = await findAll();
+      const response = await findAll({ page, limit });
       if (response.status === 200) {
         const data = response.data.data as Product[];
         setProducts(data);
@@ -56,7 +59,7 @@ function ProductsPageContent() {
         (product) =>
           product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
           (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          product.sku.toLowerCase().includes(searchTerm.toLowerCase())
+          product.sku.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
@@ -93,10 +96,10 @@ function ProductsPageContent() {
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [page, limit]);
 
   // Define table columns
-  const columns: TableColumn<TProduct>[] = [
+  const columns: TableColumn<Product>[] = [
     {
       key: "id",
       header: "ID",
@@ -162,17 +165,16 @@ function ProductsPageContent() {
       render: (_, row) => (
         <div className="flex items-center justify-center gap-2">
           <Button
-            onClick={(e) => {
-              e.stopPropagation();
+            color="primary"
+            onPress={() => {
               openViewDialog(row);
             }}
           >
             Chi tiết
           </Button>
           <Button
-            variant="outline"
-            onClick={(e) => {
-              e.stopPropagation();
+            variant="bordered"
+            onPress={() => {
               openEditDialog(row);
             }}
           >
@@ -279,6 +281,10 @@ function ProductsPageContent() {
         stickyHeader
         emptyMessage="Không có sản phẩm nào được tìm thấy"
       />
+
+      <div className="w-full flex justify-center">
+        <Pagination total={2} page={page} onChange={setPage} />
+      </div>
 
       {/* Selection Summary */}
       {selectedRows.length > 0 && (
