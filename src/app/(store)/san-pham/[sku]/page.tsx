@@ -82,35 +82,56 @@ export default function ProductPage() {
         <div className="col-span-2">
           <div>
             <div className="flex gap-4">
-              <div className="h-40 w-40 bg-white shadow-xl rounded-xl flex items-center justify-center">
-                <img src={product.images[0]} alt={product.title} width={240} />
+              <div className="h-40 min-w-40 bg-white shadow-xl rounded-xl flex items-center justify-center">
+                <img src={product.images[0]} alt={product.title} width={240} height={240} />
               </div>
               <div>
                 <h1 className="font-bold text-2xl">{product.title}</h1>
 
                 <h2 className="mt-8 mb-3 font-bold">Chọn gói</h2>
 
-                <div className="flex gap-2">
-                  {product.variants.map((variant) => (
-                    <div className="flex items-center gap-6" onClick={() => setSelectedVariant(variant)}>
-                      <div
-                        className={cn(
-                          "rounded-xl p-1 cursor-pointer",
-                          selectedVariant.id === variant.id ? "bg-[#ef534f]" : "bg-gray-200/50",
-                        )}
-                      >
-                        <div className="text-center text-lg font-semibold bg-white text-[#ef534f] rounded-lg px-4 py-2">
-                          {variant.title}
+                <div className="grid grid-cols-4 gap-4 mt-2">
+                  {product.variants
+                    .sort((a, b) => a.retailPrice - b.retailPrice)
+                    .map((variant) => (
+                      <div className="flex items-center gap-6" onClick={() => setSelectedVariant(variant)}>
+                        <div
+                          className={cn(
+                            "flex items-center gap-6 w-full rounded-3xl",
+                            selectedVariant?.id === variant.id ? "bg-primary" : "bg-gray-200",
+                          )}
+                        >
+                          <div
+                            className={cn(
+                              "w-full rounded-2xl border-2 cursor-pointer",
+                              selectedVariant?.id === variant.id
+                                ? "border-primary bg-primary"
+                                : "border-white bg-gray-200",
+                            )}
+                          >
+                            <div
+                              className={cn(
+                                "text-center text-lg font-semibold bg-gray-100 text-[#ef534f] rounded-2xl px-4 py-4 text-nowrap",
+                                selectedVariant?.id === variant.id ? "text-primary" : "text-neutral-800",
+                              )}
+                            >
+                              {variant.title}
+                            </div>
+                            <p
+                              className={cn(
+                                "text-center w-full text-sm py-1 text-nowrap",
+                                selectedVariant?.id === variant.id ? "text-white" : "text-gray-500",
+                              )}
+                            >
+                              {VARIANT_TYPE_LABEL[variant.kind]}
+                            </p>
+                          </div>
                         </div>
-                        <span className="text-white text-center w-full text-sm p-2">
-                          {VARIANT_TYPE_LABEL[variant.kind]}
-                        </span>
                       </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
 
-                <ul className="mt-8 text-sm flex items-center gap-6">
+                <ul className="mt-8 text-sm flex flex-wrap items-center gap-6">
                   {product.shortDescription?.split("|").map((item, index) => (
                     <li key={index} className="flex items-center gap-1">
                       <Check size={16} /> {item.trim()}

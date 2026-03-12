@@ -1,29 +1,29 @@
 import React from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
   Button,
   Input,
   Select,
+  SelectItem,
   Autocomplete,
-  RichTextEditor,
-} from "@/components/ui";
-import type { AutocompleteOption } from "@/components/ui";
+  AutocompleteItem,
+} from "@heroui/react";
+import { RichTextEditor } from "@/components/ui";
 import { useProductDialog } from "./ProductDialogContext";
 import { create, update, remove } from "@/services/product";
 import { uploadFile } from "@/services/cloud";
-import { findAll as findAllCategories, TCategory } from "@/services/category";
+import { findAll as findAllCategories } from "@/services/category";
 import { findAll as findAllSuppliers, TSupplier } from "@/services/supplier";
 import * as productVariantService from "@/services/product-variants";
 import { TProductVariant } from "@/services/product-variants";
 import { ProductVariantKind } from "@/types/product";
 import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
 import { toast } from "sonner";
-import { Trash2, Upload, X, Plus, Edit3, DollarSign } from "lucide-react";
+import { Trash2, Upload, X, Plus, Edit3, DollarSign, Package, PackagePlus, Pen, Hash, Clock } from "lucide-react";
 import { fCurrency } from "@/shared/utils/format-number";
 import { Category, Supplier } from "@/services/type";
 
@@ -75,7 +75,7 @@ export const ProductDialog: React.FC = () => {
 
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
-  const [categories, setCategories] = React.useState<TCategory[]>([]);
+  const [categories, setCategories] = React.useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = React.useState(false);
 
   // Variant related state
@@ -96,7 +96,7 @@ export const ProductDialog: React.FC = () => {
   const [variantFormErrors, setVariantFormErrors] = React.useState<VariantFormErrors>({});
 
   // Convert categories to autocomplete options
-  const categoryOptions: AutocompleteOption[] = React.useMemo(() => {
+  const categoryOptions = React.useMemo(() => {
     return categories.map((category) => ({
       value: category.id.toString(),
       label: category.title,
@@ -104,7 +104,7 @@ export const ProductDialog: React.FC = () => {
   }, [categories]);
 
   // Convert suppliers to autocomplete options
-  const supplierOptions: AutocompleteOption[] = React.useMemo(() => {
+  const supplierOptions = React.useMemo(() => {
     return suppliers.map((supplier) => ({
       value: supplier.id.toString(),
       label: supplier.name,
@@ -722,497 +722,518 @@ export const ProductDialog: React.FC = () => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={closeDialog}>
-      <DialogContent
-        size="xl"
-        className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col w-[95vw] sm:w-[90vw] md:w-[85vw] lg:w-[80vw] xl:max-w-4xl"
+    <>
+      <Modal
+        isOpen={isOpen}
+        onOpenChange={closeDialog}
+        size="4xl"
+        scrollBehavior="inside"
+        classNames={{ base: "max-h-[90vh]" }}
       >
-        <DialogHeader className="flex-shrink-0">
-          <DialogTitle>{getDialogTitle()}</DialogTitle>
-          <DialogDescription>{getDialogDescription()}</DialogDescription>
-        </DialogHeader>
-
-        <div className="flex-1 overflow-y-auto px-1 -mx-1">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Basic Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="sku" className="block text-sm font-medium text-gray-700 mb-2">
-                  SKU <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  id="sku"
-                  type="text"
-                  placeholder="VD: LAPTOP-DELL-001"
-                  value={formData.sku}
-                  onChange={(e) => handleInputChange("sku", e.target.value)}
-                  disabled={mode === "view"}
-                  className={errors.sku ? "border-red-300 focus:border-red-500 focus:ring-red-500" : ""}
-                />
-                {errors.sku && <p className="mt-1 text-sm text-red-600">{errors.sku}</p>}
-              </div>
-
-              <div>
-                <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700 mb-2">
-                  Danh mục <span className="text-red-500">*</span>
-                </label>
-                <Autocomplete
-                  options={categoryOptions}
-                  value={formData.categoryId}
-                  onChange={(value) => handleInputChange("categoryId", value?.toString() || "")}
-                  disabled={mode === "view" || loadingCategories}
-                  loading={loadingCategories}
-                  placeholder="Chọn danh mục..."
-                  searchPlaceholder="Tìm kiếm danh mục..."
-                  noOptionsText="Không tìm thấy danh mục"
-                  className={errors.categoryId ? "border-red-300 focus:border-red-500 focus:ring-red-500" : ""}
-                  variant={errors.categoryId ? "error" : "default"}
-                />
-                {errors.categoryId && <p className="mt-1 text-sm text-red-600">{errors.categoryId}</p>}
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                Tên sản phẩm <span className="text-red-500">*</span>
-              </label>
-              <Input
-                id="title"
-                type="text"
-                placeholder="Nhập tên sản phẩm..."
-                value={formData.title}
-                onChange={(e) => handleInputChange("title", e.target.value)}
-                disabled={mode === "view"}
-                className={errors.title ? "border-red-300 focus:border-red-500 focus:ring-red-500" : ""}
-              />
-              {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Mô tả ngắn</label>
-              <Input
-                id="shortDescription"
-                type="text"
-                placeholder="Nhập mô tả ngắn về sản phẩm..."
-                value={formData.shortDescription}
-                onChange={(e) => handleInputChange("shortDescription", e.target.value)}
-                disabled={mode === "view"}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                Mô tả sản phẩm
-              </label>
-              <RichTextEditor
-                value={formData.description}
-                onChange={(content) => handleInputChange("description", content)}
-                placeholder="Nhập mô tả sản phẩm..."
-                disabled={mode === "view"}
-                height="250px"
-              />
-              {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
-            </div>
-
-            {/* Image Upload Section */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Hình ảnh sản phẩm</label>
-
-              {mode !== "view" && (
-                <div className="mb-4">
-                  <label htmlFor="image-upload" className="cursor-pointer">
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6 text-center hover:border-gray-400 transition-colors">
-                      <Upload className="mx-auto h-6 w-6 sm:h-8 sm:w-8 text-gray-400 mb-2" />
-                      <p className="text-xs sm:text-sm text-gray-600">Nhấp để tải lên hoặc kéo thả hình ảnh vào đây</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Hỗ trợ JPG, JPEG, PNG, WEBP. Tối đa 5MB mỗi file, 5 ảnh.
-                      </p>
-                    </div>
-                  </label>
-                  <input
-                    id="image-upload"
-                    type="file"
-                    multiple
-                    accept="image/jpeg,image/jpg,image/png,image/webp"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
+        <ModalContent>
+          {() => (
+            <>
+              <ModalHeader className="flex items-start gap-3 border-b border-divider">
+                <div
+                  className={`p-2 rounded-xl shrink-0 mt-0.5 ${
+                    mode === "add"
+                      ? "bg-success-100 text-success-600"
+                      : mode === "edit"
+                        ? "bg-primary-100 text-primary-600"
+                        : "bg-default-100 text-default-600"
+                  }`}
+                >
+                  {mode === "add" ? (
+                    <PackagePlus className="h-5 w-5" />
+                  ) : mode === "edit" ? (
+                    <Pen className="h-5 w-5" />
+                  ) : (
+                    <Package className="h-5 w-5" />
+                  )}
                 </div>
-              )}
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-lg font-semibold leading-tight">{getDialogTitle()}</h2>
+                  <p className="text-sm text-default-400 font-normal mt-0.5">{getDialogDescription()}</p>
+                </div>
+              </ModalHeader>
 
-              {/* Image Preview */}
-              {imagePreviewUrls.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-                  {imagePreviewUrls.map((url, index) => (
-                    <div key={index} className="relative group">
-                      <img
-                        src={url}
-                        alt={`Preview ${index + 1}`}
-                        className="w-full h-20 sm:h-24 object-cover rounded-lg border"
-                      />
+              <ModalBody>
+                <form id="product-form" onSubmit={handleSubmit} className="space-y-6">
+                  {/* Basic Information */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Input
+                      label="SKU"
+                      isRequired
+                      placeholder="VD: LAPTOP-DELL-001"
+                      value={formData.sku}
+                      onValueChange={(v) => handleInputChange("sku", v)}
+                      isDisabled={mode === "view"}
+                      isInvalid={!!errors.sku}
+                      errorMessage={errors.sku}
+                    />
+                    <Autocomplete
+                      label="Danh mục"
+                      isRequired
+                      defaultItems={categoryOptions}
+                      selectedKey={formData.categoryId || null}
+                      onSelectionChange={(key) => handleInputChange("categoryId", key?.toString() || "")}
+                      isDisabled={mode === "view" || loadingCategories}
+                      isLoading={loadingCategories}
+                      placeholder="Chọn danh mục..."
+                      isInvalid={!!errors.categoryId}
+                      errorMessage={errors.categoryId}
+                    >
+                      {(item) => <AutocompleteItem key={item.value}>{item.label}</AutocompleteItem>}
+                    </Autocomplete>
+                  </div>
+
+                  <Input
+                    label="Tên sản phẩm"
+                    isRequired
+                    placeholder="Nhập tên sản phẩm..."
+                    value={formData.title}
+                    onValueChange={(v) => handleInputChange("title", v)}
+                    isDisabled={mode === "view"}
+                    isInvalid={!!errors.title}
+                    errorMessage={errors.title}
+                  />
+
+                  <Input
+                    label="Mô tả ngắn"
+                    placeholder="Nhập mô tả ngắn về sản phẩm..."
+                    value={formData.shortDescription}
+                    onValueChange={(v) => handleInputChange("shortDescription", v)}
+                    isDisabled={mode === "view"}
+                  />
+
+                  <div>
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-default-400 whitespace-nowrap">
+                        Mô tả sản phẩm
+                      </span>
+                      <div className="flex-1 h-px bg-divider" />
+                    </div>
+                    <RichTextEditor
+                      value={formData.description}
+                      onChange={(content) => handleInputChange("description", content)}
+                      placeholder="Nhập mô tả sản phẩm..."
+                      disabled={mode === "view"}
+                      height="250px"
+                    />
+                    {errors.description && <p className="mt-1 text-sm text-danger">{errors.description}</p>}
+                  </div>
+
+                  {/* Image Upload Section */}
+                  <div>
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-default-400 whitespace-nowrap">
+                        Hình ảnh sản phẩm
+                      </span>
+                      <div className="flex-1 h-px bg-divider" />
+                    </div>
+
+                    {mode !== "view" && (
+                      <div className="mb-4">
+                        <label htmlFor="image-upload" className="cursor-pointer">
+                          <div className="border-2 border-dashed border-default-300 rounded-xl p-6 text-center hover:border-primary-300 hover:bg-primary-50/30 transition-all duration-200">
+                            <div className="mx-auto w-10 h-10 rounded-full bg-default-100 flex items-center justify-center mb-3">
+                              <Upload className="h-5 w-5 text-default-500" />
+                            </div>
+                            <p className="text-sm text-default-600 font-medium">
+                              Nhấp để tải lên hoặc kéo thả hình ảnh vào đây
+                            </p>
+                            <p className="text-xs text-default-400 mt-1">
+                              Hỗ trợ JPG, JPEG, PNG, WEBP. Tối đa 5MB mỗi file, 5 ảnh.
+                            </p>
+                          </div>
+                        </label>
+                        <input
+                          id="image-upload"
+                          type="file"
+                          multiple
+                          accept="image/jpeg,image/jpg,image/png,image/webp"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                        />
+                      </div>
+                    )}
+
+                    {imagePreviewUrls.length > 0 && (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+                        {imagePreviewUrls.map((url, index) => (
+                          <div key={index} className="relative group">
+                            <img
+                              src={url}
+                              alt={`Preview ${index + 1}`}
+                              className="w-full h-24 sm:h-28 object-cover rounded-xl border border-default-200"
+                            />
+                            {mode !== "view" && (
+                              <button
+                                type="button"
+                                onClick={() => removeImage(index)}
+                                className="absolute -top-1.5 -right-1.5 bg-danger text-white rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Variants Management Section */}
+                  <div>
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-default-400 whitespace-nowrap">
+                        Variants sản phẩm
+                      </span>
+                      <div className="flex-1 h-px bg-divider" />
                       {mode !== "view" && (
-                        <button
+                        <Button
                           type="button"
-                          onClick={() => removeImage(index)}
-                          className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          size="sm"
+                          color="primary"
+                          variant="flat"
+                          onPress={handleAddVariant}
+                          isDisabled={isSubmitting}
+                          className="shrink-0"
                         >
-                          <X className="h-2 w-2 sm:h-3 sm:w-3" />
-                        </button>
+                          <Plus className="h-4 w-4" />
+                          Thêm variant
+                        </Button>
                       )}
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
 
-            {/* Variants Management Section */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <label className="block text-sm font-medium text-gray-700">Variants sản phẩm</label>
-                {mode !== "view" && (
-                  <Button type="button" variant="outline" size="sm" onClick={handleAddVariant} disabled={isSubmitting}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Thêm variant
-                  </Button>
-                )}
-              </div>
-
-              {/* Existing Variants List */}
-              {variants.length > 0 && (
-                <div className="space-y-3 mb-4">
-                  {variants.map((variant, index) => {
-                    const supplier = suppliers.find((s) => s.id === variant.supplierId);
-                    return (
-                      <div key={variant.id} className="border rounded-lg p-4 bg-gray-50">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                              <div>
-                                <p className="text-sm font-medium text-gray-600">Tên variant</p>
-                                <p className="text-sm text-gray-900">{variant.title}</p>
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium text-gray-600">Giá nhập</p>
-                                <p className="text-sm text-gray-900 font-mono">
-                                  {fCurrency(variant.netPrice, { currency: "VND" })}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium text-gray-600">Giá bán</p>
-                                <p className="text-sm text-gray-900 font-mono">
-                                  {fCurrency(variant.retailPrice, { currency: "VND" })}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium text-gray-600">Nhà cung cấp</p>
-                                <p className="text-sm text-gray-900">{supplier?.name || "N/A"}</p>
+                    {variants.length > 0 && (
+                      <div className="space-y-3 mb-4">
+                        {variants.map((variant) => {
+                          const supplier = suppliers.find((s) => s.id === variant.supplierId);
+                          return (
+                            <div key={variant.id} className="relative border border-default-200 rounded-xl p-4 pl-5 bg-default-50 overflow-hidden">
+                              <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-l-xl" />
+                              <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                                    <div>
+                                      <p className="text-xs font-semibold uppercase tracking-wide text-default-400">Tên variant</p>
+                                      <div className="flex items-center gap-1.5 mt-0.5">
+                                        <p className="text-sm text-foreground font-medium">{variant.title}</p>
+                                        {variant.kind && (
+                                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-700 font-semibold leading-none">
+                                            {variant.kind === "ownership_upgrade" ? "Upgrade" : variant.kind === "pre_made_account" ? "Pre-made" : "Sharing"}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs font-semibold uppercase tracking-wide text-default-400">Giá nhập</p>
+                                      <p className="text-sm text-foreground font-mono mt-0.5">
+                                        {fCurrency(variant.netPrice, { currency: "VND" })}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs font-semibold uppercase tracking-wide text-default-400">Giá bán</p>
+                                      <p className="text-sm text-foreground font-mono mt-0.5">
+                                        {fCurrency(variant.retailPrice, { currency: "VND" })}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs font-semibold uppercase tracking-wide text-default-400">Nhà cung cấp</p>
+                                      <p className="text-sm text-foreground mt-0.5">{supplier?.name || "N/A"}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                                {mode !== "view" && (
+                                  <div className="flex items-center gap-2 ml-4">
+                                    <Button
+                                      type="button"
+                                      variant="bordered"
+                                      size="sm"
+                                      isIconOnly
+                                      onPress={() => handleEditVariant(variant)}
+                                      isDisabled={isSubmitting}
+                                    >
+                                      <Edit3 className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      color="danger"
+                                      size="sm"
+                                      isIconOnly
+                                      onPress={() => handleRemoveVariant(variant.id)}
+                                      isDisabled={isSubmitting}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                )}
                               </div>
                             </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {showVariantForm && (
+                      <div className="border border-default-200 rounded-xl p-5 bg-content2 shadow-sm space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-semibold text-foreground">
+                            {editingVariant ? "Chỉnh sửa variant" : "Thêm variant mới"}
+                          </h4>
+                          <Button
+                            type="button"
+                            variant="light"
+                            size="sm"
+                            isIconOnly
+                            onPress={handleCancelVariantForm}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <Input
+                            label="Tên variant"
+                            isRequired
+                            placeholder="VD: Màu đỏ, Size L..."
+                            value={variantFormData.title}
+                            onValueChange={(v) => handleVariantInputChange("title", v)}
+                            isInvalid={!!variantFormErrors.title}
+                            errorMessage={variantFormErrors.title}
+                          />
+
+                          <Autocomplete
+                            label="Nhà cung cấp"
+                            isRequired
+                            defaultItems={supplierOptions}
+                            selectedKey={variantFormData.supplierId || null}
+                            onSelectionChange={(key) => handleVariantInputChange("supplierId", key?.toString() || "")}
+                            isDisabled={loadingSuppliers}
+                            isLoading={loadingSuppliers}
+                            placeholder="Chọn nhà cung cấp..."
+                            isInvalid={!!variantFormErrors.supplierId}
+                            errorMessage={variantFormErrors.supplierId}
+                          >
+                            {(item) => <AutocompleteItem key={item.value}>{item.label}</AutocompleteItem>}
+                          </Autocomplete>
+
+                          <Select
+                            label="Loại variant (tuỳ chọn)"
+                            selectedKeys={variantFormData.kind ? new Set([variantFormData.kind]) : new Set()}
+                            onSelectionChange={(keys) =>
+                              handleVariantInputChange("kind", Array.from(keys)[0]?.toString() || "")
+                            }
+                            placeholder="-- Không chọn --"
+                          >
+                            <SelectItem key="ownership_upgrade">Ownership upgrade</SelectItem>
+                            <SelectItem key="pre_made_account">Pre-made account</SelectItem>
+                            <SelectItem key="sharing">Sharing</SelectItem>
+                          </Select>
+
+                          <Input
+                            label="Giá nhập"
+                            isRequired
+                            type="number"
+                            placeholder="0"
+                            value={variantFormData.netPrice}
+                            onValueChange={(v) => handleVariantInputChange("netPrice", v)}
+                            isInvalid={!!variantFormErrors.netPrice}
+                            errorMessage={variantFormErrors.netPrice}
+                            min={0}
+                            step={1000}
+                            startContent={
+                              <DollarSign className="h-4 w-4 text-default-400 pointer-events-none flex-shrink-0" />
+                            }
+                          />
+
+                          <Input
+                            label="Giá bán"
+                            isRequired
+                            type="number"
+                            placeholder="0"
+                            value={variantFormData.retailPrice}
+                            onValueChange={(v) => handleVariantInputChange("retailPrice", v)}
+                            isInvalid={!!variantFormErrors.retailPrice}
+                            errorMessage={variantFormErrors.retailPrice}
+                            min={0}
+                            step={1000}
+                            startContent={
+                              <DollarSign className="h-4 w-4 text-default-400 pointer-events-none flex-shrink-0" />
+                            }
+                          />
+
+                          <Input
+                            label="Giá khuyến mãi (tuỳ chọn)"
+                            type="number"
+                            placeholder="0"
+                            value={variantFormData.salePrice}
+                            onValueChange={(v) => handleVariantInputChange("salePrice", v)}
+                            isInvalid={!!variantFormErrors.salePrice}
+                            errorMessage={variantFormErrors.salePrice}
+                            min={0}
+                            step={1000}
+                            startContent={
+                              <DollarSign className="h-4 w-4 text-default-400 pointer-events-none flex-shrink-0" />
+                            }
+                          />
+                        </div>
+
+                        {/* Fields Array Section */}
+                        <div className="mt-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium text-foreground">Trường tuỳ chỉnh (fields)</span>
+                            <Button type="button" size="sm" variant="bordered" onPress={handleAddField}>
+                              <Plus className="h-4 w-4 mr-1" /> Thêm trường
+                            </Button>
                           </div>
-                          {mode !== "view" && (
-                            <div className="flex items-center gap-2 ml-4">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleEditVariant(variant)}
-                                disabled={isSubmitting}
+                          {(variantFormData.fields || []).length === 0 && (
+                            <div className="text-default-400 text-sm">Chưa có trường nào</div>
+                          )}
+                          {(variantFormData.fields || []).map((field, idx) => (
+                            <div key={idx} className="flex gap-2 mb-2 items-center">
+                              <Input
+                                type="text"
+                                placeholder="Nhãn trường (label)"
+                                value={field.label}
+                                onValueChange={(v) => handleFieldChange(idx, "label", v)}
+                                className="w-1/3"
+                              />
+                              <Select
+                                selectedKeys={field.type ? new Set([field.type]) : new Set()}
+                                onSelectionChange={(keys) =>
+                                  handleFieldChange(idx, "type", Array.from(keys)[0]?.toString() || "")
+                                }
+                                placeholder="Kiểu dữ liệu"
+                                className="flex-1"
                               >
-                                <Edit3 className="h-4 w-4" />
-                              </Button>
+                                <SelectItem key="string">Văn bản</SelectItem>
+                                <SelectItem key="number">Số</SelectItem>
+                                <SelectItem key="boolean">Đúng/Sai</SelectItem>
+                              </Select>
+                              <label className="flex items-center gap-1 text-xs">
+                                <input
+                                  type="checkbox"
+                                  checked={!!field.required}
+                                  onChange={(e) => handleFieldChange(idx, "required", e.target.checked)}
+                                />
+                                Bắt buộc
+                              </label>
                               <Button
                                 type="button"
-                                variant="destructive"
                                 size="sm"
-                                onClick={() => handleRemoveVariant(variant.id)}
-                                disabled={isSubmitting}
+                                isIconOnly
+                                color="danger"
+                                onPress={() => handleRemoveField(idx)}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
-                          )}
+                          ))}
+                        </div>
+
+                        <div className="flex justify-end gap-2">
+                          <Button type="button" variant="bordered" onPress={handleCancelVariantForm}>
+                            Hủy
+                          </Button>
+                          <Button type="button" color="primary" onPress={handleSaveVariant}>
+                            {editingVariant ? "Cập nhật" : "Thêm variant"}
+                          </Button>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Variant Form */}
-              {showVariantForm && (
-                <div className="border rounded-lg p-4 bg-blue-50 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-medium text-gray-900">
-                      {editingVariant ? "Chỉnh sửa variant" : "Thêm variant mới"}
-                    </h4>
-                    <Button type="button" variant="outline" size="sm" onClick={handleCancelVariantForm}>
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="variant-title" className="block text-sm font-medium text-gray-700 mb-1">
-                        Tên variant <span className="text-red-500">*</span>
-                      </label>
-                      <Input
-                        id="variant-title"
-                        type="text"
-                        placeholder="VD: Màu đỏ, Size L..."
-                        value={variantFormData.title}
-                        onChange={(e) => handleVariantInputChange("title", e.target.value)}
-                        className={
-                          variantFormErrors.title ? "border-red-300 focus:border-red-500 focus:ring-red-500" : ""
-                        }
-                      />
-                      {variantFormErrors.title && (
-                        <p className="mt-1 text-sm text-red-600">{variantFormErrors.title}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label htmlFor="variant-supplier" className="block text-sm font-medium text-gray-700 mb-1">
-                        Nhà cung cấp <span className="text-red-500">*</span>
-                      </label>
-                      <Autocomplete
-                        options={supplierOptions}
-                        value={variantFormData.supplierId}
-                        onChange={(value) => handleVariantInputChange("supplierId", value?.toString() || "")}
-                        disabled={loadingSuppliers}
-                        loading={loadingSuppliers}
-                        placeholder="Chọn nhà cung cấp..."
-                        searchPlaceholder="Tìm kiếm nhà cung cấp..."
-                        noOptionsText="Không tìm thấy nhà cung cấp"
-                        className={
-                          variantFormErrors.supplierId ? "border-red-300 focus:border-red-500 focus:ring-red-500" : ""
-                        }
-                        variant={variantFormErrors.supplierId ? "error" : "default"}
-                      />
-                      {variantFormErrors.supplierId && (
-                        <p className="mt-1 text-sm text-red-600">{variantFormErrors.supplierId}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label htmlFor="variant-kind" className="block text-sm font-medium text-gray-700 mb-1">
-                        Loại variant (tuỳ chọn)
-                      </label>
-                      <Select
-                        id="variant-kind"
-                        value={variantFormData.kind || ""}
-                        onChange={(e) => handleVariantInputChange("kind", e.target.value)}
-                        className="w-full"
-                      >
-                        <option value="">-- Không chọn --</option>
-                        <option value="ownership_upgrade">Ownership upgrade</option>
-                        <option value="pre_made_account">Pre-made account</option>
-                        <option value="sharing">Sharing</option>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <label htmlFor="variant-net-price" className="block text-sm font-medium text-gray-700 mb-1">
-                        Giá nhập <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="variant-net-price"
-                          type="number"
-                          placeholder="0"
-                          value={variantFormData.netPrice}
-                          onChange={(e) => handleVariantInputChange("netPrice", e.target.value)}
-                          className={`pl-10 ${
-                            variantFormErrors.netPrice ? "border-red-300 focus:border-red-500 focus:ring-red-500" : ""
-                          }`}
-                          min="0"
-                          step="1000"
-                        />
-                      </div>
-                      {variantFormErrors.netPrice && (
-                        <p className="mt-1 text-sm text-red-600">{variantFormErrors.netPrice}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label htmlFor="variant-retail-price" className="block text-sm font-medium text-gray-700 mb-1">
-                        Giá bán <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="variant-retail-price"
-                          type="number"
-                          placeholder="0"
-                          value={variantFormData.retailPrice}
-                          onChange={(e) => handleVariantInputChange("retailPrice", e.target.value)}
-                          className={`pl-10 ${
-                            variantFormErrors.retailPrice
-                              ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-                              : ""
-                          }`}
-                          min="0"
-                          step="1000"
-                        />
-                      </div>
-                      {variantFormErrors.retailPrice && (
-                        <p className="mt-1 text-sm text-red-600">{variantFormErrors.retailPrice}</p>
-                      )}
-                    </div>
-                    <div>
-                      <label htmlFor="variant-retail-price" className="block text-sm font-medium text-gray-700 mb-1">
-                        Giá khuyến mãi <span className="text-gray-400">(tuỳ chọn)</span>
-                      </label>
-                      <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="variant-retail-price"
-                          type="number"
-                          placeholder="0"
-                          value={variantFormData.salePrice}
-                          onChange={(e) => handleVariantInputChange("salePrice", e.target.value)}
-                          className={`pl-10 ${
-                            variantFormErrors.salePrice ? "border-red-300 focus:border-red-500 focus:ring-red-500" : ""
-                          }`}
-                          min="0"
-                          step="1000"
-                        />
-                      </div>
-                      {variantFormErrors.salePrice && (
-                        <p className="mt-1 text-sm text-red-600">{variantFormErrors.salePrice}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Fields Array Section */}
-                  <div className="mt-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-gray-700">Trường tuỳ chỉnh (fields)</span>
-                      <Button type="button" size="sm" variant="outline" onClick={handleAddField}>
-                        <Plus className="h-4 w-4 mr-1" /> Thêm trường
-                      </Button>
-                    </div>
-                    {(variantFormData.fields || []).length === 0 && (
-                      <div className="text-gray-400 text-sm">Chưa có trường nào</div>
                     )}
-                    {(variantFormData.fields || []).map((field, idx) => (
-                      <div key={idx} className="flex gap-2 mb-2 items-center">
-                        <Input
-                          type="text"
-                          placeholder="Nhãn trường (label)"
-                          value={field.label}
-                          onChange={(e) => handleFieldChange(idx, "label", e.target.value)}
-                          className="w-1/3"
-                        />
-                        <Select
-                          value={field.type || ""}
-                          onChange={(e) => handleFieldChange(idx, "type", e.target.value)}
-                          className="w-full"
-                        >
-                          <option value="">Kiểu dữ liệu</option>
-                          <option value="string">Văn bản</option>
-                          <option value="number">Số</option>
-                          <option value="boolean">Đúng/Sai</option>
-                        </Select>
-                        <label className="flex items-center gap-1 text-xs">
-                          <input
-                            type="checkbox"
-                            checked={!!field.required}
-                            onChange={(e) => handleFieldChange(idx, "required", e.target.checked)}
-                          />
-                          Bắt buộc
-                        </label>
-                        <Button type="button" size="icon" variant="destructive" onClick={() => handleRemoveField(idx)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+
+                    {variants.length === 0 && !showVariantForm && (
+                      <div className="text-center py-8 text-default-400">
+                        <Package className="mx-auto h-10 w-10 mb-3 opacity-30" />
+                        <p className="text-sm">Chưa có variant nào được thêm</p>
+                        {mode !== "view" && (
+                          <p className="text-xs mt-1">Nhấp "Thêm variant" để tạo variant đầu tiên</p>
+                        )}
                       </div>
-                    ))}
+                    )}
                   </div>
 
-                  <div className="flex justify-end gap-2">
-                    <Button type="button" variant="outline" onClick={handleCancelVariantForm}>
-                      Hủy
+                  {mode !== "add" && selectedProduct && (
+                    <>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-default-400 whitespace-nowrap">
+                          Thông tin hệ thống
+                        </span>
+                        <div className="flex-1 h-px bg-divider" />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4 bg-default-50 rounded-xl border border-default-100">
+                        <div className="flex items-start gap-2">
+                          <Hash className="h-4 w-4 text-default-400 shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-xs text-default-400 font-medium">ID</p>
+                            <p className="text-sm text-foreground font-mono">#{selectedProduct.id}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <Clock className="h-4 w-4 text-default-400 shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-xs text-default-400 font-medium">Ngày tạo</p>
+                            <p className="text-sm text-foreground">{formatDate(selectedProduct.createdAt)}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <Clock className="h-4 w-4 text-default-400 shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-xs text-default-400 font-medium">Cập nhật lần cuối</p>
+                            <p className="text-sm text-foreground">{formatDate(selectedProduct.updatedAt)}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </form>
+              </ModalBody>
+
+              <ModalFooter className="border-t border-divider">
+                <div className="flex flex-col sm:flex-row sm:justify-between w-full gap-3 sm:gap-2">
+                  {mode === "view" && selectedProduct && (
+                    <Button
+                      type="button"
+                      color="danger"
+                      onPress={() => setDeleteDialogOpen(true)}
+                      isDisabled={isSubmitting}
+                      className="w-full sm:w-auto"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Xóa sản phẩm
                     </Button>
-                    <Button type="button" variant="primary" onClick={handleSaveVariant}>
-                      {editingVariant ? "Cập nhật" : "Thêm variant"}
+                  )}
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 sm:ml-auto">
+                    <Button
+                      type="button"
+                      variant="bordered"
+                      onPress={closeDialog}
+                      isDisabled={isSubmitting}
+                      className="w-full sm:w-auto"
+                    >
+                      {mode === "view" ? "Đóng" : "Hủy"}
                     </Button>
+                    {mode !== "view" && (
+                      <Button
+                        type="submit"
+                        form="product-form"
+                        color="primary"
+                        isDisabled={isSubmitting}
+                        isLoading={isSubmitting}
+                        className="w-full sm:w-auto"
+                      >
+                        {mode === "add" ? "Thêm sản phẩm" : "Cập nhật"}
+                      </Button>
+                    )}
                   </div>
                 </div>
-              )}
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
 
-              {variants.length === 0 && !showVariantForm && (
-                <div className="text-center py-6 text-gray-500">
-                  <p className="text-sm">Chưa có variant nào được thêm</p>
-                  {mode !== "view" && <p className="text-xs mt-1">Nhấp "Thêm variant" để tạo variant đầu tiên</p>}
-                </div>
-              )}
-            </div>
-
-            {/* Show additional info in view/edit mode */}
-            {mode !== "add" && selectedProduct && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">ID</label>
-                  <p className="text-sm text-gray-900 font-mono">#{selectedProduct.id}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Ngày tạo</label>
-                  <p className="text-sm text-gray-900">{formatDate(selectedProduct.createdAt)}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">Cập nhật lần cuối</label>
-                  <p className="text-sm text-gray-900">{formatDate(selectedProduct.updatedAt)}</p>
-                </div>
-              </div>
-            )}
-          </form>
-        </div>
-
-        <DialogFooter className="flex-shrink-0 mt-6">
-          <div className="flex flex-col sm:flex-row sm:justify-between w-full gap-3 sm:gap-2">
-            {/* Delete button on the left (only in view mode) */}
-            {mode === "view" && selectedProduct && (
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={() => setDeleteDialogOpen(true)}
-                disabled={isSubmitting}
-                className="w-full sm:w-auto"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Xóa sản phẩm
-              </Button>
-            )}
-
-            {/* Action buttons on the right */}
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 sm:ml-auto">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={closeDialog}
-                disabled={isSubmitting}
-                className="w-full sm:w-auto"
-              >
-                {mode === "view" ? "Đóng" : "Hủy"}
-              </Button>
-              {mode !== "view" && (
-                <Button
-                  type="submit"
-                  variant="primary"
-                  disabled={isSubmitting}
-                  loading={isSubmitting}
-                  className="w-full sm:w-auto"
-                  onClick={handleSubmit}
-                >
-                  {mode === "add" ? "Thêm sản phẩm" : "Cập nhật"}
-                </Button>
-              )}
-            </div>
-          </div>
-        </DialogFooter>
-      </DialogContent>
-
-      {/* Confirm Delete Dialog */}
       <ConfirmDeleteDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
@@ -1222,6 +1243,6 @@ export const ProductDialog: React.FC = () => {
         confirmText="Xóa sản phẩm"
         isLoading={isDeleting}
       />
-    </Dialog>
+    </>
   );
 };

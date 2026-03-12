@@ -53,7 +53,7 @@ axiosInstance.interceptors.request.use(
   (error: AxiosError) => {
     console.error("❌ Request Error:", error);
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response interceptor for handling responses and errors
@@ -106,7 +106,7 @@ axiosInstance.interceptors.response.use(
     };
 
     return Promise.reject(enhancedError);
-  }
+  },
 );
 
 // Helper function to extract user-friendly error messages

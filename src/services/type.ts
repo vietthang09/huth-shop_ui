@@ -23,6 +23,35 @@ export type Product = {
   variants: ProductVariant[];
 };
 
+export type Order = {
+  id: number;
+  userId: number | null;
+  user: User | null;
+  total: number | string; // Decimal can be represented as string or number
+  status: OrderStatus;
+  notes: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  orderItems: OrderItem[];
+};
+
+export type OrderItem = {
+  id: number;
+  orderId: number;
+  productId: number;
+  variantId: number;
+  quantity: number;
+  total: number;
+  supplierId: number;
+  fields: Record<string, any>;
+  expireAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  product: Product;
+  variant: ProductVariant;
+  supplier: Supplier;
+};
+
 export type Category = {
   id: number;
   slug: string;
@@ -121,6 +150,14 @@ export enum PaymentMethod {
   MOMO = "momo",
   VIETCOMBANK = "vietcombank",
   TPBANK = "tpbank",
+}
+
+export enum OrderStatus {
+  PENDING = "PENDING",
+  PROCESSING = "PROCESSING",
+  DELIVERED = "DELIVERED",
+  CANCELLED = "CANCELLED",
+  REFUNDED = "REFUNDED",
 }
 
 export enum DiscountType {

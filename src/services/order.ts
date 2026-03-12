@@ -1,37 +1,11 @@
-import { Order } from "@/types/order";
 import axiosInstance from "./axiosInstance";
-import { TProduct } from "./product";
-import { TProductVariant } from "./product-variants";
-import { TSupplier } from "./supplier";
-import { PaymentMethod } from "./type";
-import { TUser } from "./user";
-export type TOrderItem = {
-  id: number;
-  orderId: number;
-  productId: number;
-  variantId: number;
-  quantity: number;
-  total: number;
-  supplierId: number;
-  createdAt: string;
-  updatedAt: string;
-  product: TProduct;
-  variant: TProductVariant;
-  supplier: TSupplier;
-  fields: Record<string, any>;
+import { Order, PaymentMethod } from "./type";
+
+export type ProcessOrderItemPayload = {
+  orderItemId: number;
+  expired?: string;
 };
 
-export type TOrder = {
-  id: number;
-  userId: number;
-  total: number;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-  orderItems: TOrderItem[];
-  user: TUser;
-  paymentMethod: PaymentMethod;
-};
 export function createOrder(
   data: {
     productId: number;
@@ -55,6 +29,10 @@ export function findOne(id: number) {
 
 export function getMyOrders() {
   return axiosInstance.get<Order[]>("/orders/my-orders");
+}
+
+export function updateOrder(id: number, data: Partial<Order>) {
+  return axiosInstance.patch<Order>(`/orders/${id}`, data);
 }
 
 export function sendConfirmationEmail(orderId: number, content?: string) {

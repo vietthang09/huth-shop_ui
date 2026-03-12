@@ -56,12 +56,16 @@ export default function CheckoutPage() {
     if (items.length === 0) return;
     try {
       setIsLoading(true);
-      const data = cartStore.cartItems.map((item) => ({
-        productId: item.product.id,
-        variantId: item.variantId!,
-        quantity: item.quantity,
-        fields: item.fields || {},
-      }));
+      const data = cartStore.cartItems.flatMap((item) => {
+        if (typeof item.variantId !== "number") return [];
+
+        return Array.from({ length: item.quantity }, () => ({
+          productId: item.product.id,
+          variantId: item.variantId,
+          quantity: 1,
+          fields: item.fields || {},
+        }));
+      });
       const res = await createOrder(data, selectedMethod, appliedCouponCode || undefined);
       if (res.status === 201) {
         router.push(res.data.paymentUrl);

@@ -1,19 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { TableToolbar, createCommonActions, Table, Button } from "@/components/ui";
+import { TableToolbar, createCommonActions, Table } from "@/components/ui";
 import type { TableToolbarFilter, TableColumn, TableSort } from "@/components/ui";
 
 import { toast } from "sonner";
-import { findAll, TOrder } from "@/services/order";
+import { findAll } from "@/services/order";
 import { fCurrency } from "@/shared/utils/format-number";
-import { TUser } from "@/services/user";
 import { OrderDialog, OrderDialogProvider, useOrderDialog } from "@/components/admin/orders";
+import { Order, User } from "@/services/type";
+import { Button } from "@heroui/react";
 // Inner component that uses the dialog context
 function OrdersPageContent() {
   const { openAddDialog, openEditDialog, openViewDialog, openProcessDialog } = useOrderDialog();
-  const [orders, setOrders] = useState<(TOrder & { user: TUser })[]>([]);
-  const [filteredOrders, setFilteredOrders] = useState<(TOrder & { user: TUser })[]>([]);
+  const [orders, setOrders] = useState<(Order & { user: User })[]>([]);
+  const [filteredOrders, setFilteredOrders] = useState<(Order & { user: User })[]>([]);
   const [selectedRows, setSelectedRows] = useState<(string | number)[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -22,7 +23,7 @@ function OrdersPageContent() {
     try {
       const response = await findAll();
       if (response.status === 200) {
-        const data = response.data as (TOrder & { user: TUser })[];
+        const data = response.data as (Order & { user: User })[];
         setOrders(data);
         setFilteredOrders(data);
       }
@@ -49,7 +50,7 @@ function OrdersPageContent() {
   }, []);
 
   // Define table columns
-  const columns: TableColumn<TOrder & { user: TUser }>[] = [
+  const columns: TableColumn<Order & { user: User }>[] = [
     {
       key: "id",
       header: "ID",
@@ -132,17 +133,16 @@ function OrdersPageContent() {
       render: (_, row) => (
         <div className="flex items-center justify-start gap-1">
           <Button
-            variant="outline"
-            onClick={(e) => {
-              e.stopPropagation();
+            variant="bordered"
+            onPress={() => {
               openViewDialog(row);
             }}
           >
             Chi tiết
           </Button>
           <Button
-            onClick={(e) => {
-              e.stopPropagation();
+            color="primary"
+            onPress={() => {
               openProcessDialog(row);
             }}
           >
@@ -227,7 +227,6 @@ function OrdersPageContent() {
         size="md"
         variant="striped"
         stickyHeader
-        maxHeight="600px"
         emptyMessage="Không có nhà cung cấp nào được tìm thấy"
       />
 
